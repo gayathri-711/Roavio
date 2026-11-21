@@ -241,13 +241,23 @@ export default function MyTrips({ defaultTab = "tickets" }) {
 
             <div className="profile-info-box">
               <div className="profile-title-row">
-                <h1>{user?.name || "Rahul Sharma"}</h1>
-                <span className="member-status-pill">
-                  <ShieldCheck size={14} /> Verified Roavio Traveler
-                </span>
+                <h1>{user?.name || "Guest Traveler"}</h1>
+                {user ? (
+                  <span className="member-status-pill">
+                    <ShieldCheck size={14} /> Verified Roavio Traveler
+                  </span>
+                ) : (
+                  <Link to="/login" className="member-status-pill" style={{ textDecoration: 'none' }}>
+                    <Sparkles size={14} /> Sign In to Access Account
+                  </Link>
+                )}
               </div>
               <p className="profile-sub">
-                {user?.email || "rahul.sharma@example.com"} · {user?.phone || "+91 98765 43210"} · Member since 2026
+                {user ? (
+                  `${user.email} ${user.phone ? `· ${user.phone}` : ""} · Member since 2026`
+                ) : (
+                  "Log in to customize, book, and view your personal trips and confirmed e-tickets."
+                )}
               </p>
             </div>
 
@@ -346,55 +356,94 @@ export default function MyTrips({ defaultTab = "tickets" }) {
 
             {/* If Planned Itineraries filter is selected */}
             {ticketCategoryFilter === "itinerary" ? (
-              <div className="itineraries-cards-grid">
-                {plannedTrips.map((trip) => (
-                  <div key={trip.id} className="itinerary-display-card">
-                    <div className="itinerary-card-head">
-                      <div>
-                        <span className="itinerary-type-tag">PLANNED TRAVEL ITINERARY</span>
-                        <h3>{trip.title}</h3>
+              plannedTrips.length === 0 ? (
+                <div className="empty-state-box text-center p-5 bg-light rounded-3 my-4">
+                  <MapPin size={48} className="text-gray mb-3 mx-auto" />
+                  <h3 className="text-navy">No Planned Itineraries Yet</h3>
+                  <p className="text-muted" style={{ maxWidth: "480px", margin: "0 auto 1.5rem" }}>
+                    You haven't customized any multi-destination travel itineraries on this account yet.
+                  </p>
+                  <Link to="/plan" className="btn btn-primary btn-sm">
+                    <Plus size={14} /> Plan a Custom Journey
+                  </Link>
+                </div>
+              ) : (
+                <div className="itineraries-cards-grid">
+                  {plannedTrips.map((trip) => (
+                    <div key={trip.id} className="itinerary-display-card">
+                      <div className="itinerary-card-head">
+                        <div>
+                          <span className="itinerary-type-tag">PLANNED TRAVEL ITINERARY</span>
+                          <h3>{trip.title}</h3>
+                        </div>
+                        <span className="duration-pill">{trip.durationDays || 5} Days Trip</span>
                       </div>
-                      <span className="duration-pill">{trip.durationDays || 5} Days Trip</span>
-                    </div>
 
-                    <div className="itinerary-meta-row">
-                      <div className="meta-box">
-                        <label>Origin & Destination</label>
-                        <span>{trip.sourceLocation || "New Delhi"} ➔ {trip.destinationState || "India"}</span>
+                      <div className="itinerary-meta-row">
+                        <div className="meta-box">
+                          <label>Origin & Destination</label>
+                          <span>{trip.sourceLocation || "New Delhi"} ➔ {trip.destinationState || "India"}</span>
+                        </div>
+                        <div className="meta-box">
+                          <label>Travel Dates</label>
+                          <span>{trip.startDate || "2026-12-24"} to {trip.endDate || "2026-12-29"}</span>
+                        </div>
+                        <div className="meta-box">
+                          <label>Estimated Budget</label>
+                          <span className="budget-text">₹{(trip.budget || trip.estimatedBudget || 35000).toLocaleString("en-IN")}</span>
+                        </div>
                       </div>
-                      <div className="meta-box">
-                        <label>Travel Dates</label>
-                        <span>{trip.startDate || "2026-12-24"} to {trip.endDate || "2026-12-29"}</span>
-                      </div>
-                      <div className="meta-box">
-                        <label>Estimated Budget</label>
-                        <span className="budget-text">₹{(trip.budget || trip.estimatedBudget || 35000).toLocaleString("en-IN")}</span>
-                      </div>
-                    </div>
 
-                    <div className="itinerary-notice-banner">
-                      <span>⚠️ Note: This is a route plan and travel itinerary, not a confirmed transport admission ticket.</span>
-                    </div>
+                      <div className="itinerary-notice-banner">
+                        <span>⚠️ Note: This is a route plan and travel itinerary, not a confirmed transport admission ticket.</span>
+                      </div>
 
-                    <div className="itinerary-card-actions">
-                      <button 
-                        onClick={() => handleDownloadItineraryPdf(trip)}
-                        disabled={downloadingId === `itn-${trip.id || trip.itineraryId || "01"}`}
-                        className="btn btn-outline btn-sm"
-                      >
-                        <Download size={14} /> {downloadingId === `itn-${trip.id || trip.itineraryId || "01"}` ? "Downloading PDF..." : "Download Itinerary PDF"}
-                      </button>
-                      <Link to="/map" className="btn btn-primary btn-sm">
-                        <MapPin size={14} /> View Interactive Map
-                      </Link>
+                      <div className="itinerary-card-actions">
+                        <button 
+                          onClick={() => handleDownloadItineraryPdf(trip)}
+                          disabled={downloadingId === `itn-${trip.id || trip.itineraryId || "01"}`}
+                          className="btn btn-outline btn-sm"
+                        >
+                          <Download size={14} /> {downloadingId === `itn-${trip.id || trip.itineraryId || "01"}` ? "Downloading PDF..." : "Download Itinerary PDF"}
+                        </button>
+                        <Link to="/map" className="btn btn-primary btn-sm">
+                          <MapPin size={14} /> View Interactive Map
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )
             ) : (
               /* Confirmed Tickets Cards Stack */
-              <div className="tickets-cards-stack">
-                {filteredBookings.map((b) => (
+              filteredBookings.length === 0 ? (
+                <div className="empty-state-box text-center p-5 bg-light rounded-3 my-4">
+                  <TicketCheck size={48} className="text-gray mb-3 mx-auto" />
+                  <h3 className="text-navy">No Confirmed Tickets Yet</h3>
+                  <p className="text-muted" style={{ maxWidth: "520px", margin: "0 auto 1.5rem" }}>
+                    Your account is clean with no bookings yet. Choose your preferred travel or route below to book tickets for your trip.
+                  </p>
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    <Link to="/plan" className="btn btn-primary btn-sm">
+                      <Sparkles size={14} /> Plan Custom Journey
+                    </Link>
+                    <Link to="/flights" className="btn btn-outline btn-sm">
+                      <Plane size={14} /> Book Flights
+                    </Link>
+                    <Link to="/trains" className="btn btn-outline btn-sm">
+                      <Train size={14} /> Book Trains
+                    </Link>
+                    <Link to="/buses" className="btn btn-outline btn-sm">
+                      <Bus size={14} /> Book Buses
+                    </Link>
+                    <Link to="/explore-india" className="btn btn-outline btn-sm">
+                      <Compass size={14} /> Explore Attractions
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="tickets-cards-stack">
+                  {filteredBookings.map((b) => (
                   <div key={b.id || b.bookingId} className="ticket-card-box">
                     <div className="ticket-card-top">
                       <div className="ticket-type-group">
@@ -536,7 +585,7 @@ export default function MyTrips({ defaultTab = "tickets" }) {
                   </div>
                 ))}
               </div>
-            )}
+            ))}
           </div>
         )}
 
@@ -582,19 +631,26 @@ export default function MyTrips({ defaultTab = "tickets" }) {
                   View All Tickets →
                 </button>
               </div>
-              <div className="mini-bookings-list">
-                {bookings.slice(0, 3).map((b) => (
-                  <div key={b.id || b.bookingId} className="mini-ticket-row">
-                    <div>
-                      <strong>{b.title}</strong>
-                      <p className="text-muted text-sm">{b.route || b.destination} · {b.date || b.travelDate}</p>
+              {bookings.length === 0 ? (
+                <div className="p-4 bg-light rounded-3 text-center text-muted">
+                  <p className="mb-2">No recent bookings found for this account.</p>
+                  <Link to="/plan" className="btn btn-sm btn-primary">Start Planning Your Journey</Link>
+                </div>
+              ) : (
+                <div className="mini-bookings-list">
+                  {bookings.slice(0, 3).map((b) => (
+                    <div key={b.id || b.bookingId} className="mini-ticket-row">
+                      <div>
+                        <strong>{b.title}</strong>
+                        <p className="text-muted text-sm">{b.route || b.destination} · {b.date || b.travelDate}</p>
+                      </div>
+                      <button onClick={() => setTicketModalItem(b)} className="btn btn-sm btn-outline">
+                        View Ticket
+                      </button>
                     </div>
-                    <button onClick={() => setTicketModalItem(b)} className="btn btn-sm btn-outline">
-                      View Ticket
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -607,29 +663,42 @@ export default function MyTrips({ defaultTab = "tickets" }) {
               <p>Confirmed transport tickets, entry passes, and planned route milestones.</p>
             </div>
 
-            <div className="upcoming-cards-stack">
-              {plannedTrips.map((trip) => (
-                <div key={trip.id} className="upcoming-trip-card">
-                  <div className="trip-card-header">
-                    <div className="trip-time-tag">
-                      <Calendar size={14} />
-                      <span>{trip.startDate || trip.dates || "2026-12-24"}</span>
+            {plannedTrips.length === 0 && bookings.length === 0 ? (
+              <div className="empty-state-box text-center p-5 bg-light rounded-3 my-4">
+                <Calendar size={48} className="text-gray mb-3 mx-auto" />
+                <h3 className="text-navy">No Upcoming Travel Schedules</h3>
+                <p className="text-muted" style={{ maxWidth: "480px", margin: "0 auto 1.5rem" }}>
+                  Your journey dates, boarding passes, and monument visit schedules will appear here once you plan or book a trip.
+                </p>
+                <Link to="/plan" className="btn btn-primary btn-sm">
+                  <Plus size={14} /> Plan Your First Trip
+                </Link>
+              </div>
+            ) : (
+              <div className="upcoming-cards-stack">
+                {plannedTrips.map((trip) => (
+                  <div key={trip.id} className="upcoming-trip-card">
+                    <div className="trip-card-header">
+                      <div className="trip-time-tag">
+                        <Calendar size={14} />
+                        <span>{trip.startDate || trip.dates || "2026-12-24"}</span>
+                      </div>
+                      <span className="badge badge-green">Confirmed Itinerary</span>
                     </div>
-                    <span className="badge badge-green">Confirmed Itinerary</span>
-                  </div>
 
-                  <div className="trip-card-content">
-                    <h3>{trip.title}</h3>
-                    <p className="trip-summary-line">Exploring {trip.destinationState || "India"}</p>
+                    <div className="trip-card-content">
+                      <h3>{trip.title}</h3>
+                      <p className="trip-summary-line">Exploring {trip.destinationState || "India"}</p>
 
-                    <div className="trip-footer-meta">
-                      <span>Travelers: <strong>{trip.travelers || 2} Persons</strong></span>
-                      <span>Total Budget: <strong>₹{(trip.budget || trip.estimatedBudget || 35000).toLocaleString("en-IN")}</strong></span>
+                      <div className="trip-footer-meta">
+                        <span>Travelers: <strong>{trip.travelers || 2} Persons</strong></span>
+                        <span>Total Budget: <strong>₹{(trip.budget || trip.estimatedBudget || 35000).toLocaleString("en-IN")}</strong></span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -646,43 +715,56 @@ export default function MyTrips({ defaultTab = "tickets" }) {
               </Link>
             </div>
 
-            <div className="planned-trips-grid">
-              {plannedTrips.map((trip) => (
-                <div key={trip.id} className="planned-journey-card">
-                  <div className="p-card-header">
-                    <h3>{trip.title}</h3>
-                    <button 
-                      onClick={() => removePlannedTrip(trip.id)}
-                      className="delete-trip-btn" 
-                      title="Delete this itinerary"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+            {plannedTrips.length === 0 ? (
+              <div className="empty-state-box text-center p-5 bg-light rounded-3 my-4">
+                <MapPin size={48} className="text-gray mb-3 mx-auto" />
+                <h3 className="text-navy">No Planned Journeys Yet</h3>
+                <p className="text-muted" style={{ maxWidth: "480px", margin: "0 auto 1.5rem" }}>
+                  Design custom multi-destination routes across India's 175+ destinations using our Itinerary Architect.
+                </p>
+                <Link to="/plan" className="btn btn-primary btn-sm">
+                  <Plus size={14} /> Start Planning an Itinerary
+                </Link>
+              </div>
+            ) : (
+              <div className="planned-trips-grid">
+                {plannedTrips.map((trip) => (
+                  <div key={trip.id} className="planned-journey-card">
+                    <div className="p-card-header">
+                      <h3>{trip.title}</h3>
+                      <button 
+                        onClick={() => removePlannedTrip(trip.id)}
+                        className="delete-trip-btn" 
+                        title="Delete this itinerary"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
 
-                  <div className="p-card-meta">
-                    <div className="p-meta-item">
-                      <Calendar size={14} className="text-green" />
-                      <span>{trip.startDate || "2026-12-24"} ({trip.durationDays || 5} Days)</span>
+                    <div className="p-card-meta">
+                      <div className="p-meta-item">
+                        <Calendar size={14} className="text-green" />
+                        <span>{trip.startDate || "2026-12-24"} ({trip.durationDays || 5} Days)</span>
+                      </div>
+                      <div className="p-meta-item">
+                        <MapPin size={14} className="text-orange" />
+                        <span>Starting from {trip.sourceLocation || "New Delhi"}</span>
+                      </div>
                     </div>
-                    <div className="p-meta-item">
-                      <MapPin size={14} className="text-orange" />
-                      <span>Starting from {trip.sourceLocation || "New Delhi"}</span>
-                    </div>
-                  </div>
 
-                  <div className="p-card-footer">
-                    <div>
-                      <span className="p-budget-label">Total Estimated Cost:</span>
-                      <span className="p-budget-val">₹{(trip.budget || trip.estimatedBudget || 35000).toLocaleString("en-IN")}</span>
+                    <div className="p-card-footer">
+                      <div>
+                        <span className="p-budget-label">Total Estimated Cost:</span>
+                        <span className="p-budget-val">₹{(trip.budget || trip.estimatedBudget || 35000).toLocaleString("en-IN")}</span>
+                      </div>
+                      <Link to="/map" className="btn btn-sm btn-outline">
+                        View Route Map
+                      </Link>
                     </div>
-                    <Link to="/map" className="btn btn-sm btn-outline">
-                      View Route Map
-                    </Link>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

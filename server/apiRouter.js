@@ -261,9 +261,22 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
     // GET /api/bookings/my-tickets
     if (pathname === '/api/bookings/my-tickets' && req.method === 'GET') {
       res.setHeader('Content-Type', 'application/json');
-      const userId = searchParams.get('userId') || 'usr-101';
-      const userTickets = dbStore.bookings.filter(b => b.userId === userId);
-      const userItineraries = dbStore.itineraries.filter(i => i.userId === userId);
+      const userId = searchParams.get('userId');
+      const email = searchParams.get('email');
+
+      let userTickets = [];
+      let userItineraries = [];
+
+      if (userId || email) {
+        userTickets = dbStore.bookings.filter(b => 
+          (userId && b.userId === userId) || 
+          (email && b.email && b.email.toLowerCase() === email.toLowerCase())
+        );
+        userItineraries = dbStore.itineraries.filter(i => 
+          (userId && i.userId === userId) || 
+          (email && i.email && i.email.toLowerCase() === email.toLowerCase())
+        );
+      }
 
       res.writeHead(200);
       res.end(JSON.stringify({
