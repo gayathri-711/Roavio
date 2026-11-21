@@ -45,7 +45,9 @@ import {
   Layers,
   Luggage,
   Sliders,
-  CheckSquare
+  CheckSquare,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { DESTINATIONS, calculateDistanceKm, getDestinationById } from "../data/destinations";
 import { getHotelsForDestination } from "../data/hotels";
@@ -119,6 +121,21 @@ export default function PlanJourney() {
     }
     return ["ooty"];
   });
+
+  // Expandable "See Details / Hide" state for tourist stops & hotels
+  const [expandedStopIds, setExpandedStopIds] = useState([]);
+  const toggleStopDetails = (id) => {
+    setExpandedStopIds((prev) => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const [expandedHotelIds, setExpandedHotelIds] = useState([]);
+  const toggleHotelDetails = (id) => {
+    setExpandedHotelIds((prev) => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
 
   // =========================================================================
   // TWO-CHOICE ARCHITECTURE STATE
@@ -250,8 +267,7 @@ export default function PlanJourney() {
 
   // Available Hotels for the chosen destination
   const availableHotels = useMemo(() => {
-    const list = getHotelsForDestination(primaryDest?.id, primaryDest?.city);
-    return list;
+    return getHotelsForDestination(primaryDest?.id, primaryDest?.city);
   }, [primaryDest]);
 
   // Filtered hotels based on budget tier
@@ -332,7 +348,6 @@ export default function PlanJourney() {
   // =========================================================================
   // CHOICE 2: ROAVIO FIXED BUDGET PACKAGES
   // E.g., ₹9,999 2-Day Ooty Plan, ₹14,999 3-Day Plan, ₹21,999 4-Day Plan
-  // Where Roavio arranges return tickets, hotel stay, food, and sightseeing within that fixed budget!
   // =========================================================================
   const fixedPackages = useMemo(() => {
     const destName = primaryDest?.name || "Ooty";
@@ -701,11 +716,15 @@ export default function PlanJourney() {
             </p>
           </div>
 
-          <div className="choice-tabs-grid">
+          <div className="mobile-slide-hint d-md-none">
+            <span>👉 Swipe horizontally to compare planning choices</span>
+          </div>
+
+          <div className="choice-tabs-grid mobile-slide-track">
             {/* Choice 1 Tab */}
             <div 
               onClick={() => setPlanMode("custom")}
-              className={`choice-tab-card ${planMode === "custom" ? "active" : ""}`}
+              className={`choice-tab-card mobile-slide-item ${planMode === "custom" ? "active" : ""}`}
             >
               <div className="choice-tab-top">
                 <span className="choice-badge badge-custom">CHOICE 1: CUSTOM BUILD</span>
@@ -727,7 +746,7 @@ export default function PlanJourney() {
             {/* Choice 2 Tab */}
             <div 
               onClick={() => setPlanMode("fixed")}
-              className={`choice-tab-card ${planMode === "fixed" ? "active" : ""}`}
+              className={`choice-tab-card mobile-slide-item ${planMode === "fixed" ? "active" : ""}`}
             >
               <div className="choice-tab-top">
                 <span className="choice-badge badge-fixed">CHOICE 2: FIXED BUDGET PACKAGES</span>
@@ -775,7 +794,7 @@ export default function PlanJourney() {
 
                 <div className="form-group">
                   <label className="fw-bold d-block mb-1">Trip Style / Journey Mode</label>
-                  <div className="d-flex gap-2">
+                  <div className="d-flex flex-column flex-sm-row gap-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -851,17 +870,17 @@ export default function PlanJourney() {
               <div className="card-section-title">
                 <span className="step-num">2</span>
                 <div>
-                  <h3>Attraction & Destination Selected</h3>
-                  <p>Focused destination for this journey</p>
+                  <h3>Select & Order Tourist Attractions</h3>
+                  <p>Choose from India's destinations or focus on your chosen place</p>
                 </div>
               </div>
 
               {selectedDestinations.length === 1 && (
-                <div className="single-dest-focus-banner p-3 rounded-3 mb-3 d-flex align-items-center justify-content-between" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534' }}>
-                  <div className="d-flex align-items-center gap-2">
-                    <CheckCircle2 size={18} />
+                <div className="single-dest-focus-banner p-3 rounded-3 mb-3">
+                  <div className="d-flex align-items-start gap-2">
+                    <CheckCircle2 size={18} className="text-green flex-shrink-0 mt-1" />
                     <span className="small fw-bold">
-                      Direct Trip: Traveling exclusively to {selectedDestinations[0].name} ({selectedDestinations[0].city}, {selectedDestinations[0].state}).
+                      Direct Trip: Traveling exclusively to {selectedDestinations[0].name} ({selectedDestinations[0].city}, {selectedDestinations[0].state}). No unwanted round-trip circuits or extra cities.
                     </span>
                   </div>
                 </div>
@@ -919,7 +938,7 @@ export default function PlanJourney() {
                 )}
               </div>
 
-              {/* Selected Stops Ordered List */}
+              {/* Selected Stops Ordered List with Slide & See Details / Hide Support */}
               <div className="selected-stops-list">
                 {selectedDestinations.length === 0 ? (
                   <div className="empty-stops-prompt">
@@ -927,15 +946,78 @@ export default function PlanJourney() {
                     <p>No destinations added yet. Search above to add attractions to your itinerary.</p>
                   </div>
                 ) : (
-                  selectedDestinations.map((dest, idx) => (
-                    <div key={dest.id} className="selected-stop-card">
-                      <div className="stop-index-pill">
-                        {selectedDestinations.length === 1 ? "Direct Destination" : `Stop #${idx + 1}`}
-                      </div>
-                      <img src={dest.image} alt={dest.name} className="stop-img" />
-                      <div className="stop-details">
-                        <div className="stop-title-flex">
-                          <h4>{dest.name}</h4>
+                  selectedDestinations.map((dest, idx) => {
+                    const isExpanded = expandedStopIds.includes(dest.id);
+                    return (
+                      <div key={dest.id} className="selected-stop-card">
+                        {/* Top Bar on Mobile: Pill on left, Reorder & Delete actions on right */}
+                        <div className="stop-card-topbar">
+                          <div className="stop-index-pill">
+                            {selectedDestinations.length === 1 ? "Direct Destination" : `Stop #${idx + 1}`}
+                          </div>
+
+                          <div className="stop-actions">
+                            {selectedDestinations.length > 1 && (
+                              <>
+                                <button 
+                                  disabled={idx === 0} 
+                                  onClick={() => moveStop(idx, -1)}
+                                  className="reorder-btn" 
+                                  title="Move stop earlier"
+                                >
+                                  <MoveUp size={14} />
+                                </button>
+                                <button 
+                                  disabled={idx === selectedDestinations.length - 1} 
+                                  onClick={() => moveStop(idx, 1)}
+                                  className="reorder-btn" 
+                                  title="Move stop later"
+                                >
+                                  <MoveDown size={14} />
+                                </button>
+                              </>
+                            )}
+                            <button 
+                              onClick={() => removeStop(dest.id)}
+                              className="delete-stop-btn" 
+                              title="Remove from itinerary"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Main Info Row: Thumbnail + Title + Meta */}
+                        <div className="stop-card-main">
+                          <img src={dest.image} alt={dest.name} className="stop-img" />
+                          <div className="stop-details">
+                            <h4 className="stop-name">{dest.name}</h4>
+                            <span className="stop-state">{dest.city || dest.name}, {dest.state} · {dest.category}</span>
+                            <div className="stop-meta-tags">
+                              <span className="meta-tag">⏱️ {dest.bestTime}</span>
+                              <span className="meta-tag">💰 ₹{dest.estimatedBudget?.toLocaleString()} est.</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Footer Action Row: See Details / Hide + Explore Photo & Link */}
+                        <div className="stop-card-footer">
+                          <button
+                            type="button"
+                            onClick={() => toggleStopDetails(dest.id)}
+                            className="btn-toggle-details-pill"
+                          >
+                            {isExpanded ? (
+                              <>
+                                <ChevronUp size={14} /> Hide Details
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown size={14} /> See Details
+                              </>
+                            )}
+                          </button>
+
                           <div className="explore-btn-group">
                             <button
                               type="button"
@@ -960,51 +1042,38 @@ export default function PlanJourney() {
                             </Link>
                           </div>
                         </div>
-                        <span className="stop-state">{dest.state} · {dest.category}</span>
-                        <div className="stop-meta">
-                          <span>⏱️ {dest.bestTime}</span>
-                          <span>💰 ₹{dest.estimatedBudget?.toLocaleString()} est.</span>
-                        </div>
-                      </div>
 
-                      {/* Reorder and Delete Actions */}
-                      <div className="stop-actions">
-                        <button 
-                          disabled={idx === 0} 
-                          onClick={() => moveStop(idx, -1)}
-                          className="reorder-btn" 
-                          title="Move stop earlier"
-                        >
-                          <MoveUp size={16} />
-                        </button>
-                        <button 
-                          disabled={idx === selectedDestinations.length - 1} 
-                          onClick={() => moveStop(idx, 1)}
-                          className="reorder-btn" 
-                          title="Move stop later"
-                        >
-                          <MoveDown size={16} />
-                        </button>
-                        <button 
-                          onClick={() => removeStop(dest.id)}
-                          className="delete-stop-btn" 
-                          title="Remove from itinerary"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {/* Expandable Details Drawer */}
+                        {isExpanded && (
+                          <div className="stop-expanded-drawer">
+                            <p className="stop-expanded-desc">{dest.description}</p>
+                            {dest.highlights && dest.highlights.length > 0 && (
+                              <div className="stop-highlights-wrap">
+                                <span className="stop-hl-title">Highlights:</span>
+                                {dest.highlights.slice(0, 3).map((h, i) => (
+                                  <span key={i} className="stop-hl-chip">✓ {h}</span>
+                                ))}
+                              </div>
+                            )}
+                            <div className="stop-extra-specs">
+                              <span>🕒 Hours: {dest.openingHours || "Sunrise to Sunset"}</span>
+                              <span>🎟️ Entry: {dest.ticketPrice === 0 ? "Free Entry" : `₹${dest.ticketPrice} / person`}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
 
-            {/* Prominent Destination Details & Explore Showcase */}
+            {/* Prominent Destination Details & Explore Showcase with Responsive Badges */}
             {primaryDest && (
               <div className="dest-spotlight-card mb-4">
                 <div className="spotlight-header">
-                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <div className="d-flex align-items-center gap-2">
+                  <div className="spotlight-header-top">
+                    <div className="badge-pills-wrap">
                       <span className="badge-pill-accent">{primaryDest.badge || "Featured Destination"}</span>
                       <span className="badge-pill-cat">{primaryDest.categoryName || primaryDest.category}</span>
                       <span className="badge-pill-rating">★ {primaryDest.rating || "4.7"} ({primaryDest.reviews ? primaryDest.reviews.toLocaleString() : "12,000"} ratings)</span>
@@ -1014,15 +1083,15 @@ export default function PlanJourney() {
                       onClick={() => setShowDestDetails(!showDestDetails)}
                       className="btn-toggle-spotlight"
                     >
-                      {showDestDetails ? "Hide Quick Details ▲" : "Explore Destination Highlights ▼"}
+                      {showDestDetails ? "Hide Quick Details ▲" : "See Destination Highlights ▼"}
                     </button>
                   </div>
                   <h2 className="spotlight-title mt-2">{primaryDest.name}</h2>
                   <div className="spotlight-loc-row">
-                    <MapPin size={15} className="text-green" />
+                    <MapPin size={15} className="text-green flex-shrink-0" />
                     <span>{primaryDest.city}, {primaryDest.state}</span>
                     <span className="dot-sep">·</span>
-                    <Clock size={15} className="text-navy" />
+                    <Clock size={15} className="text-navy flex-shrink-0" />
                     <span>Best Time: {primaryDest.bestTime}</span>
                   </div>
                 </div>
@@ -1033,8 +1102,8 @@ export default function PlanJourney() {
                       <div className="spotlight-img-box">
                         <img src={primaryDest.image} alt={primaryDest.name} className="spotlight-main-img" />
                         {primaryDest.gallery && primaryDest.gallery.length > 0 && (
-                          <div className="spotlight-thumbs">
-                            {[primaryDest.image, ...primaryDest.gallery].slice(0, 4).map((gImg, i) => (
+                          <div className="spotlight-thumbs mobile-slide-track">
+                            {[primaryDest.image, ...primaryDest.gallery].slice(0, 5).map((gImg, i) => (
                               <img key={i} src={gImg} alt="Gallery" className="spotlight-thumb" />
                             ))}
                           </div>
@@ -1048,7 +1117,7 @@ export default function PlanJourney() {
                           <ul className="spotlight-highlights-list">
                             {primaryDest.highlights?.map((h, i) => (
                               <li key={i}>
-                                <CheckCircle2 size={15} className="text-green me-1" />
+                                <CheckCircle2 size={15} className="text-green flex-shrink-0 me-1" />
                                 <span>{h}</span>
                               </li>
                             ))}
@@ -1091,9 +1160,9 @@ export default function PlanJourney() {
             {/* =========================================================================
                 CHOICE 1: CUSTOM BUILD YOUR TRIP SECTION
                 Visible when planMode === "custom"
-                1. Decide Days
-                2. Travel Tickets List (Flight, Train, Bus, Cab)
-                3. Hotels List by Budget
+                1. Decide Days (Slideable)
+                2. Travel Tickets List (Slideable)
+                3. Hotels List by Budget (Slideable & Expandable)
                 4. Food & Sightseeing Options
                 5. Auto Calculate Cost
             ========================================================================= */}
@@ -1105,13 +1174,17 @@ export default function PlanJourney() {
                     <span className="step-num">3</span>
                     <div>
                       <h3>Step 1: Decide Trip Duration (How Many Days?)</h3>
-                      <p>Select your planned stay duration or customize dates</p>
+                      <p>Select duration preset or customize dates</p>
                     </div>
                   </div>
 
                   <div className="duration-picker-wrap">
-                    <label className="duration-label mb-2 d-block">Quick Duration Presets:</label>
-                    <div className="duration-presets-grid">
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <label className="duration-label m-0">Quick Duration Presets:</label>
+                      <span className="mobile-slide-hint d-md-none">👉 Swipe presets</span>
+                    </div>
+
+                    <div className="duration-presets-grid mobile-slide-track">
                       {[
                         { days: 2, label: "2 Days / 1 Night", badge: "Weekend Getaway" },
                         { days: 3, label: "3 Days / 2 Nights", badge: "Short Holiday" },
@@ -1125,7 +1198,7 @@ export default function PlanJourney() {
                             key={preset.days}
                             type="button"
                             onClick={() => handleSelectDurationDays(preset.days)}
-                            className={`duration-preset-btn ${isSelected ? "active" : ""}`}
+                            className={`duration-preset-btn mobile-slide-item ${isSelected ? "active" : ""}`}
                           >
                             <div className="preset-top">
                               <span className="preset-days">{preset.days} Days</span>
@@ -1159,7 +1232,7 @@ export default function PlanJourney() {
                     </div>
 
                     <div className="duration-selected-alert mt-2">
-                      <Calendar size={16} className="text-green" />
+                      <Calendar size={16} className="text-green flex-shrink-0" />
                       <span>
                         Selected: <strong>{tripDurationDays} Days / {nightsCount} Nights</strong> ({startDate} to {endDate})
                       </span>
@@ -1173,12 +1246,12 @@ export default function PlanJourney() {
                     <span className="step-num">4</span>
                     <div>
                       <h3>Step 2: Choose Travel Tickets ({sourceCity} ➔ {primaryDest?.city || "Destination"})</h3>
-                      <p>Select your preferred flight, train, or bus travel tickets with confirmed pricing</p>
+                      <p>Select your preferred travel mode and tickets</p>
                     </div>
                   </div>
 
                   {/* Mode filter tabs */}
-                  <div className="transport-mode-tabs mb-3">
+                  <div className="transport-mode-tabs mb-3 mobile-slide-track">
                     {[
                       { id: "all", label: "All Travel Modes", icon: <Sliders size={14} /> },
                       { id: "flights", label: "✈️ Flights", icon: <Plane size={14} /> },
@@ -1198,15 +1271,19 @@ export default function PlanJourney() {
                     ))}
                   </div>
 
+                  <div className="mobile-slide-hint d-md-none mb-2">
+                    <span>👉 Swipe horizontally to compare tickets</span>
+                  </div>
+
                   {/* Transport tickets list */}
-                  <div className="transport-tickets-stack">
+                  <div className="transport-tickets-stack mobile-slide-track">
                     {transportTicketsList.map((ticket) => {
                       const isSelected = selectedTransportTicketId === ticket.id;
                       return (
                         <div 
                           key={ticket.id}
                           onClick={() => setSelectedTransportTicketId(ticket.id)}
-                          className={`transport-ticket-card ${isSelected ? "selected" : ""}`}
+                          className={`transport-ticket-card mobile-slide-item ${isSelected ? "selected" : ""}`}
                         >
                           <div className="ticket-card-header">
                             <div className="d-flex align-items-center gap-2">
@@ -1246,16 +1323,16 @@ export default function PlanJourney() {
                               <div className="d-flex align-items-baseline gap-1">
                                 <span className="t-price-currency">₹</span>
                                 <span className="t-price-num">{ticket.price.toLocaleString()}</span>
-                                <span className="t-price-unit">/ person (One-Way)</span>
+                                <span className="t-price-unit">/ person</span>
                               </div>
-                              <span className="t-return-note">Round-trip (Return) Calculated: <strong>₹{(ticket.price * 2).toLocaleString()} / person</strong></span>
+                              <span className="t-return-note">Round-trip (Return): <strong>₹{(ticket.price * 2).toLocaleString()}</strong></span>
                             </div>
 
                             <button 
                               type="button" 
                               className={`btn btn-sm ${isSelected ? "btn-primary" : "btn-outline"}`}
                             >
-                              {isSelected ? "Selected Ticket ✓" : "Select Ticket"}
+                              {isSelected ? "Selected ✓" : "Select Ticket"}
                             </button>
                           </div>
                         </div>
@@ -1270,17 +1347,17 @@ export default function PlanJourney() {
                     <span className="step-num">5</span>
                     <div>
                       <h3>Step 3: Choose Hotel by Considering Your Budget</h3>
-                      <p>Verified partner hotels & resorts in {primaryDest?.city || "destination"} across budget tiers</p>
+                      <p>Verified partner hotels & resorts in {primaryDest?.city || "destination"}</p>
                     </div>
                   </div>
 
                   {/* Hotel budget tier filter pills */}
-                  <div className="hotel-tier-pills mb-3">
+                  <div className="hotel-tier-pills mb-3 mobile-slide-track">
                     {[
                       { id: "all", label: "All Stays" },
-                      { id: "budget", label: "Budget Homestay (₹1,000 - ₹2,000 / night)" },
-                      { id: "comfort", label: "Comfort 3★ Hotel / Resort (₹2,500 - ₹3,500 / night)" },
-                      { id: "luxury", label: "Luxury 4★/5★ Resort (₹5,000+ / night)" }
+                      { id: "budget", label: "Budget Homestay (₹1k-₹2k)" },
+                      { id: "comfort", label: "Comfort 3★ Resort (₹2.5k-₹3.5k)" },
+                      { id: "luxury", label: "Luxury 4★/5★ Resort (₹5k+)" }
                     ].map((pill) => (
                       <button
                         key={pill.id}
@@ -1293,16 +1370,21 @@ export default function PlanJourney() {
                     ))}
                   </div>
 
-                  {/* Hotels list */}
-                  <div className="hotels-selection-stack">
+                  <div className="mobile-slide-hint d-md-none mb-2">
+                    <span>👉 Swipe horizontally to browse Hotels by budget</span>
+                  </div>
+
+                  {/* Hotels list with slide-and-see and expandable details */}
+                  <div className="hotels-selection-stack mobile-slide-track">
                     {filteredHotels.map((hotel) => {
                       const isSelected = selectedHotelId === hotel.id;
                       const roomStayTotal = hotel.pricePerNight * nightsCount * roomsCount;
+                      const isHotelExpanded = expandedHotelIds.includes(hotel.id);
                       return (
                         <div 
                           key={hotel.id}
                           onClick={() => setSelectedHotelId(hotel.id)}
-                          className={`hotel-select-card ${isSelected ? "selected" : ""}`}
+                          className={`hotel-select-card mobile-slide-item ${isSelected ? "selected" : ""}`}
                         >
                           <div className="hotel-card-left">
                             <img src={hotel.image} alt={hotel.name} className="hotel-card-img" />
@@ -1310,7 +1392,7 @@ export default function PlanJourney() {
                           </div>
 
                           <div className="hotel-card-center">
-                            <div className="d-flex align-items-center gap-2 mb-1">
+                            <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
                               <span className={`hotel-tier-badge tier-${hotel.tier}`}>{hotel.tierName}</span>
                               <span className="hotel-loc-text"><MapPin size={12} /> {hotel.location}</span>
                             </div>
@@ -1319,11 +1401,24 @@ export default function PlanJourney() {
                             <p className="hotel-room-type"><strong>Room:</strong> {hotel.roomType}</p>
                             <p className="hotel-meals-tag"><Utensils size={13} /> {hotel.mealsIncluded}</p>
 
-                            <div className="hotel-amenities-row">
-                              {hotel.amenities.slice(0, 4).map((am, i) => (
-                                <span key={i} className="am-chip">• {am}</span>
-                              ))}
-                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleHotelDetails(hotel.id);
+                              }}
+                              className="btn-toggle-hotel-details"
+                            >
+                              {isHotelExpanded ? "Hide Amenities ▲" : "See Amenities & Specs ▼"}
+                            </button>
+
+                            {isHotelExpanded && (
+                              <div className="hotel-amenities-row mt-2">
+                                {hotel.amenities.map((am, i) => (
+                                  <span key={i} className="am-chip">• {am}</span>
+                                ))}
+                              </div>
+                            )}
                           </div>
 
                           <div className="hotel-card-right">
@@ -1335,7 +1430,7 @@ export default function PlanJourney() {
                                 <span className="h-night">/ night</span>
                               </div>
                               <span className="h-total-stay">
-                                {nightsCount} Night{nightsCount > 1 ? "s" : ""} x {roomsCount} Room{roomsCount > 1 ? "s" : ""}: <strong>₹{roomStayTotal.toLocaleString()}</strong>
+                                {nightsCount}N x {roomsCount}R: <strong>₹{roomStayTotal.toLocaleString()}</strong>
                               </span>
                             </div>
 
@@ -1343,7 +1438,7 @@ export default function PlanJourney() {
                               type="button" 
                               className={`btn btn-sm ${isSelected ? "btn-primary" : "btn-outline"}`}
                             >
-                              {isSelected ? "Selected Stay ✓" : "Select Hotel"}
+                              {isSelected ? "Selected ✓" : "Select Hotel"}
                             </button>
                           </div>
                         </div>
@@ -1362,8 +1457,12 @@ export default function PlanJourney() {
                     </div>
                   </div>
 
-                  <label className="mb-2 d-block fw-bold small text-navy">Choose Meal Plan:</label>
-                  <div className="meals-selection-grid mb-3">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <label className="m-0 fw-bold small text-navy">Choose Meal Plan:</label>
+                    <span className="mobile-slide-hint d-md-none">👉 Swipe meal plans</span>
+                  </div>
+
+                  <div className="meals-selection-grid mobile-slide-track mb-3">
                     {[
                       {
                         id: "all_meals",
@@ -1392,7 +1491,7 @@ export default function PlanJourney() {
                         <div
                           key={m.id}
                           onClick={() => setMealPlan(m.id)}
-                          className={`meal-plan-card ${isSel ? "active" : ""}`}
+                          className={`meal-plan-card mobile-slide-item ${isSel ? "active" : ""}`}
                         >
                           <div className="d-flex justify-content-between align-items-center mb-1">
                             <span className="meal-tag">{m.tag}</span>
@@ -1411,12 +1510,12 @@ export default function PlanJourney() {
                   </div>
 
                   <div className="sightseeing-toggle-box p-3 rounded-3" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
-                    <label className="d-flex align-items-center gap-2 cursor-pointer m-0">
+                    <label className="d-flex align-items-start gap-2 cursor-pointer m-0">
                       <input 
                         type="checkbox" 
                         checked={includeSightseeingPasses} 
                         onChange={(e) => setIncludeSightseeingPasses(e.target.checked)}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer', marginTop: '3px' }}
                       />
                       <div>
                         <strong className="d-block text-navy">Include Verified Monument Passes & Sightseeing Entry (₹450 / person)</strong>
@@ -1487,7 +1586,6 @@ export default function PlanJourney() {
             {/* =========================================================================
                 CHOICE 2: ROAVIO ALL-INCLUSIVE FIXED BUDGET PACKAGES
                 Visible when planMode === "fixed"
-                E.g. ₹9,999 2-Day Ooty Plan where Roavio arranges return tickets, hotel stay, food, etc.
             ========================================================================= */}
             {planMode === "fixed" && (
               <div className="fixed-packages-container">
@@ -1500,7 +1598,11 @@ export default function PlanJourney() {
                     </div>
                   </div>
 
-                  <div className="fixed-packages-grid">
+                  <div className="mobile-slide-hint d-md-none mb-2">
+                    <span>👉 Swipe horizontally to compare Roavio fixed plans</span>
+                  </div>
+
+                  <div className="fixed-packages-grid mobile-slide-track">
                     {fixedPackages.map((pkg) => {
                       const isSelected = selectedFixedPackageId === pkg.id;
                       const pkgTotal = pkg.pricePerPerson * travelersCount;
@@ -1508,7 +1610,7 @@ export default function PlanJourney() {
                         <div
                           key={pkg.id}
                           onClick={() => setSelectedFixedPackageId(pkg.id)}
-                          className={`fixed-pkg-card ${isSelected ? "selected" : ""}`}
+                          className={`fixed-pkg-card mobile-slide-item ${isSelected ? "selected" : ""}`}
                         >
                           <div className="fixed-card-top">
                             <span className={`pkg-badge ${pkg.tagClass}`}>{pkg.tag}</span>
@@ -1531,7 +1633,7 @@ export default function PlanJourney() {
                             <span className="fac-title">All Facilities Arranged by Roavio:</span>
                             {pkg.facilities.map((fac, i) => (
                               <div key={i} className="fac-item">
-                                <CheckCircle2 size={15} className="text-green flex-shrink-0" />
+                                <CheckCircle2 size={15} className="text-green flex-shrink-0 mt-1" />
                                 <span>{fac}</span>
                               </div>
                             ))}
@@ -1801,7 +1903,7 @@ export default function PlanJourney() {
                   className="explore-main-img" 
                 />
                 {quickExploreDest.gallery && quickExploreDest.gallery.length > 0 && (
-                  <div className="explore-thumbs-row">
+                  <div className="explore-thumbs-row mobile-slide-track">
                     {[quickExploreDest.image, ...quickExploreDest.gallery].slice(0, 5).map((img, i) => (
                       <img 
                         key={i} 
@@ -1831,7 +1933,7 @@ export default function PlanJourney() {
 
                 <h2 className="explore-dest-title">{quickExploreDest.name}</h2>
                 <div className="explore-location-bar">
-                  <MapPin size={15} className="text-green" />
+                  <MapPin size={15} className="text-green flex-shrink-0" />
                   <span>{quickExploreDest.city}, {quickExploreDest.state}</span>
                 </div>
 
@@ -1842,31 +1944,31 @@ export default function PlanJourney() {
                 {/* Key Specs Grid */}
                 <div className="explore-specs-grid mt-3">
                   <div className="spec-tile">
-                    <Calendar size={18} className="text-green" />
+                    <Calendar size={18} className="text-green flex-shrink-0" />
                     <div>
                       <span className="spec-k">Best Time</span>
                       <strong className="spec-v">{quickExploreDest.bestTime || "Oct - Mar"}</strong>
                     </div>
                   </div>
                   <div className="spec-tile">
-                    <Clock size={18} className="text-navy" />
+                    <Clock size={18} className="text-navy flex-shrink-0" />
                     <div>
                       <span className="spec-k">Visiting Hours</span>
                       <strong className="spec-v">{quickExploreDest.openingHours || "Sunrise to Sunset"}</strong>
                     </div>
                   </div>
                   <div className="spec-tile">
-                    <IndianRupee size={18} className="text-orange" />
+                    <IndianRupee size={18} className="text-orange flex-shrink-0" />
                     <div>
                       <span className="spec-k">Certified Entry</span>
                       <strong className="spec-v">{quickExploreDest.ticketPrice === 0 ? "Free Entry" : `₹${quickExploreDest.ticketPrice} / person`}</strong>
                     </div>
                   </div>
                   <div className="spec-tile">
-                    <Plane size={18} className="text-blue" />
+                    <Plane size={18} className="text-blue flex-shrink-0" />
                     <div>
                       <span className="spec-k">Nearest Hub</span>
-                      <strong className="spec-v">{quickExploreDest.nearestAirport?.name ? `${quickExploreDest.nearestAirport.name} (${quickExploreDest.nearestAirport.dist})` : `${quickExploreDest.city} Airport`}</strong>
+                      <strong className="spec-v">{quickExploreDest.nearestAirport?.name ? `${quickExploreDest.nearestAirport.name}` : `${quickExploreDest.city} Airport`}</strong>
                     </div>
                   </div>
                 </div>
@@ -2007,7 +2109,7 @@ export default function PlanJourney() {
                   </div>
 
                   <div className="pass-dispatch-alert">
-                    <CheckCircle2 size={16} className="text-green" />
+                    <CheckCircle2 size={16} className="text-green flex-shrink-0" />
                     <span>Confirmation & Live Pass dispatched to <strong>+91 {leadPhone}</strong> and <strong>{leadEmail}</strong></span>
                   </div>
                 </div>
@@ -2094,7 +2196,7 @@ export default function PlanJourney() {
                   <>
                     <div className="logged-in-user-strip d-flex align-items-center justify-content-between p-2 px-3 rounded-3 mb-3 small" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534' }}>
                       <div className="d-flex align-items-center gap-2">
-                        <CheckCircle2 size={16} />
+                        <CheckCircle2 size={16} className="flex-shrink-0" />
                         <span>Signed in as <strong>{user.name}</strong> ({user.email})</span>
                       </div>
                       <span className="badge bg-success text-white">Verified Account</span>
@@ -2370,8 +2472,85 @@ export default function PlanJourney() {
         </div>
       )}
 
-      {/* STYLES */}
+      {/* COMPREHENSIVE RESPONSIVE & MOBILE SLIDER STYLES */}
       <style>{`
+        /* Global Page & Container Safeguards Against Horizontal Overflow */
+        .plan-journey-page {
+          width: 100%;
+          max-width: 100vw;
+          overflow-x: hidden;
+        }
+
+        .planner-grid {
+          display: grid;
+          grid-template-columns: 1fr 380px;
+          gap: 2rem;
+          align-items: start;
+          width: 100%;
+          max-width: 100%;
+        }
+
+        .planner-card {
+          background: #FFFFFF;
+          border-radius: 18px;
+          padding: 1.6rem;
+          border: 1px solid #E2E8F0;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+          margin-bottom: 1.5rem;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+
+        .card-section-title {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+          margin-bottom: 1.2rem;
+          border-bottom: 1px solid #F1F5F9;
+          padding-bottom: 0.8rem;
+        }
+
+        .card-section-title h3 {
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin: 0;
+        }
+
+        .card-section-title p {
+          font-size: 0.8rem;
+          color: #64748B;
+          margin: 0;
+        }
+
+        .step-num {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: var(--color-navy);
+          color: white;
+          font-size: 0.82rem;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        /* Mobile Slide Hint Pill */
+        .mobile-slide-hint {
+          display: inline-block;
+          background: #F1F5F9;
+          color: #475569;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 0.2rem 0.6rem;
+          border-radius: 999px;
+          border: 1px solid #E2E8F0;
+        }
+
         /* Choice Mode Selector Banner */
         .choice-mode-card {
           background: #FFFFFF;
@@ -2379,6 +2558,8 @@ export default function PlanJourney() {
           border-radius: 18px;
           padding: 1.5rem;
           box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .choice-kicker {
@@ -2399,13 +2580,15 @@ export default function PlanJourney() {
         .choice-subtitle {
           color: #64748B;
           font-size: 0.88rem;
-          margin-bottom: 1.2rem;
+          margin-bottom: 1rem;
         }
 
         .choice-tabs-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 1.2rem;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .choice-tab-card {
@@ -2415,6 +2598,7 @@ export default function PlanJourney() {
           cursor: pointer;
           transition: all 0.25s ease;
           background: #FAFDFB;
+          box-sizing: border-box;
         }
 
         .choice-tab-card:hover {
@@ -2454,6 +2638,7 @@ export default function PlanJourney() {
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
         }
 
         .choice-radio.active {
@@ -2491,11 +2676,518 @@ export default function PlanJourney() {
           border: 1px solid #BBF7D0;
         }
 
+        /* Single Dest Direct Trip Focus Banner */
+        .single-dest-focus-banner {
+          background: #F0FDF4;
+          border: 1px solid #BBF7D0;
+          color: #166534;
+          width: 100%;
+          box-sizing: border-box;
+          word-break: break-word;
+          overflow-wrap: anywhere;
+        }
+
+        /* Search Stops Box */
+        .search-stops-box {
+          position: relative;
+          margin-bottom: 1.2rem;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .search-input-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+          width: 100%;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 14px;
+          color: #64748B;
+        }
+
+        .stops-search-input {
+          width: 100%;
+          padding: 0.75rem 2.4rem 0.75rem 2.8rem;
+          border: 1.5px solid #CBD5E1;
+          border-radius: 12px;
+          font-size: 0.88rem;
+          box-sizing: border-box;
+          background: #F8FAFC;
+        }
+
+        .clear-search-btn {
+          position: absolute;
+          right: 12px;
+          background: none;
+          border: none;
+          font-size: 1.2rem;
+          color: #64748B;
+          cursor: pointer;
+        }
+
+        .stops-results-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+          z-index: 50;
+          margin-top: 4px;
+          overflow: hidden;
+        }
+
+        .stop-suggestion-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.6rem 0.8rem;
+          border-bottom: 1px solid #F1F5F9;
+          gap: 0.5rem;
+        }
+
+        .sugg-thumb {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          object-fit: cover;
+          flex-shrink: 0;
+        }
+
+        .sugg-info {
+          flex-grow: 1;
+          overflow: hidden;
+        }
+
+        .sugg-name {
+          display: block;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: var(--color-navy);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .sugg-state {
+          font-size: 0.72rem;
+          color: #64748B;
+        }
+
+        .btn-quick-explore {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          background: #EFF6FF;
+          color: #1D4ED8;
+          border: 1px solid #BFDBFE;
+          border-radius: 6px;
+          padding: 0.3rem 0.6rem;
+          font-size: 0.74rem;
+          font-weight: 700;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        /* =========================================================================
+           SELECTED STOP CARD - FULLY RESPONSIVE & MOBILE-FRIENDLY
+        ========================================================================= */
+        .selected-stops-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .selected-stop-card {
+          background: #F8FAFC;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 14px;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+          transition: all 0.2s ease;
+        }
+
+        .selected-stop-card:hover {
+          border-color: #94A3B8;
+        }
+
+        .stop-card-topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          gap: 0.5rem;
+        }
+
+        .stop-index-pill {
+          background: var(--color-navy);
+          color: white;
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 0.25rem 0.6rem;
+          border-radius: 6px;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        .stop-actions {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          flex-shrink: 0;
+        }
+
+        .reorder-btn, .delete-stop-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          border: 1px solid #CBD5E1;
+          background: white;
+          color: var(--color-navy);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+
+        .reorder-btn:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+
+        .delete-stop-btn {
+          color: #DC2626;
+          border-color: #FECACA;
+        }
+
+        .delete-stop-btn:hover {
+          background: #FEF2F2;
+        }
+
+        .stop-card-main {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.9rem;
+          width: 100%;
+        }
+
+        .stop-img {
+          width: 70px;
+          height: 70px;
+          border-radius: 10px;
+          object-fit: cover;
+          flex-shrink: 0;
+        }
+
+        .stop-details {
+          flex-grow: 1;
+          overflow: hidden;
+        }
+
+        .stop-name {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin: 0 0 0.2rem;
+          word-break: break-word;
+          line-height: 1.3;
+        }
+
+        .stop-state {
+          font-size: 0.78rem;
+          color: #64748B;
+          display: block;
+          margin-bottom: 0.3rem;
+          word-break: break-word;
+        }
+
+        .stop-meta-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          font-size: 0.74rem;
+          color: #0F766E;
+          font-weight: 700;
+        }
+
+        .meta-tag {
+          background: #E6FFFA;
+          padding: 0.15rem 0.5rem;
+          border-radius: 4px;
+          border: 1px solid #B2F5EA;
+          white-space: nowrap;
+        }
+
+        .stop-card-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          padding-top: 0.6rem;
+          border-top: 1px dashed #E2E8F0;
+          width: 100%;
+        }
+
+        .btn-toggle-details-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          background: #EFF6FF;
+          color: #1D4ED8;
+          border: 1px solid #BFDBFE;
+          border-radius: 6px;
+          padding: 0.3rem 0.7rem;
+          font-size: 0.76rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .btn-toggle-details-pill:hover {
+          background: #DBEAFE;
+        }
+
+        .explore-btn-group {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+        }
+
+        .explore-pill-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          background: white;
+          color: var(--color-navy);
+          border: 1px solid #CBD5E1;
+          border-radius: 6px;
+          padding: 0.3rem 0.6rem;
+          font-size: 0.74rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .explore-ext-btn {
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          border: 1px solid #CBD5E1;
+          background: white;
+          color: var(--color-navy);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .stop-expanded-drawer {
+          background: white;
+          border: 1px solid #E2E8F0;
+          border-radius: 10px;
+          padding: 0.8rem;
+          margin-top: 0.4rem;
+          font-size: 0.8rem;
+          line-height: 1.5;
+        }
+
+        .stop-expanded-desc {
+          color: #475569;
+          margin-bottom: 0.5rem;
+        }
+
+        .stop-highlights-wrap {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .stop-hl-title {
+          font-weight: 700;
+          color: var(--color-navy);
+          display: block;
+          width: 100%;
+          font-size: 0.74rem;
+          text-transform: uppercase;
+        }
+
+        .stop-hl-chip {
+          background: #F1F5F9;
+          color: #1E293B;
+          padding: 0.15rem 0.45rem;
+          border-radius: 4px;
+          font-size: 0.72rem;
+        }
+
+        .stop-extra-specs {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.8rem;
+          font-size: 0.74rem;
+          color: #64748B;
+          border-top: 1px dashed #F1F5F9;
+          padding-top: 0.4rem;
+        }
+
+        /* Destination Spotlight Card */
+        .dest-spotlight-card {
+          background: #FFFFFF;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 18px;
+          padding: 1.4rem;
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+          width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+
+        .spotlight-header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          flex-wrap: wrap;
+          gap: 0.6rem;
+          margin-bottom: 0.4rem;
+        }
+
+        .badge-pills-wrap {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+          align-items: center;
+        }
+
+        .badge-pill-accent, .badge-pill-cat, .badge-pill-rating {
+          display: inline-flex;
+          align-items: center;
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 0.2rem 0.6rem;
+          border-radius: 999px;
+          white-space: normal;
+          line-height: 1.3;
+        }
+
+        .badge-pill-accent { background: #DCFCE7; color: #166534; }
+        .badge-pill-cat { background: #DBEAFE; color: #1E40AF; }
+        .badge-pill-rating { background: #FEF3C7; color: #92400E; }
+
+        .btn-toggle-spotlight {
+          background: #EFF6FF;
+          color: #1D4ED8;
+          border: 1px solid #BFDBFE;
+          border-radius: 8px;
+          padding: 0.35rem 0.8rem;
+          font-size: 0.8rem;
+          font-weight: 700;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        .spotlight-title {
+          font-size: clamp(1.25rem, 4vw, 1.6rem);
+          font-weight: 800;
+          color: var(--color-navy);
+          margin: 0.3rem 0;
+          word-break: break-word;
+          line-height: 1.25;
+        }
+
+        .spotlight-loc-row {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+          font-size: 0.84rem;
+          color: #64748B;
+          font-weight: 600;
+        }
+
+        .spotlight-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.3fr;
+          gap: 1.5rem;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .spotlight-main-img {
+          width: 100%;
+          height: 220px;
+          object-fit: cover;
+          border-radius: 12px;
+        }
+
+        .spotlight-thumbs {
+          display: flex;
+          gap: 0.5rem;
+          margin-top: 0.5rem;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .spotlight-thumb {
+          width: 60px;
+          height: 48px;
+          object-fit: cover;
+          border-radius: 6px;
+          flex-shrink: 0;
+        }
+
+        .spotlight-desc {
+          color: #475569;
+          font-size: 0.9rem;
+          line-height: 1.6;
+        }
+
+        .spotlight-highlights-list {
+          list-style: none;
+          padding: 0;
+          margin: 0.4rem 0 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+          font-size: 0.85rem;
+          color: #334155;
+        }
+
+        .act-pill {
+          display: inline-block;
+          background: #F1F5F9;
+          color: #475569;
+          padding: 0.25rem 0.65rem;
+          border-radius: 999px;
+          font-size: 0.78rem;
+          font-weight: 600;
+          margin-right: 0.4rem;
+          margin-bottom: 0.4rem;
+        }
+
+        .spotlight-actions-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.6rem;
+        }
+
         /* Duration Presets */
         .duration-presets-grid {
           display: grid;
           grid-template-columns: repeat(5, 1fr);
           gap: 0.6rem;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .duration-preset-btn {
@@ -2506,6 +3198,7 @@ export default function PlanJourney() {
           text-align: center;
           cursor: pointer;
           transition: all 0.2s;
+          box-sizing: border-box;
         }
 
         .duration-preset-btn:hover {
@@ -2552,6 +3245,7 @@ export default function PlanJourney() {
           padding: 0.5rem 0.8rem;
           border-radius: 8px;
           border: 1px solid #BBF7D0;
+          word-break: break-word;
         }
 
         /* Transport Tabs & Tickets */
@@ -2559,6 +3253,8 @@ export default function PlanJourney() {
           display: flex;
           gap: 0.5rem;
           flex-wrap: wrap;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .transport-tab-btn {
@@ -2573,6 +3269,7 @@ export default function PlanJourney() {
           font-weight: 700;
           color: #475569;
           cursor: pointer;
+          white-space: nowrap;
         }
 
         .transport-tab-btn.active {
@@ -2585,6 +3282,8 @@ export default function PlanJourney() {
           display: flex;
           flex-direction: column;
           gap: 0.9rem;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .transport-ticket-card {
@@ -2594,6 +3293,8 @@ export default function PlanJourney() {
           padding: 1.1rem;
           cursor: pointer;
           transition: all 0.2s;
+          box-sizing: border-box;
+          width: 100%;
         }
 
         .transport-ticket-card:hover {
@@ -2611,6 +3312,7 @@ export default function PlanJourney() {
           justify-content: space-between;
           align-items: flex-start;
           margin-bottom: 0.8rem;
+          gap: 0.5rem;
         }
 
         .carrier-logo-badge {
@@ -2622,6 +3324,7 @@ export default function PlanJourney() {
           font-weight: 800;
           color: var(--color-navy);
           margin: 0;
+          word-break: break-word;
         }
 
         .carrier-code {
@@ -2636,6 +3339,7 @@ export default function PlanJourney() {
           color: #1D4ED8;
           padding: 0.2rem 0.5rem;
           border-radius: 6px;
+          white-space: nowrap;
         }
 
         .ticket-timeline-row {
@@ -2650,14 +3354,15 @@ export default function PlanJourney() {
 
         .t-time-point .t-time {
           display: block;
-          font-size: 1rem;
+          font-size: 0.95rem;
           font-weight: 800;
           color: var(--color-navy);
         }
 
         .t-time-point .t-city {
-          font-size: 0.75rem;
+          font-size: 0.72rem;
           color: #64748B;
+          word-break: break-word;
         }
 
         .t-duration-mid {
@@ -2665,7 +3370,7 @@ export default function PlanJourney() {
         }
 
         .t-dur-val {
-          font-size: 0.76rem;
+          font-size: 0.74rem;
           font-weight: 700;
           color: #475569;
         }
@@ -2673,7 +3378,7 @@ export default function PlanJourney() {
         .t-line-track {
           height: 2px;
           background: #CBD5E1;
-          margin: 0.2rem 1rem;
+          margin: 0.2rem 0.5rem;
           position: relative;
         }
 
@@ -2702,6 +3407,8 @@ export default function PlanJourney() {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          flex-wrap: wrap;
+          gap: 0.5rem;
         }
 
         .t-price-currency {
@@ -2732,6 +3439,8 @@ export default function PlanJourney() {
           display: flex;
           gap: 0.4rem;
           flex-wrap: wrap;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .hotel-tier-btn {
@@ -2743,6 +3452,7 @@ export default function PlanJourney() {
           font-weight: 700;
           color: #475569;
           cursor: pointer;
+          white-space: nowrap;
         }
 
         .hotel-tier-btn.active {
@@ -2755,6 +3465,8 @@ export default function PlanJourney() {
           display: flex;
           flex-direction: column;
           gap: 1rem;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .hotel-select-card {
@@ -2767,6 +3479,8 @@ export default function PlanJourney() {
           background: #FFFFFF;
           cursor: pointer;
           transition: all 0.2s;
+          box-sizing: border-box;
+          width: 100%;
         }
 
         .hotel-select-card:hover {
@@ -2807,6 +3521,7 @@ export default function PlanJourney() {
           font-weight: 800;
           padding: 0.15rem 0.5rem;
           border-radius: 999px;
+          white-space: nowrap;
         }
 
         .hotel-tier-badge.tier-budget { background: #DCFCE7; color: #166534; }
@@ -2819,6 +3534,7 @@ export default function PlanJourney() {
           display: flex;
           align-items: center;
           gap: 0.2rem;
+          word-break: break-word;
         }
 
         .hotel-title {
@@ -2826,6 +3542,7 @@ export default function PlanJourney() {
           font-weight: 800;
           color: var(--color-navy);
           margin: 0.2rem 0;
+          word-break: break-word;
         }
 
         .hotel-room-type {
@@ -2842,6 +3559,17 @@ export default function PlanJourney() {
           align-items: center;
           gap: 0.3rem;
           margin: 0 0 0.4rem;
+        }
+
+        .btn-toggle-hotel-details {
+          background: none;
+          border: none;
+          color: #1D4ED8;
+          font-size: 0.74rem;
+          font-weight: 700;
+          padding: 0;
+          cursor: pointer;
+          text-decoration: underline;
         }
 
         .hotel-amenities-row {
@@ -2899,6 +3627,8 @@ export default function PlanJourney() {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 0.8rem;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .meal-plan-card {
@@ -2908,6 +3638,7 @@ export default function PlanJourney() {
           padding: 0.9rem;
           cursor: pointer;
           transition: all 0.2s;
+          box-sizing: border-box;
         }
 
         .meal-plan-card.active {
@@ -2933,6 +3664,7 @@ export default function PlanJourney() {
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
         }
 
         .meal-radio.checked {
@@ -2966,6 +3698,8 @@ export default function PlanJourney() {
           border: 1px solid #E2E8F0;
           border-radius: 14px;
           padding: 1.2rem;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .calc-row {
@@ -2974,23 +3708,31 @@ export default function PlanJourney() {
           align-items: center;
           padding: 0.7rem 0;
           border-bottom: 1px dashed #E2E8F0;
+          gap: 0.5rem;
+        }
+
+        .calc-item-desc {
+          flex-grow: 1;
         }
 
         .calc-item-desc strong {
           display: block;
           font-size: 0.88rem;
           color: var(--color-navy);
+          word-break: break-word;
         }
 
         .calc-item-desc span {
           font-size: 0.74rem;
           color: #64748B;
+          word-break: break-word;
         }
 
         .calc-item-cost {
           font-size: 1rem;
           font-weight: 800;
           color: var(--color-navy);
+          flex-shrink: 0;
         }
 
         .calc-total-banner {
@@ -3000,6 +3742,7 @@ export default function PlanJourney() {
           margin-top: 1rem;
           padding-top: 1rem;
           border-top: 2px solid #CBD5E1;
+          gap: 0.5rem;
         }
 
         .c-tot-label {
@@ -3032,6 +3775,8 @@ export default function PlanJourney() {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 1.2rem;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .fixed-pkg-card {
@@ -3043,6 +3788,8 @@ export default function PlanJourney() {
           transition: all 0.25s ease;
           display: flex;
           flex-direction: column;
+          box-sizing: border-box;
+          width: 100%;
         }
 
         .fixed-pkg-card:hover {
@@ -3109,102 +3856,6 @@ export default function PlanJourney() {
           gap: 0.45rem;
         }
 
-        /* Existing Spotlight & Timeline Styles */
-        .dest-spotlight-card {
-          background: #FFFFFF;
-          border: 1.5px solid #E2E8F0;
-          border-radius: 18px;
-          padding: 1.5rem;
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
-        }
-
-        .spotlight-title {
-          font-size: 1.6rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin-bottom: 0.3rem;
-        }
-
-        .spotlight-loc-row {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.88rem;
-          color: #64748B;
-          font-weight: 600;
-        }
-
-        .btn-toggle-spotlight {
-          background: #EFF6FF;
-          color: #1D4ED8;
-          border: 1px solid #BFDBFE;
-          border-radius: 8px;
-          padding: 0.35rem 0.8rem;
-          font-size: 0.8rem;
-          font-weight: 700;
-          cursor: pointer;
-        }
-
-        .spotlight-grid {
-          display: grid;
-          grid-template-columns: 1fr 1.3fr;
-          gap: 1.5rem;
-        }
-
-        .spotlight-main-img {
-          width: 100%;
-          height: 220px;
-          object-fit: cover;
-          border-radius: 12px;
-        }
-
-        .spotlight-thumbs {
-          display: flex;
-          gap: 0.5rem;
-          margin-top: 0.5rem;
-        }
-
-        .spotlight-thumb {
-          width: 60px;
-          height: 48px;
-          object-fit: cover;
-          border-radius: 6px;
-        }
-
-        .spotlight-desc {
-          color: #475569;
-          font-size: 0.9rem;
-          line-height: 1.6;
-        }
-
-        .spotlight-highlights-list {
-          list-style: none;
-          padding: 0;
-          margin: 0.4rem 0 0;
-          display: flex;
-          flex-direction: column;
-          gap: 0.4rem;
-          font-size: 0.85rem;
-          color: #334155;
-        }
-
-        .act-pill {
-          display: inline-block;
-          background: #F1F5F9;
-          color: #475569;
-          padding: 0.25rem 0.65rem;
-          border-radius: 999px;
-          font-size: 0.78rem;
-          font-weight: 600;
-          margin-right: 0.4rem;
-          margin-bottom: 0.4rem;
-        }
-
-        .spotlight-actions-row {
-          display: flex;
-          gap: 0.6rem;
-        }
-
         /* Daily Itinerary Timeline */
         .itinerary-timeline-wrap {
           display: flex;
@@ -3255,6 +3906,7 @@ export default function PlanJourney() {
           font-weight: 800;
           color: var(--color-navy);
           margin-bottom: 0.8rem;
+          word-break: break-word;
         }
 
         .day-events-list {
@@ -3283,9 +3935,143 @@ export default function PlanJourney() {
         .event-desc {
           color: #334155;
           line-height: 1.45;
+          word-break: break-word;
         }
 
-        /* Modals, Checkout & Responsive */
+        /* Summary Card */
+        .summary-card {
+          background: white;
+          border-radius: 18px;
+          padding: 1.5rem;
+          border: 1px solid #E2E8F0;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+          position: sticky;
+          top: 90px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .summary-header {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          margin-bottom: 1rem;
+        }
+
+        .summary-header h3 {
+          font-size: 1.2rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin: 0;
+        }
+
+        .summary-stats-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.6rem;
+          margin-bottom: 1.2rem;
+        }
+
+        .stat-pill {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 10px;
+          padding: 0.6rem 0.8rem;
+        }
+
+        .stat-label {
+          display: block;
+          font-size: 0.72rem;
+          color: #64748B;
+        }
+
+        .stat-value {
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: var(--color-navy);
+        }
+
+        .summary-route-track {
+          border-left: 2px dashed #CBD5E1;
+          margin-left: 10px;
+          padding-left: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          margin-bottom: 1.2rem;
+        }
+
+        .track-point {
+          position: relative;
+        }
+
+        .point-dot {
+          position: absolute;
+          left: -22px;
+          top: 4px;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: var(--color-navy);
+        }
+
+        .point-dot.origin-dot {
+          background: var(--color-green);
+        }
+
+        .point-role {
+          display: block;
+          font-size: 0.68rem;
+          color: #64748B;
+          text-transform: uppercase;
+          font-weight: 700;
+        }
+
+        .point-sub {
+          display: block;
+          font-size: 0.74rem;
+          color: #64748B;
+        }
+
+        .expense-breakdown-box {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          padding: 1rem;
+          margin-bottom: 1.2rem;
+        }
+
+        .expense-title {
+          font-size: 0.9rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin-bottom: 0.6rem;
+        }
+
+        .expense-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.82rem;
+          margin-bottom: 0.4rem;
+          color: #475569;
+        }
+
+        .expense-total-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 0.6rem;
+          margin-top: 0.6rem;
+          border-top: 1.5px solid #CBD5E1;
+        }
+
+        .total-amount {
+          font-size: 1.45rem;
+          font-weight: 900;
+          color: var(--color-green);
+        }
+
+        /* Modals & Checkout */
         .plan-modal-overlay {
           position: fixed;
           top: 0;
@@ -3298,7 +4084,7 @@ export default function PlanJourney() {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 1.5rem;
+          padding: 1rem;
         }
 
         .plan-modal-box {
@@ -3340,12 +4126,12 @@ export default function PlanJourney() {
         }
 
         .plan-modal-body {
-          padding: 1.5rem;
+          padding: 1.2rem;
         }
 
         .explore-main-img {
           width: 100%;
-          height: 320px;
+          height: 260px;
           object-fit: cover;
           border-radius: 14px;
         }
@@ -3357,13 +4143,14 @@ export default function PlanJourney() {
         }
 
         .explore-thumb {
-          width: 80px;
-          height: 60px;
+          width: 70px;
+          height: 54px;
           object-fit: cover;
           border-radius: 8px;
           cursor: pointer;
           opacity: 0.6;
           border: 2px solid transparent;
+          flex-shrink: 0;
         }
 
         .explore-thumb.active {
@@ -3401,11 +4188,12 @@ export default function PlanJourney() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 1.2rem 1.5rem;
+          padding: 1rem 1.2rem;
           border-top: 1px solid #E2E8F0;
+          flex-wrap: wrap;
+          gap: 0.6rem;
         }
 
-        /* Checkout Styles */
         .checkout-trip-strip {
           display: flex;
           justify-content: space-between;
@@ -3415,6 +4203,8 @@ export default function PlanJourney() {
           border-radius: 12px;
           padding: 1rem;
           margin-bottom: 1.2rem;
+          flex-wrap: wrap;
+          gap: 0.6rem;
         }
 
         .strip-badge {
@@ -3569,7 +4359,6 @@ export default function PlanJourney() {
           gap: 0.8rem;
         }
 
-        /* Confirmed Ticket Pass */
         .booking-confirmed-splash {
           padding: 2rem 1.5rem;
           text-align: center;
@@ -3662,15 +4451,94 @@ export default function PlanJourney() {
           display: flex;
           justify-content: center;
           gap: 1rem;
+          flex-wrap: wrap;
         }
 
+        /* =========================================================================
+           RESPONSIVE MOBILE VIEW & SLIDER BREAKPOINTS (< 992px & < 768px)
+        ========================================================================= */
         @media (max-width: 992px) {
-          .choice-tabs-grid, .fixed-packages-grid {
+          .planner-grid {
             grid-template-columns: 1fr;
           }
 
+          .summary-card {
+            position: static;
+            margin-top: 1.5rem;
+          }
+
+          .spotlight-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .spotlight-main-img {
+            height: 200px;
+          }
+
+          .form-row-2, .form-row-3 {
+            grid-template-columns: 1fr;
+          }
+
+          .explore-specs-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        @media (max-width: 768px) {
+          .planner-card, .dest-spotlight-card, .choice-mode-card {
+            padding: 1.1rem;
+            border-radius: 14px;
+          }
+
+          .choice-tabs-grid {
+            grid-template-columns: 1fr;
+          }
+
+          /* TOUCH HORIZONTAL SLIDING TRACK ON MOBILE */
+          .mobile-slide-track {
+            display: flex !important;
+            overflow-x: auto !important;
+            scroll-snap-type: x mandatory !important;
+            -webkit-overflow-scrolling: touch !important;
+            gap: 12px !important;
+            padding-bottom: 8px !important;
+            padding-top: 4px !important;
+            scrollbar-width: thin !important;
+          }
+
+          .mobile-slide-track::-webkit-scrollbar {
+            height: 5px;
+          }
+
+          .mobile-slide-track::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 999px;
+          }
+
+          .mobile-slide-item {
+            flex: 0 0 88% !important;
+            max-width: 88% !important;
+            scroll-snap-align: start !important;
+            box-sizing: border-box !important;
+          }
+
+          .duration-presets-grid .mobile-slide-item {
+            flex: 0 0 45% !important;
+            max-width: 45% !important;
+          }
+
+          /* Responsive Hotel Card on Mobile */
           .hotel-select-card {
             grid-template-columns: 1fr;
+            gap: 0.8rem;
+          }
+
+          .hotel-card-left {
+            width: 100%;
+          }
+
+          .hotel-card-img {
+            height: 140px;
           }
 
           .hotel-card-right {
@@ -3679,25 +4547,77 @@ export default function PlanJourney() {
             padding-left: 0;
             padding-top: 0.8rem;
             text-align: left;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
           }
 
-          .duration-presets-grid {
-            grid-template-columns: repeat(2, 1fr);
+          /* Responsive Attraction Stop Card */
+          .stop-card-main {
+            gap: 0.7rem;
           }
 
-          .meals-selection-grid {
-            grid-template-columns: 1fr;
+          .stop-img {
+            width: 55px;
+            height: 55px;
           }
 
-          .planner-grid {
-            grid-template-columns: 1fr;
+          .stop-name {
+            font-size: 0.98rem;
           }
 
-          .form-row-2, .form-row-3 {
-            grid-template-columns: 1fr;
+          .ticket-timeline-row {
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0.4rem;
+          }
+
+          .t-line-track {
+            margin: 0.2rem 0.2rem;
           }
 
           .pay-methods-tabs {
+            grid-template-columns: 1fr;
+          }
+
+          .banks-radio-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .pass-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .mobile-slide-item {
+            flex: 0 0 94% !important;
+            max-width: 94% !important;
+          }
+
+          .duration-presets-grid .mobile-slide-item {
+            flex: 0 0 65% !important;
+            max-width: 65% !important;
+          }
+
+          .calc-total-banner {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .calc-total-banner .text-end {
+            text-align: left !important;
+            margin-top: 0.5rem;
+          }
+
+          .explore-specs-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .banks-radio-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .pass-grid {
             grid-template-columns: 1fr;
           }
         }
