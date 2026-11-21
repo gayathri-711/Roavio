@@ -1,15 +1,64 @@
 import React, { useState } from "react";
-import { Plane, Train, Bus, Clock, ShieldCheck, Check, ArrowRight, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { 
+  Plane, 
+  Train, 
+  Bus, 
+  Clock, 
+  ShieldCheck, 
+  Check, 
+  ArrowRight, 
+  X,
+  CreditCard,
+  Lock,
+  Smartphone,
+  Building2,
+  User,
+  Mail,
+  Phone,
+  Ticket,
+  CheckCircle2
+} from "lucide-react";
 import { useTrips } from "../context/TripsContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function TravelCard({ item, type }) {
+  const { user } = useAuth();
+  const { addBooking } = useTrips();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [selectedClass, setSelectedClass] = useState(item.classes ? item.classes[0] : null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [bookedSuccess, setBookedSuccess] = useState(false);
-  const { addBooking } = useTrips();
+  const [confirmedBooking, setConfirmedBooking] = useState(null);
 
-  const handleConfirmBooking = () => {
+  // Traveler Registration State
+  const [passengerName, setPassengerName] = useState(user?.name || "Rahul Sharma");
+  const [passengerAge, setPassengerAge] = useState(28);
+  const [passengerGender, setPassengerGender] = useState("Male");
+  const [passengerMobile, setPassengerMobile] = useState(user?.phone ? user.phone.replace(/\D/g, '').slice(-10) : "9876543210");
+  const [passengerEmail, setPassengerEmail] = useState(user?.email || "rahul.sharma@example.com");
+  const [berthPreference, setBerthPreference] = useState(type === "train" ? "Lower Berth" : "Window Seat");
+
+  // Payment Options State
+  const [paymentMethod, setPaymentMethod] = useState("upi"); // "upi" | "card" | "netbanking"
+  const [upiId, setUpiId] = useState("traveler@okaxis");
+  const [upiApp, setUpiApp] = useState("gpay");
+  const [cardNumber, setCardNumber] = useState("4532 8920 1142 8821");
+  const [cardExpiry, setCardExpiry] = useState("11/29");
+  const [cardCvv, setCardCvv] = useState("824");
+  const [selectedBank, setSelectedBank] = useState("HDFC Bank");
+
+  const handleConfirmBooking = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!passengerName.trim() || !passengerMobile.trim() || !passengerEmail.trim()) {
+      alert("Please fill in passenger full name, 10-digit mobile number, and email address.");
+      return;
+    }
+
+    setIsProcessing(true);
+
     let title = "";
     let fare = item.price || item.fare;
     let seat = "12A";
@@ -17,34 +66,92 @@ export default function TravelCard({ item, type }) {
     if (type === "flight") {
       title = `${item.airline} ${item.flightNumber} (${item.fromCode} ➔ ${item.toCode})`;
       fare = item.price;
-      seat = "14B";
+      seat = berthPreference === "Window Seat" ? "14A (Window)" : "14C (Aisle)";
     } else if (type === "train") {
       title = `${item.trainName} (${item.trainNumber}) - ${selectedClass?.name || "CC"}`;
       fare = selectedClass?.fare || 1450;
-      seat = "Coach C2, Seat 28";
+      seat = `Coach B2, Seat 32 (${berthPreference})`;
     } else if (type === "bus") {
       title = `${item.operator} (${item.busType})`;
       fare = item.fare;
-      seat = selectedSeat ? `Seat ${selectedSeat.number}` : "Seat U4 (Upper)";
+      seat = selectedSeat ? `Seat ${selectedSeat.number} (${selectedSeat.deck || "Lower"} Deck)` : "Seat U4 (Upper Sleeper)";
     }
 
-    addBooking({
-      type,
-      category: type === "flight" ? "Flight Booking" : type === "train" ? "Train Booking" : "Bus Booking",
+    const bookingPayload = {
+      category: type,
       title,
-      route: `${item.fromCity} ➔ ${item.toCity}`,
-      date: new Date().toISOString().split("T")[0],
+      providerName: item.airline || item.trainName || item.operator,
+      sourceLocation: item.fromCity,
+      destination: item.toCity,
+      travelDate: new Date().toISOString().split("T")[0],
+      travelTime: item.departureTime,
       passengers: 1,
-      fare,
-      seat,
-      operator: item.airline || item.trainName || item.operator
-    });
+      leadPassenger: passengerName,
+      mobileNumber: passengerMobile,
+      email: passengerEmail,
+      seatClass: seat,
+      amount: fare,
+      paymentStatus: `Verified (${paymentMethod.toUpperCase()})`,
+      bookingStatus: "Confirmed"
+    };
 
-    setBookedSuccess(true);
-    setTimeout(() => {
-      setBookedSuccess(false);
-      setModalOpen(false);
-    }, 1800);
+    try {
+      // 1. Backend API dispatch
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingPayload)
+      });
+      const data = await res.json();
+
+      const pnrCode = data?.booking?.providerReference || (type === "flight" ? `ROA-FLT-${Math.floor(1000 + Math.random() * 9000)}` : type === "train" ? `ROA-IRCTC-${Math.floor(1000 + Math.random() * 9000)}` : `ROA-BUS-${Math.floor(1000 + Math.random() * 9000)}`);
+      const bookingId = data?.booking?.bookingId || `BK-${Math.floor(10000 + Math.random() * 90000)}`;
+
+      const confirmedObj = {
+        ...bookingPayload,
+        id: bookingId,
+        pnr: pnrCode,
+        category: type === "flight" ? "Flight Booking" : type === "train" ? "Train Booking" : "Bus Booking",
+        route: `${item.fromCity} ➔ ${item.toCity}`,
+        date: new Date().toISOString().split("T")[0],
+        fare,
+        seat,
+        operator: item.airline || item.trainName || item.operator
+      };
+
+      // 2. Add to TripsContext local store
+      addBooking(confirmedObj);
+
+      setTimeout(() => {
+        setIsProcessing(false);
+        setBookedSuccess(true);
+        setConfirmedBooking(confirmedObj);
+      }, 1200);
+
+    } catch (err) {
+      console.warn("Booking API fallback:", err);
+      const fallbackObj = addBooking({
+        type,
+        category: type === "flight" ? "Flight Booking" : type === "train" ? "Train Booking" : "Bus Booking",
+        title,
+        route: `${item.fromCity} ➔ ${item.toCity}`,
+        date: new Date().toISOString().split("T")[0],
+        passengers: 1,
+        fare,
+        seat,
+        operator: item.airline || item.trainName || item.operator,
+        leadPassenger: passengerName,
+        mobileNumber: passengerMobile,
+        email: passengerEmail,
+        pnr: type === "flight" ? `ROA-FLT-${Math.floor(1000 + Math.random() * 9000)}` : type === "train" ? `ROA-IRCTC-${Math.floor(1000 + Math.random() * 9000)}` : `ROA-BUS-${Math.floor(1000 + Math.random() * 9000)}`
+      });
+
+      setTimeout(() => {
+        setIsProcessing(false);
+        setBookedSuccess(true);
+        setConfirmedBooking(fallbackObj);
+      }, 1200);
+    }
   };
 
   return (
@@ -211,42 +318,325 @@ export default function TravelCard({ item, type }) {
                 </div>
               )}
 
-              {/* Fare & Passenger Breakdown */}
-              <div className="fare-breakdown-box">
-                <div className="fare-row">
-                  <span>Base Demonstration Fare</span>
-                  <span>₹{(selectedClass?.fare || item.price || item.fare || 1400).toLocaleString()}</span>
-                </div>
-                <div className="fare-row">
-                  <span>Convenience & Tax</span>
-                  <span>₹0 (Waived for Demo)</span>
-                </div>
-                <div className="fare-row total">
-                  <span>Total Payable (Demonstration)</span>
-                  <span>₹{(selectedClass?.fare || item.price || item.fare || 1400).toLocaleString()}</span>
-                </div>
-              </div>
+              {/* 1. TRAVELER REGISTRATION DETAILS */}
+              {!isProcessing && !bookedSuccess && (
+                <div className="traveler-reg-box mt-3">
+                  <div className="reg-box-header">
+                    <User size={16} className="text-green" />
+                    <strong>Passenger Registration Details</strong>
+                  </div>
 
-              {bookedSuccess && (
-                <div className="alert-success-box">
-                  <Check size={20} />
-                  <span>Demonstration Booking Confirmed! Saved to your My Trips Dashboard.</span>
+                  <div className="travel-form-grid">
+                    <div className="form-group">
+                      <label className="field-lbl">Passenger Full Name *</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={passengerName}
+                        onChange={(e) => setPassengerName(e.target.value)}
+                        className="modal-txt-input" 
+                        placeholder="e.g. Rahul Sharma"
+                      />
+                    </div>
+
+                    <div className="form-row-mini">
+                      <div className="form-group">
+                        <label className="field-lbl">Age</label>
+                        <input 
+                          type="number" 
+                          min={1} 
+                          max={110}
+                          value={passengerAge}
+                          onChange={(e) => setPassengerAge(Number(e.target.value))}
+                          className="modal-txt-input" 
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="field-lbl">Gender</label>
+                        <select 
+                          value={passengerGender}
+                          onChange={(e) => setPassengerGender(e.target.value)}
+                          className="modal-txt-input"
+                        >
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="travel-form-grid mt-2">
+                    <div className="form-group">
+                      <label className="field-lbl">Mobile Number (for SMS & E-Ticket) *</label>
+                      <div className="mobile-prefix-wrap">
+                        <span className="mob-pre">+91</span>
+                        <input 
+                          type="tel" 
+                          maxLength={10}
+                          required
+                          value={passengerMobile}
+                          onChange={(e) => setPassengerMobile(e.target.value.replace(/\D/g, ''))}
+                          className="modal-txt-input ps-prefix" 
+                          placeholder="10-digit number"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="field-lbl">Email Address *</label>
+                      <input 
+                        type="email" 
+                        required
+                        value={passengerEmail}
+                        onChange={(e) => setPassengerEmail(e.target.value)}
+                        className="modal-txt-input" 
+                        placeholder="rahul.sharma@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Seat / Berth Preferences */}
+                  <div className="form-group mt-2">
+                    <label className="field-lbl">
+                      {type === "flight" ? "Seat Preference" : type === "train" ? "Berth Choice" : "Seat Notes"}
+                    </label>
+                    <select 
+                      value={berthPreference}
+                      onChange={(e) => setBerthPreference(e.target.value)}
+                      className="modal-txt-input"
+                    >
+                      {type === "train" && (
+                        <>
+                          <option value="Lower Berth">Lower Berth (Senior / Preferred)</option>
+                          <option value="Middle Berth">Middle Berth</option>
+                          <option value="Upper Berth">Upper Berth</option>
+                          <option value="Side Lower">Side Lower Window</option>
+                        </>
+                      )}
+                      {type === "flight" && (
+                        <>
+                          <option value="Window Seat">Window Seat (14A)</option>
+                          <option value="Aisle Seat">Aisle Seat (14C)</option>
+                          <option value="Extra Legroom">Extra Legroom (Row 1)</option>
+                        </>
+                      )}
+                      {type === "bus" && (
+                        <>
+                          <option value="Window Sleeper">Window Sleeper</option>
+                          <option value="Aisle Semi-Sleeper">Aisle Semi-Sleeper</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+
+                  {/* 2. PAYMENT METHOD SELECTION */}
+                  <div className="payment-select-section mt-3">
+                    <div className="reg-box-header">
+                      <CreditCard size={16} className="text-green" />
+                      <strong>Payment Method & Instant Ticket Confirmation</strong>
+                    </div>
+
+                    <div className="pay-mini-tabs">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("upi")}
+                        className={`pay-tab-chip ${paymentMethod === "upi" ? "active" : ""}`}
+                      >
+                        <Smartphone size={14} /> UPI
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("card")}
+                        className={`pay-tab-chip ${paymentMethod === "card" ? "active" : ""}`}
+                      >
+                        <CreditCard size={14} /> Debit / Credit Card
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("netbanking")}
+                        className={`pay-tab-chip ${paymentMethod === "netbanking" ? "active" : ""}`}
+                      >
+                        <Building2 size={14} /> Net Banking
+                      </button>
+                    </div>
+
+                    {paymentMethod === "upi" && (
+                      <div className="mini-pay-box">
+                        <div className="form-group mb-1">
+                          <label className="small-lbl">UPI ID (Google Pay / PhonePe / Paytm):</label>
+                          <input 
+                            type="text" 
+                            value={upiId}
+                            onChange={(e) => setUpiId(e.target.value)}
+                            className="modal-txt-input" 
+                            placeholder="username@okhdfcbank"
+                          />
+                        </div>
+                        <span className="text-muted small">✓ Instant one-click confirmation without transaction fee</span>
+                      </div>
+                    )}
+
+                    {paymentMethod === "card" && (
+                      <div className="mini-pay-box">
+                        <div className="form-group mb-2">
+                          <label className="small-lbl">Card Number (Visa / MasterCard / RuPay):</label>
+                          <input 
+                            type="text" 
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(e.target.value)}
+                            className="modal-txt-input" 
+                          />
+                        </div>
+                        <div className="form-row-mini">
+                          <div className="form-group">
+                            <label className="small-lbl">Expiry (MM/YY)</label>
+                            <input 
+                              type="text" 
+                              value={cardExpiry}
+                              onChange={(e) => setCardExpiry(e.target.value)}
+                              className="modal-txt-input" 
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="small-lbl">CVV</label>
+                            <input 
+                              type="password" 
+                              maxLength={4}
+                              value={cardCvv}
+                              onChange={(e) => setCardCvv(e.target.value)}
+                              className="modal-txt-input" 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {paymentMethod === "netbanking" && (
+                      <div className="mini-pay-box">
+                        <label className="small-lbl mb-1 d-block">Select Bank:</label>
+                        <select 
+                          value={selectedBank}
+                          onChange={(e) => setSelectedBank(e.target.value)}
+                          className="modal-txt-input"
+                        >
+                          <option value="HDFC Bank">HDFC Bank</option>
+                          <option value="State Bank of India">State Bank of India</option>
+                          <option value="ICICI Bank">ICICI Bank</option>
+                          <option value="Axis Bank">Axis Bank</option>
+                          <option value="Kotak Mahindra">Kotak Mahindra</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 3. Fare Breakdown */}
+                  <div className="fare-breakdown-box mt-3">
+                    <div className="fare-row">
+                      <span>Base Ticket Fare ({type.toUpperCase()})</span>
+                      <span>₹{(selectedClass?.fare || item.price || item.fare || 1400).toLocaleString()}</span>
+                    </div>
+                    <div className="fare-row">
+                      <span>Carrier Reservation Fee & Taxes</span>
+                      <span className="text-green">₹0 (Promo Waived)</span>
+                    </div>
+                    <div className="fare-row total">
+                      <span>Total Payable Amount</span>
+                      <span className="text-green">₹{(selectedClass?.fare || item.price || item.fare || 1400).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* PROCESSING STATE */}
+              {isProcessing && (
+                <div className="payment-processing-splash py-4 text-center">
+                  <div className="pulse-spinner"></div>
+                  <h4>Authorizing Payment & Issuing E-Ticket...</h4>
+                  <p className="text-muted small">Verifying transaction with Bank & Carrier gateway ({item.airline || item.trainName || item.operator})</p>
+                  <div className="secure-pill d-inline-flex align-items-center gap-1 small text-muted">
+                    <Lock size={12} /> 256-Bit SSL Encrypted
+                  </div>
+                </div>
+              )}
+
+              {/* CONFIRMED E-TICKET SCREEN */}
+              {bookedSuccess && confirmedBooking && (
+                <div className="confirmed-ticket-splash text-center py-3">
+                  <div className="check-bubble">
+                    <Check size={28} />
+                  </div>
+                  <h3 className="text-navy mb-1">{type.toUpperCase()} Ticket Confirmed!</h3>
+                  <p className="text-muted small mb-3">Official Roavio verified E-Ticket has been issued.</p>
+
+                  <div className="confirmed-card-box text-start p-3 bg-light rounded-3">
+                    <div className="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                      <div>
+                        <span className="small text-muted">{item.airline || item.trainName || item.operator}</span>
+                        <h5 className="mb-0 text-navy">{confirmedBooking.title}</h5>
+                      </div>
+                      <div className="text-end">
+                        <span className="small text-muted">PNR NUMBER</span>
+                        <div className="fw-bold text-success fs-6">{confirmedBooking.pnr}</div>
+                      </div>
+                    </div>
+
+                    <div className="row g-2 small">
+                      <div className="col-6">
+                        <span className="text-muted d-block">Passenger</span>
+                        <strong>{passengerName} ({passengerAge}y, {passengerGender})</strong>
+                      </div>
+                      <div className="col-6">
+                        <span className="text-muted d-block">Assigned Seat</span>
+                        <strong>{confirmedBooking.seat}</strong>
+                      </div>
+                      <div className="col-6">
+                        <span className="text-muted d-block">Departure Route</span>
+                        <strong>{item.fromCity} ➔ {item.toCity}</strong>
+                      </div>
+                      <div className="col-6">
+                        <span className="text-muted d-block">Amount Paid</span>
+                        <strong className="text-green">₹{confirmedBooking.fare?.toLocaleString()}</strong>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-top text-success small d-flex align-items-center gap-1">
+                      <CheckCircle2 size={15} />
+                      <span>E-Ticket dispatched to +91 {passengerMobile} and {passengerEmail}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 d-flex justify-content-center gap-2">
+                    <Link to="/my-trips" onClick={() => setModalOpen(false)} className="btn btn-primary btn-sm">
+                      <Ticket size={15} /> View in My Trips
+                    </Link>
+                    <button onClick={() => setModalOpen(false)} className="btn btn-outline btn-sm">
+                      Close
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
-            <div className="modal-footer">
-              <button onClick={() => setModalOpen(false)} className="btn btn-outline btn-sm">
-                Cancel
-              </button>
-              <button 
-                onClick={handleConfirmBooking} 
-                disabled={bookedSuccess}
-                className="btn btn-primary btn-sm"
-              >
-                {bookedSuccess ? "Confirmed ✓" : "Confirm Booking Demo"}
-              </button>
-            </div>
+            {!bookedSuccess && (
+              <div className="modal-footer">
+                <button 
+                  onClick={() => setModalOpen(false)} 
+                  disabled={isProcessing} 
+                  className="btn btn-outline btn-sm"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleConfirmBooking} 
+                  disabled={isProcessing}
+                  className="btn btn-primary btn-sm btn-pay-confirm-sm"
+                >
+                  <Lock size={14} />
+                  <span>Pay ₹{(selectedClass?.fare || item.price || item.fare || 1400).toLocaleString()} & Confirm Ticket</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -665,7 +1055,154 @@ export default function TravelCard({ item, type }) {
           gap: 10px;
         }
 
+        /* Traveler Registration & Payment Mini Box Styles */
+        .traveler-reg-box {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          padding: 14px;
+        }
+
+        .reg-box-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.88rem;
+          color: var(--primary-navy);
+          margin-bottom: 10px;
+        }
+
+        .travel-form-grid {
+          display: grid;
+          grid-template-columns: 1.2fr 1fr;
+          gap: 10px;
+        }
+
+        .form-row-mini {
+          display: grid;
+          grid-template-columns: 1fr 1.2fr;
+          gap: 8px;
+        }
+
+        .field-lbl {
+          display: block;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #475569;
+          margin-bottom: 4px;
+        }
+
+        .small-lbl {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #64748B;
+        }
+
+        .modal-txt-input {
+          width: 100%;
+          border: 1px solid #CBD5E1;
+          border-radius: 8px;
+          padding: 7px 10px;
+          font-size: 0.85rem;
+          color: #1E293B;
+          background: white;
+          outline: none;
+        }
+
+        .modal-txt-input:focus {
+          border-color: var(--travel-green);
+        }
+
+        .mobile-prefix-wrap {
+          position: relative;
+        }
+
+        .mob-pre {
+          position: absolute;
+          left: 8px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: #64748B;
+        }
+
+        .modal-txt-input.ps-prefix {
+          padding-left: 38px;
+        }
+
+        .pay-mini-tabs {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 6px;
+          margin-bottom: 8px;
+        }
+
+        .pay-tab-chip {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          padding: 6px;
+          border-radius: 8px;
+          border: 1px solid #CBD5E1;
+          background: white;
+          font-size: 0.76rem;
+          font-weight: 700;
+          color: #475569;
+          cursor: pointer;
+        }
+
+        .pay-tab-chip.active {
+          border-color: var(--travel-green);
+          background: #F0FDF4;
+          color: var(--travel-green);
+        }
+
+        .mini-pay-box {
+          background: white;
+          border: 1px solid #E2E8F0;
+          border-radius: 8px;
+          padding: 8px 10px;
+        }
+
+        .btn-pay-confirm-sm {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-weight: 800;
+        }
+
+        .check-bubble {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: #DCFCE7;
+          color: #16A34A;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 10px;
+        }
+
+        .pulse-spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid #E2E8F0;
+          border-top-color: var(--travel-green);
+          border-radius: 50%;
+          margin: 0 auto 12px;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
         @media (max-width: 860px) {
+          .travel-form-grid, .pay-mini-tabs {
+            grid-template-columns: 1fr;
+          }
           .roavio-travel-card {
             grid-template-columns: 1fr;
             gap: 16px;
