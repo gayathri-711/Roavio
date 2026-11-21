@@ -10,6 +10,7 @@ import {
   Route, 
   Navigation, 
   Plane, 
+  Train,
   CheckCircle2, 
   Sparkles, 
   ArrowLeft,
