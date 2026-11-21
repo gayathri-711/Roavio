@@ -47,7 +47,10 @@ import {
   Sliders,
   CheckSquare,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Award,
+  Zap,
+  HeartHandshake
 } from "lucide-react";
 import { DESTINATIONS, calculateDistanceKm, getDestinationById } from "../data/destinations";
 import { getHotelsForDestination } from "../data/hotels";
@@ -122,7 +125,7 @@ export default function PlanJourney() {
     return ["ooty"];
   });
 
-  // Expandable "See Details / Hide" state for tourist stops & hotels
+  // Expandable "See Details / Hide" state for tourist stops, hotels & packages
   const [expandedStopIds, setExpandedStopIds] = useState([]);
   const toggleStopDetails = (id) => {
     setExpandedStopIds((prev) => 
@@ -133,6 +136,13 @@ export default function PlanJourney() {
   const [expandedHotelIds, setExpandedHotelIds] = useState([]);
   const toggleHotelDetails = (id) => {
     setExpandedHotelIds((prev) => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const [expandedPackageIds, setExpandedPackageIds] = useState(["fixed_2day"]);
+  const togglePackageDetails = (id) => {
+    setExpandedPackageIds((prev) =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
   };
@@ -687,37 +697,62 @@ export default function PlanJourney() {
 
   return (
     <div className="plan-journey-page">
-      {/* Hero Header */}
+      {/* =========================================================================
+          LUXURY TOURS HERO BANNER WITH BACKGROUND PHOTOGRAPHY & STATS
+      ========================================================================= */}
       <section className="plan-hero">
-        <div className="container">
+        <div className="plan-hero-overlay"></div>
+        <div className="container plan-hero-container">
           <div className="plan-hero-inner">
-            <div className="badge-pill">
-              <Compass size={15} />
-              <span>ROAVIO ITINERARY ARCHITECT</span>
+            <div className="hero-badge-pill">
+              <Sparkles size={14} className="text-warning" />
+              <span>OFFICIAL ROAVIO INDIA TOURS & ITINERARY ARCHITECT</span>
             </div>
-            <h1>Plan Your Personalized India Journey</h1>
-            <p>
-              Custom choose hotels by budget, pick flight, train, or bus travel tickets, decide trip duration, and auto-calculate costs — or pick all-inclusive fixed budget packages arranged by Roavio!
+            <h1 className="hero-main-title">
+              Plan & Book Your <span className="hero-gradient-text">Incredible India Tour</span>
+            </h1>
+            <p className="hero-lead-text">
+              Curate your personalized holiday with verified 3★ to 5★ resorts, confirmed return travel tickets, and authentic regional meals — or choose Roavio's fixed budget packages starting at ₹9,999!
             </p>
+
+            {/* Quick Hero Value Chips */}
+            <div className="hero-stats-row">
+              <div className="hero-stat-chip">
+                <Compass size={14} className="stat-ico" />
+                <span>175+ Curated Sights</span>
+              </div>
+              <div className="hero-stat-chip">
+                <Hotel size={14} className="stat-ico" />
+                <span>Verified Handpicked Stays</span>
+              </div>
+              <div className="hero-stat-chip">
+                <Ticket size={14} className="stat-ico" />
+                <span>Confirmed Return Travel</span>
+              </div>
+              <div className="hero-stat-chip">
+                <ShieldCheck size={14} className="stat-ico" />
+                <span>Instant Verified E-Tickets</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="container py-8">
+      <div className="container py-8 main-planner-container">
         {/* =========================================================================
             TOP ARCHITECTURE: TWO-CHOICE PLANNING MODE SWITCHER
         ========================================================================= */}
         <div className="choice-mode-card mb-4">
           <div className="choice-mode-header">
-            <span className="choice-kicker">TWO WAYS TO PLAN YOUR HOLIDAY</span>
-            <h3>Select How You Would Like to Plan Your Trip</h3>
+            <span className="choice-kicker">SELECT YOUR PREFERRED PLANNING STYLE</span>
+            <h3>How Would You Like to Plan Your Holiday?</h3>
             <p className="choice-subtitle">
-              Choose between full customization with live dynamic cost calculation, or our hassle-free Roavio fixed budget packages where we arrange everything.
+              Choose between complete custom freedom with itemized cost calculation, or our fixed all-inclusive budget packages where Roavio takes care of everything.
             </p>
           </div>
 
           <div className="mobile-slide-hint d-md-none">
-            <span>👉 Swipe horizontally to compare planning choices</span>
+            <span>👉 Swipe horizontally to compare choices</span>
           </div>
 
           <div className="choice-tabs-grid mobile-slide-track">
@@ -734,12 +769,12 @@ export default function PlanJourney() {
               </div>
               <h4>Custom Build Your Trip</h4>
               <p>
-                1. Pick your hotel by budget · 2. Select flight/train/bus travel tickets · 3. Decide trip duration (days) · 4. Auto-calculate total cost.
+                1. Pick hotel by budget · 2. Select flight/train/bus tickets · 3. Decide duration (days) · 4. Live dynamic cost calculation.
               </p>
               <div className="choice-features">
                 <span>✓ Selectable Hotels by Budget</span>
                 <span>✓ Flight, Train or Bus Tickets</span>
-                <span>✓ Dynamic Cost Calculation</span>
+                <span>✓ Itemized Dynamic Bill</span>
               </div>
             </div>
 
@@ -754,7 +789,7 @@ export default function PlanJourney() {
                   {planMode === "fixed" && <Check size={14} color="#FFF" />}
                 </div>
               </div>
-              <h4>Roavio Fixed Budget Packages</h4>
+              <h4>Roavio All-Inclusive Fixed Packages</h4>
               <p>
                 Pay a single fixed price (e.g. ₹9,999 2-Day Ooty Tour) and Roavio arranges your return tickets, hotel stay, all meals & sightseeing!
               </p>
@@ -775,8 +810,8 @@ export default function PlanJourney() {
               <div className="card-section-title">
                 <span className="step-num">1</span>
                 <div>
-                  <h3>Trip Essentials</h3>
-                  <p>Trip origin, dates, and journey mode</p>
+                  <h3>Trip Essentials & Origin</h3>
+                  <p>Choose your starting city, dates, and journey style</p>
                 </div>
               </div>
 
@@ -804,7 +839,7 @@ export default function PlanJourney() {
                         }
                       }}
                       className={`btn btn-sm ${tripType === "direct" ? "btn-primary" : "btn-outline"}`}
-                      style={{ flex: 1, padding: "0.6rem 0.8rem", borderRadius: "8px", fontWeight: "600" }}
+                      style={{ flex: 1, padding: "0.65rem 0.85rem", borderRadius: "10px", fontWeight: "700" }}
                     >
                       🎯 Direct Trip (Go Only to {selectedDestinations[0]?.name?.split(" ")[0] || "Destination"})
                     </button>
@@ -812,7 +847,7 @@ export default function PlanJourney() {
                       type="button"
                       onClick={() => setTripType("circuit")}
                       className={`btn btn-sm ${tripType === "circuit" ? "btn-primary" : "btn-outline"}`}
-                      style={{ flex: 1, padding: "0.6rem 0.8rem", borderRadius: "8px", fontWeight: "600" }}
+                      style={{ flex: 1, padding: "0.65rem 0.85rem", borderRadius: "10px", fontWeight: "700" }}
                     >
                       🔄 Multi-City Circuit (Multiple Stops)
                     </button>
@@ -950,7 +985,7 @@ export default function PlanJourney() {
                     const isExpanded = expandedStopIds.includes(dest.id);
                     return (
                       <div key={dest.id} className="selected-stop-card">
-                        {/* Top Bar on Mobile: Pill on left, Reorder & Delete actions on right */}
+                        {/* Top Bar: Pill on left, Reorder & Delete actions on right */}
                         <div className="stop-card-topbar">
                           <div className="stop-index-pill">
                             {selectedDestinations.length === 1 ? "Direct Destination" : `Stop #${idx + 1}`}
@@ -1029,7 +1064,7 @@ export default function PlanJourney() {
                               title={`Explore details for ${dest.name}`}
                             >
                               <Eye size={13} />
-                              <span>Explore</span>
+                              <span>Explore Photo</span>
                             </button>
                             <Link
                               to={`/destination/${dest.id}`}
@@ -1068,7 +1103,7 @@ export default function PlanJourney() {
               </div>
             </div>
 
-            {/* Prominent Destination Details & Explore Showcase with Responsive Badges */}
+            {/* Prominent Destination Details & Explore Showcase */}
             {primaryDest && (
               <div className="dest-spotlight-card mb-4">
                 <div className="spotlight-header">
@@ -1160,11 +1195,6 @@ export default function PlanJourney() {
             {/* =========================================================================
                 CHOICE 1: CUSTOM BUILD YOUR TRIP SECTION
                 Visible when planMode === "custom"
-                1. Decide Days (Slideable)
-                2. Travel Tickets List (Slideable)
-                3. Hotels List by Budget (Slideable & Expandable)
-                4. Food & Sightseeing Options
-                5. Auto Calculate Cost
             ========================================================================= */}
             {planMode === "custom" && (
               <div className="custom-plan-container">
@@ -1606,6 +1636,7 @@ export default function PlanJourney() {
                     {fixedPackages.map((pkg) => {
                       const isSelected = selectedFixedPackageId === pkg.id;
                       const pkgTotal = pkg.pricePerPerson * travelersCount;
+                      const isPkgExpanded = expandedPackageIds.includes(pkg.id);
                       return (
                         <div
                           key={pkg.id}
@@ -1629,17 +1660,38 @@ export default function PlanJourney() {
                             <span className="pkg-price-unit">/ person (All-Inclusive)</span>
                           </div>
 
-                          <div className="pkg-facilities-list">
-                            <span className="fac-title">All Facilities Arranged by Roavio:</span>
-                            {pkg.facilities.map((fac, i) => (
-                              <div key={i} className="fac-item">
-                                <CheckCircle2 size={15} className="text-green flex-shrink-0 mt-1" />
-                                <span>{fac}</span>
-                              </div>
-                            ))}
-                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePackageDetails(pkg.id);
+                            }}
+                            className="btn-toggle-pkg-details"
+                          >
+                            {isPkgExpanded ? (
+                              <>
+                                <ChevronUp size={14} className="me-1" /> Hide Inclusions ▲
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown size={14} className="me-1" /> See All Inclusions ▼
+                              </>
+                            )}
+                          </button>
 
-                          <div className="pkg-select-footer mt-3">
+                          {isPkgExpanded && (
+                            <div className="pkg-facilities-list">
+                              <span className="fac-title">All Facilities Arranged by Roavio:</span>
+                              {pkg.facilities.map((fac, i) => (
+                                <div key={i} className="fac-item">
+                                  <CheckCircle2 size={15} className="text-green flex-shrink-0 mt-1" />
+                                  <span>{fac}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="pkg-select-footer mt-auto pt-3">
                             <button 
                               type="button" 
                               className={`btn btn-sm w-100 ${isSelected ? "btn-primary" : "btn-outline"}`}
@@ -1872,6 +1924,14 @@ export default function PlanJourney() {
                 <Link to="/map" className="btn btn-outline btn-block mt-2 flex-center gap-2">
                   <Navigation size={16} /> View Route on Live Map
                 </Link>
+              </div>
+
+              {/* Security Reassurance Chips */}
+              <div className="summary-trust-strip mt-3 pt-3 border-top text-center">
+                <div className="d-flex justify-content-center align-items-center gap-2 text-muted small">
+                  <ShieldCheck size={14} className="text-green" />
+                  <span>256-Bit SSL Secured · Official QR E-Tickets</span>
+                </div>
               </div>
             </div>
           </aside>
@@ -2472,13 +2532,133 @@ export default function PlanJourney() {
         </div>
       )}
 
-      {/* COMPREHENSIVE RESPONSIVE & MOBILE SLIDER STYLES */}
+      {/* =========================================================================
+          LUXURY MODERN ROAVIO STYLES
+      ========================================================================= */}
       <style>{`
-        /* Global Page & Container Safeguards Against Horizontal Overflow */
+        /* Global Page Wrapper - Strict Responsive Boundaries */
         .plan-journey-page {
           width: 100%;
           max-width: 100vw;
-          overflow-x: hidden;
+          overflow-x: clip;
+          background: #F8FAFC;
+          min-height: 100vh;
+          box-sizing: border-box;
+        }
+
+        .plan-journey-page *,
+        .plan-journey-page *::before,
+        .plan-journey-page *::after {
+          box-sizing: border-box;
+        }
+
+        /* Hero Banner with Background Image & Gradient Overlay */
+        .plan-hero {
+          position: relative;
+          background: #0F172A url('/assets/img/inner-page/breadcrumb/bg-3.jpg') center/cover no-repeat;
+          color: white;
+          padding: 4.5rem 0 3.8rem;
+          border-bottom: 4px solid var(--color-green);
+          overflow: hidden;
+          width: 100%;
+        }
+
+        .plan-hero-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.94) 0%, rgba(30, 41, 59, 0.90) 50%, rgba(6, 78, 59, 0.94) 100%);
+          z-index: 1;
+        }
+
+        .plan-hero-container {
+          position: relative;
+          z-index: 2;
+        }
+
+        .plan-hero-inner {
+          max-width: 820px;
+          margin: 0 auto;
+          text-align: center;
+        }
+
+        .hero-badge-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(8px);
+          color: #4ADE80;
+          border: 1px solid rgba(74, 222, 128, 0.4);
+          padding: 0.4rem 1rem;
+          border-radius: 999px;
+          font-size: 0.76rem;
+          font-weight: 800;
+          letter-spacing: 0.8px;
+          margin-bottom: 1.2rem;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+        }
+
+        .hero-main-title {
+          font-size: clamp(1.8rem, 5vw, 3rem);
+          font-weight: 900;
+          color: #FFFFFF;
+          margin-bottom: 1rem;
+          line-height: 1.2;
+          letter-spacing: -0.5px;
+          word-break: break-word;
+        }
+
+        .hero-gradient-text {
+          background: linear-gradient(135deg, #34D399 0%, #FBBF24 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        .hero-lead-text {
+          font-size: 1.02rem;
+          color: #E2E8F0;
+          line-height: 1.6;
+          max-width: 680px;
+          margin: 0 auto 1.8rem;
+          font-weight: 400;
+          word-break: break-word;
+        }
+
+        .hero-stats-row {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.6rem;
+        }
+
+        .hero-stat-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          backdrop-filter: blur(6px);
+          color: #F1F5F9;
+          font-size: 0.8rem;
+          font-weight: 700;
+          padding: 0.35rem 0.8rem;
+          border-radius: 999px;
+        }
+
+        .stat-ico {
+          color: #34D399;
+        }
+
+        /* Planner Grid Layout */
+        .main-planner-container {
+          padding-top: 2rem;
+          padding-bottom: 4rem;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .planner-grid {
@@ -2487,143 +2667,169 @@ export default function PlanJourney() {
           gap: 2rem;
           align-items: start;
           width: 100%;
-          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
 
+        .planner-form-col {
+          min-width: 0;
+          width: 100%;
+        }
+
+        .planner-summary-col {
+          min-width: 0;
+          width: 100%;
+        }
+
+        /* Modern Card Styling */
         .planner-card {
           background: #FFFFFF;
-          border-radius: 18px;
-          padding: 1.6rem;
-          border: 1px solid #E2E8F0;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-          margin-bottom: 1.5rem;
+          border-radius: 20px;
+          padding: 1.8rem;
+          border: 1.5px solid #E2E8F0;
+          box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+          margin-bottom: 1.8rem;
           width: 100%;
-          max-width: 100%;
+          min-width: 0;
           box-sizing: border-box;
           overflow: hidden;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .card-section-title {
           display: flex;
           align-items: center;
-          gap: 0.8rem;
-          margin-bottom: 1.2rem;
-          border-bottom: 1px solid #F1F5F9;
-          padding-bottom: 0.8rem;
+          gap: 0.9rem;
+          margin-bottom: 1.4rem;
+          border-bottom: 1.5px solid #F1F5F9;
+          padding-bottom: 1rem;
         }
 
         .card-section-title h3 {
-          font-size: 1.15rem;
+          font-size: 1.2rem;
           font-weight: 800;
           color: var(--color-navy);
-          margin: 0;
+          margin: 0 0 0.15rem;
+          letter-spacing: -0.2px;
+          word-break: break-word;
         }
 
         .card-section-title p {
-          font-size: 0.8rem;
+          font-size: 0.82rem;
           color: #64748B;
           margin: 0;
+          word-break: break-word;
         }
 
         .step-num {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: var(--color-navy);
+          width: 32px;
+          height: 32px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, var(--color-navy) 0%, #1E3A8A 100%);
           color: white;
-          font-size: 0.82rem;
-          font-weight: 800;
+          font-size: 0.88rem;
+          font-weight: 900;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
         }
 
-        /* Mobile Slide Hint Pill */
-        .mobile-slide-hint {
-          display: inline-block;
-          background: #F1F5F9;
-          color: #475569;
-          font-size: 0.72rem;
-          font-weight: 700;
-          padding: 0.2rem 0.6rem;
-          border-radius: 999px;
-          border: 1px solid #E2E8F0;
-        }
-
-        /* Choice Mode Selector Banner */
+        /* Choice Mode Card */
         .choice-mode-card {
           background: #FFFFFF;
           border: 1.5px solid #E2E8F0;
-          border-radius: 18px;
-          padding: 1.5rem;
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+          border-radius: 22px;
+          padding: 1.8rem;
+          box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
           width: 100%;
+          min-width: 0;
           box-sizing: border-box;
         }
 
         .choice-kicker {
           font-size: 0.72rem;
           font-weight: 800;
-          letter-spacing: 0.8px;
+          letter-spacing: 0.9px;
           color: var(--color-green);
           text-transform: uppercase;
         }
 
         .choice-mode-header h3 {
           font-size: 1.35rem;
-          font-weight: 800;
+          font-weight: 900;
           color: var(--color-navy);
           margin: 0.2rem 0;
+          word-break: break-word;
         }
 
         .choice-subtitle {
           color: #64748B;
           font-size: 0.88rem;
-          margin-bottom: 1rem;
+          margin-bottom: 1.2rem;
+          line-height: 1.5;
+          word-break: break-word;
+        }
+
+        .mobile-slide-hint {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: #EFF6FF;
+          color: #1D4ED8;
+          font-size: 0.76rem;
+          font-weight: 700;
+          padding: 0.35rem 0.8rem;
+          border-radius: 999px;
+          border: 1px solid #BFDBFE;
+          margin-bottom: 0.75rem;
         }
 
         .choice-tabs-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1.2rem;
+          gap: 1.4rem;
           width: 100%;
+          min-width: 0;
           box-sizing: border-box;
         }
 
         .choice-tab-card {
           border: 2px solid #E2E8F0;
-          border-radius: 14px;
-          padding: 1.2rem;
+          border-radius: 18px;
+          padding: 1.4rem;
           cursor: pointer;
           transition: all 0.25s ease;
           background: #FAFDFB;
           box-sizing: border-box;
+          position: relative;
         }
 
         .choice-tab-card:hover {
           border-color: #94A3B8;
           transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
         }
 
         .choice-tab-card.active {
           border-color: var(--color-green);
           background: #FFFFFF;
-          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.15), 0 8px 24px rgba(0, 0, 0, 0.06);
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.18), 0 12px 28px rgba(0, 0, 0, 0.08);
         }
 
         .choice-tab-top {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 0.6rem;
+          margin-bottom: 0.75rem;
         }
 
         .choice-badge {
-          font-size: 0.68rem;
+          font-size: 0.7rem;
           font-weight: 800;
           letter-spacing: 0.5px;
-          padding: 0.2rem 0.6rem;
+          padding: 0.25rem 0.7rem;
           border-radius: 999px;
         }
 
@@ -2631,33 +2837,36 @@ export default function PlanJourney() {
         .choice-badge.badge-fixed { background: #DBEAFE; color: #1E40AF; }
 
         .choice-radio {
-          width: 22px;
-          height: 22px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
           border: 2px solid #CBD5E1;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          transition: all 0.2s;
         }
 
         .choice-radio.active {
           background: var(--color-green);
           border-color: var(--color-green);
+          box-shadow: 0 2px 8px rgba(21, 155, 117, 0.4);
         }
 
         .choice-tab-card h4 {
           font-size: 1.15rem;
           font-weight: 800;
           color: var(--color-navy);
-          margin-bottom: 0.35rem;
+          margin-bottom: 0.4rem;
         }
 
         .choice-tab-card p {
-          font-size: 0.82rem;
+          font-size: 0.84rem;
           color: #475569;
           line-height: 1.5;
-          margin-bottom: 0.8rem;
+          margin-bottom: 0.9rem;
+          word-break: break-word;
         }
 
         .choice-features {
@@ -2671,28 +2880,26 @@ export default function PlanJourney() {
 
         .choice-features span {
           background: #F0FDF4;
-          padding: 0.2rem 0.5rem;
-          border-radius: 6px;
+          padding: 0.25rem 0.6rem;
+          border-radius: 8px;
           border: 1px solid #BBF7D0;
         }
 
-        /* Single Dest Direct Trip Focus Banner */
+        /* Direct Destination Banner */
         .single-dest-focus-banner {
-          background: #F0FDF4;
+          background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
           border: 1px solid #BBF7D0;
           color: #166534;
-          width: 100%;
-          box-sizing: border-box;
+          border-radius: 14px;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
           word-break: break-word;
-          overflow-wrap: anywhere;
         }
 
         /* Search Stops Box */
         .search-stops-box {
           position: relative;
-          margin-bottom: 1.2rem;
+          margin-bottom: 1.4rem;
           width: 100%;
-          box-sizing: border-box;
         }
 
         .search-input-wrap {
@@ -2704,26 +2911,34 @@ export default function PlanJourney() {
 
         .search-icon {
           position: absolute;
-          left: 14px;
+          left: 16px;
           color: #64748B;
         }
 
         .stops-search-input {
           width: 100%;
-          padding: 0.75rem 2.4rem 0.75rem 2.8rem;
+          padding: 0.85rem 2.6rem 0.85rem 3rem;
           border: 1.5px solid #CBD5E1;
-          border-radius: 12px;
-          font-size: 0.88rem;
+          border-radius: 14px;
+          font-size: 0.9rem;
           box-sizing: border-box;
           background: #F8FAFC;
+          transition: all 0.2s;
+        }
+
+        .stops-search-input:focus {
+          outline: none;
+          border-color: var(--color-green);
+          background: #FFFFFF;
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.15);
         }
 
         .clear-search-btn {
           position: absolute;
-          right: 12px;
+          right: 14px;
           background: none;
           border: none;
-          font-size: 1.2rem;
+          font-size: 1.3rem;
           color: #64748B;
           cursor: pointer;
         }
@@ -2735,10 +2950,10 @@ export default function PlanJourney() {
           right: 0;
           background: white;
           border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+          border-radius: 14px;
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
           z-index: 50;
-          margin-top: 4px;
+          margin-top: 6px;
           overflow: hidden;
         }
 
@@ -2746,28 +2961,34 @@ export default function PlanJourney() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0.6rem 0.8rem;
+          padding: 0.75rem 1rem;
           border-bottom: 1px solid #F1F5F9;
-          gap: 0.5rem;
+          gap: 0.8rem;
+          transition: background 0.15s;
+        }
+
+        .stop-suggestion-row:hover {
+          background: #F8FAFC;
         }
 
         .sugg-thumb {
-          width: 40px;
-          height: 40px;
-          border-radius: 8px;
+          width: 44px;
+          height: 44px;
+          border-radius: 10px;
           object-fit: cover;
           flex-shrink: 0;
         }
 
         .sugg-info {
           flex-grow: 1;
+          min-width: 0;
           overflow: hidden;
         }
 
         .sugg-name {
           display: block;
-          font-size: 0.85rem;
-          font-weight: 700;
+          font-size: 0.88rem;
+          font-weight: 800;
           color: var(--color-navy);
           white-space: nowrap;
           overflow: hidden;
@@ -2775,78 +2996,61 @@ export default function PlanJourney() {
         }
 
         .sugg-state {
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           color: #64748B;
         }
 
-        .btn-quick-explore {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          background: #EFF6FF;
-          color: #1D4ED8;
-          border: 1px solid #BFDBFE;
-          border-radius: 6px;
-          padding: 0.3rem 0.6rem;
-          font-size: 0.74rem;
-          font-weight: 700;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-
-        /* =========================================================================
-           SELECTED STOP CARD - FULLY RESPONSIVE & MOBILE-FRIENDLY
-        ========================================================================= */
+        /* Selected Stop Cards */
         .selected-stops-list {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 1.2rem;
           width: 100%;
-          box-sizing: border-box;
+          min-width: 0;
         }
 
         .selected-stop-card {
-          background: #F8FAFC;
+          background: #FFFFFF;
           border: 1.5px solid #E2E8F0;
-          border-radius: 14px;
-          padding: 1rem;
+          border-radius: 16px;
+          padding: 1.2rem;
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
+          gap: 0.8rem;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+          transition: all 0.2s;
+          min-width: 0;
           width: 100%;
           box-sizing: border-box;
-          overflow: hidden;
-          transition: all 0.2s ease;
         }
 
         .selected-stop-card:hover {
           border-color: #94A3B8;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
         }
 
         .stop-card-topbar {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          width: 100%;
           gap: 0.5rem;
+          width: 100%;
         }
 
         .stop-index-pill {
-          background: var(--color-navy);
+          background: linear-gradient(135deg, var(--color-navy) 0%, #1E3A8A 100%);
           color: white;
           font-size: 0.72rem;
           font-weight: 800;
-          padding: 0.25rem 0.6rem;
+          padding: 0.25rem 0.65rem;
           border-radius: 6px;
-          white-space: nowrap;
-          flex-shrink: 0;
+          letter-spacing: 0.3px;
         }
 
         .stop-actions {
           display: flex;
           align-items: center;
           gap: 0.4rem;
-          flex-shrink: 0;
         }
 
         .reorder-btn, .delete-stop-btn {
@@ -2860,12 +3064,12 @@ export default function PlanJourney() {
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          flex-shrink: 0;
+          transition: all 0.15s;
         }
 
-        .reorder-btn:disabled {
-          opacity: 0.35;
-          cursor: not-allowed;
+        .reorder-btn:hover:not(:disabled) {
+          border-color: var(--color-navy);
+          background: #F1F5F9;
         }
 
         .delete-stop-btn {
@@ -2880,37 +3084,40 @@ export default function PlanJourney() {
         .stop-card-main {
           display: flex;
           align-items: flex-start;
-          gap: 0.9rem;
+          gap: 1rem;
           width: 100%;
+          min-width: 0;
         }
 
         .stop-img {
-          width: 70px;
-          height: 70px;
-          border-radius: 10px;
+          width: 72px;
+          height: 72px;
+          border-radius: 12px;
           object-fit: cover;
           flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .stop-details {
           flex-grow: 1;
-          overflow: hidden;
+          min-width: 0;
+          word-break: break-word;
         }
 
         .stop-name {
-          font-size: 1.05rem;
+          font-size: 1.08rem;
           font-weight: 800;
           color: var(--color-navy);
-          margin: 0 0 0.2rem;
-          word-break: break-word;
+          margin: 0 0 0.25rem;
           line-height: 1.3;
+          word-break: break-word;
         }
 
         .stop-state {
           font-size: 0.78rem;
           color: #64748B;
           display: block;
-          margin-bottom: 0.3rem;
+          margin-bottom: 0.35rem;
           word-break: break-word;
         }
 
@@ -2919,16 +3126,15 @@ export default function PlanJourney() {
           flex-wrap: wrap;
           gap: 0.5rem;
           font-size: 0.74rem;
-          color: #0F766E;
           font-weight: 700;
         }
 
         .meta-tag {
-          background: #E6FFFA;
-          padding: 0.15rem 0.5rem;
-          border-radius: 4px;
-          border: 1px solid #B2F5EA;
-          white-space: nowrap;
+          background: #F0FDF4;
+          color: #166534;
+          padding: 0.18rem 0.55rem;
+          border-radius: 6px;
+          border: 1px solid #BBF7D0;
         }
 
         .stop-card-footer {
@@ -2936,8 +3142,8 @@ export default function PlanJourney() {
           justify-content: space-between;
           align-items: center;
           flex-wrap: wrap;
-          gap: 0.5rem;
-          padding-top: 0.6rem;
+          gap: 0.6rem;
+          padding-top: 0.75rem;
           border-top: 1px dashed #E2E8F0;
           width: 100%;
         }
@@ -2949,11 +3155,12 @@ export default function PlanJourney() {
           background: #EFF6FF;
           color: #1D4ED8;
           border: 1px solid #BFDBFE;
-          border-radius: 6px;
-          padding: 0.3rem 0.7rem;
-          font-size: 0.76rem;
+          border-radius: 8px;
+          padding: 0.38rem 0.85rem;
+          font-size: 0.78rem;
           font-weight: 700;
           cursor: pointer;
+          transition: all 0.15s;
         }
 
         .btn-toggle-details-pill:hover {
@@ -2969,21 +3176,21 @@ export default function PlanJourney() {
         .explore-pill-btn {
           display: inline-flex;
           align-items: center;
-          gap: 0.3rem;
+          gap: 0.35rem;
           background: white;
           color: var(--color-navy);
           border: 1px solid #CBD5E1;
-          border-radius: 6px;
-          padding: 0.3rem 0.6rem;
-          font-size: 0.74rem;
+          border-radius: 8px;
+          padding: 0.35rem 0.75rem;
+          font-size: 0.76rem;
           font-weight: 700;
           cursor: pointer;
         }
 
         .explore-ext-btn {
-          width: 28px;
-          height: 28px;
-          border-radius: 6px;
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
           border: 1px solid #CBD5E1;
           background: white;
           color: var(--color-navy);
@@ -2993,64 +3200,67 @@ export default function PlanJourney() {
         }
 
         .stop-expanded-drawer {
-          background: white;
+          background: #F8FAFC;
           border: 1px solid #E2E8F0;
-          border-radius: 10px;
-          padding: 0.8rem;
-          margin-top: 0.4rem;
-          font-size: 0.8rem;
-          line-height: 1.5;
+          border-radius: 12px;
+          padding: 1rem;
+          font-size: 0.82rem;
+          line-height: 1.55;
+          width: 100%;
+          box-sizing: border-box;
+          word-break: break-word;
         }
 
         .stop-expanded-desc {
           color: #475569;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.6rem;
         }
 
         .stop-highlights-wrap {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.4rem;
-          margin-bottom: 0.5rem;
+          gap: 0.45rem;
+          margin-bottom: 0.6rem;
         }
 
         .stop-hl-title {
-          font-weight: 700;
+          font-weight: 800;
           color: var(--color-navy);
           display: block;
           width: 100%;
-          font-size: 0.74rem;
+          font-size: 0.72rem;
           text-transform: uppercase;
         }
 
         .stop-hl-chip {
-          background: #F1F5F9;
+          background: #FFFFFF;
           color: #1E293B;
-          padding: 0.15rem 0.45rem;
-          border-radius: 4px;
-          font-size: 0.72rem;
+          padding: 0.18rem 0.5rem;
+          border-radius: 6px;
+          border: 1px solid #E2E8F0;
+          font-size: 0.74rem;
         }
 
         .stop-extra-specs {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.8rem;
-          font-size: 0.74rem;
+          gap: 1rem;
+          font-size: 0.76rem;
           color: #64748B;
-          border-top: 1px dashed #F1F5F9;
-          padding-top: 0.4rem;
+          border-top: 1px dashed #E2E8F0;
+          padding-top: 0.5rem;
         }
 
         /* Destination Spotlight Card */
         .dest-spotlight-card {
           background: #FFFFFF;
           border: 1.5px solid #E2E8F0;
-          border-radius: 18px;
-          padding: 1.4rem;
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+          border-radius: 20px;
+          padding: 1.8rem;
+          box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
           width: 100%;
+          min-width: 0;
           box-sizing: border-box;
-          overflow: hidden;
         }
 
         .spotlight-header-top {
@@ -3059,13 +3269,12 @@ export default function PlanJourney() {
           align-items: flex-start;
           flex-wrap: wrap;
           gap: 0.6rem;
-          margin-bottom: 0.4rem;
         }
 
         .badge-pills-wrap {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.4rem;
+          gap: 0.45rem;
           align-items: center;
         }
 
@@ -3074,10 +3283,9 @@ export default function PlanJourney() {
           align-items: center;
           font-size: 0.72rem;
           font-weight: 800;
-          padding: 0.2rem 0.6rem;
+          padding: 0.25rem 0.65rem;
           border-radius: 999px;
           white-space: normal;
-          line-height: 1.3;
         }
 
         .badge-pill-accent { background: #DCFCE7; color: #166534; }
@@ -3089,28 +3297,26 @@ export default function PlanJourney() {
           color: #1D4ED8;
           border: 1px solid #BFDBFE;
           border-radius: 8px;
-          padding: 0.35rem 0.8rem;
+          padding: 0.38rem 0.85rem;
           font-size: 0.8rem;
           font-weight: 700;
           cursor: pointer;
-          white-space: nowrap;
         }
 
         .spotlight-title {
-          font-size: clamp(1.25rem, 4vw, 1.6rem);
-          font-weight: 800;
+          font-size: clamp(1.3rem, 4vw, 1.8rem);
+          font-weight: 900;
           color: var(--color-navy);
-          margin: 0.3rem 0;
+          margin: 0.4rem 0 0.2rem;
           word-break: break-word;
-          line-height: 1.25;
         }
 
         .spotlight-loc-row {
           display: flex;
           align-items: center;
           flex-wrap: wrap;
-          gap: 0.4rem;
-          font-size: 0.84rem;
+          gap: 0.5rem;
+          font-size: 0.88rem;
           color: #64748B;
           font-weight: 600;
         }
@@ -3118,48 +3324,46 @@ export default function PlanJourney() {
         .spotlight-grid {
           display: grid;
           grid-template-columns: 1fr 1.3fr;
-          gap: 1.5rem;
-          width: 100%;
-          box-sizing: border-box;
+          gap: 1.8rem;
         }
 
         .spotlight-main-img {
           width: 100%;
-          height: 220px;
+          height: 240px;
           object-fit: cover;
-          border-radius: 12px;
+          border-radius: 14px;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
         }
 
         .spotlight-thumbs {
           display: flex;
           gap: 0.5rem;
-          margin-top: 0.5rem;
-          width: 100%;
-          box-sizing: border-box;
+          margin-top: 0.6rem;
         }
 
         .spotlight-thumb {
-          width: 60px;
-          height: 48px;
+          width: 64px;
+          height: 50px;
           object-fit: cover;
-          border-radius: 6px;
+          border-radius: 8px;
           flex-shrink: 0;
         }
 
         .spotlight-desc {
           color: #475569;
-          font-size: 0.9rem;
+          font-size: 0.92rem;
           line-height: 1.6;
+          word-break: break-word;
         }
 
         .spotlight-highlights-list {
           list-style: none;
           padding: 0;
-          margin: 0.4rem 0 0;
+          margin: 0.5rem 0 0;
           display: flex;
           flex-direction: column;
           gap: 0.4rem;
-          font-size: 0.85rem;
+          font-size: 0.86rem;
           color: #334155;
         }
 
@@ -3167,7 +3371,7 @@ export default function PlanJourney() {
           display: inline-block;
           background: #F1F5F9;
           color: #475569;
-          padding: 0.25rem 0.65rem;
+          padding: 0.28rem 0.7rem;
           border-radius: 999px;
           font-size: 0.78rem;
           font-weight: 600;
@@ -3185,184 +3389,175 @@ export default function PlanJourney() {
         .duration-presets-grid {
           display: grid;
           grid-template-columns: repeat(5, 1fr);
-          gap: 0.6rem;
+          gap: 0.75rem;
           width: 100%;
-          box-sizing: border-box;
         }
 
         .duration-preset-btn {
           border: 1.5px solid #E2E8F0;
-          background: #F8FAFC;
-          border-radius: 10px;
-          padding: 0.7rem 0.5rem;
+          background: #FFFFFF;
+          border-radius: 12px;
+          padding: 0.85rem 0.6rem;
           text-align: center;
           cursor: pointer;
           transition: all 0.2s;
-          box-sizing: border-box;
         }
 
         .duration-preset-btn:hover {
           border-color: #94A3B8;
+          transform: translateY(-2px);
         }
 
         .duration-preset-btn.active {
           border-color: var(--color-green);
           background: #F0FDF4;
-          box-shadow: 0 0 0 2px rgba(21, 155, 117, 0.2);
-        }
-
-        .preset-top {
-          display: flex;
-          flex-direction: column;
-          gap: 0.2rem;
-          margin-bottom: 0.2rem;
+          box-shadow: 0 0 0 2.5px rgba(21, 155, 117, 0.2);
         }
 
         .preset-days {
-          font-size: 0.95rem;
+          font-size: 1rem;
           font-weight: 800;
           color: var(--color-navy);
+          display: block;
         }
 
         .preset-badge {
-          font-size: 0.65rem;
-          font-weight: 700;
+          font-size: 0.68rem;
+          font-weight: 800;
           color: #059669;
         }
 
         .preset-sub {
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           color: #64748B;
+          display: block;
         }
 
         .duration-selected-alert {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          font-size: 0.85rem;
+          font-size: 0.88rem;
           color: #166534;
           background: #F0FDF4;
-          padding: 0.5rem 0.8rem;
-          border-radius: 8px;
+          padding: 0.6rem 0.9rem;
+          border-radius: 10px;
           border: 1px solid #BBF7D0;
-          word-break: break-word;
         }
 
         /* Transport Tabs & Tickets */
         .transport-mode-tabs {
           display: flex;
-          gap: 0.5rem;
+          gap: 0.6rem;
           flex-wrap: wrap;
-          width: 100%;
-          box-sizing: border-box;
         }
 
         .transport-tab-btn {
           display: flex;
           align-items: center;
-          gap: 0.4rem;
-          padding: 0.45rem 0.8rem;
-          border-radius: 8px;
-          border: 1px solid #CBD5E1;
-          background: #F8FAFC;
-          font-size: 0.82rem;
+          gap: 0.45rem;
+          padding: 0.5rem 0.9rem;
+          border-radius: 10px;
+          border: 1.5px solid #CBD5E1;
+          background: #FFFFFF;
+          font-size: 0.84rem;
           font-weight: 700;
           color: #475569;
           cursor: pointer;
-          white-space: nowrap;
+          transition: all 0.15s;
+        }
+
+        .transport-tab-btn:hover {
+          border-color: #94A3B8;
         }
 
         .transport-tab-btn.active {
           background: var(--color-navy);
           color: white;
           border-color: var(--color-navy);
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
         }
 
         .transport-tickets-stack {
           display: flex;
           flex-direction: column;
-          gap: 0.9rem;
-          width: 100%;
-          box-sizing: border-box;
+          gap: 1rem;
         }
 
         .transport-ticket-card {
           border: 1.5px solid #E2E8F0;
           background: #FFFFFF;
-          border-radius: 12px;
-          padding: 1.1rem;
+          border-radius: 16px;
+          padding: 1.3rem;
           cursor: pointer;
           transition: all 0.2s;
-          box-sizing: border-box;
-          width: 100%;
         }
 
         .transport-ticket-card:hover {
           border-color: #94A3B8;
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
         }
 
         .transport-ticket-card.selected {
           border-color: var(--color-green);
           background: #FAFDFB;
-          box-shadow: 0 0 0 2.5px rgba(21, 155, 117, 0.2);
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.18), 0 8px 24px rgba(0, 0, 0, 0.06);
         }
 
         .ticket-card-header {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          margin-bottom: 0.8rem;
-          gap: 0.5rem;
+          margin-bottom: 0.9rem;
+          gap: 0.6rem;
         }
 
         .carrier-logo-badge {
-          font-size: 1.4rem;
+          font-size: 1.6rem;
         }
 
         .carrier-name {
-          font-size: 1.05rem;
+          font-size: 1.15rem;
           font-weight: 800;
           color: var(--color-navy);
           margin: 0;
-          word-break: break-word;
         }
 
         .carrier-code {
-          font-size: 0.78rem;
+          font-size: 0.8rem;
           color: #64748B;
         }
 
         .ticket-badge {
-          font-size: 0.68rem;
+          font-size: 0.7rem;
           font-weight: 800;
           background: #EFF6FF;
           color: #1D4ED8;
-          padding: 0.2rem 0.5rem;
+          padding: 0.25rem 0.6rem;
           border-radius: 6px;
-          white-space: nowrap;
+          border: 1px solid #BFDBFE;
         }
 
         .ticket-timeline-row {
           display: grid;
           grid-template-columns: 1fr 1fr 1fr;
           align-items: center;
-          margin-bottom: 0.8rem;
-          padding: 0.6rem 0;
+          margin-bottom: 0.9rem;
+          padding: 0.75rem 0;
           border-top: 1px dashed #E2E8F0;
           border-bottom: 1px dashed #E2E8F0;
         }
 
         .t-time-point .t-time {
           display: block;
-          font-size: 0.95rem;
-          font-weight: 800;
+          font-size: 1.05rem;
+          font-weight: 900;
           color: var(--color-navy);
         }
 
         .t-time-point .t-city {
-          font-size: 0.72rem;
+          font-size: 0.76rem;
           color: #64748B;
-          word-break: break-word;
         }
 
         .t-duration-mid {
@@ -3370,37 +3565,37 @@ export default function PlanJourney() {
         }
 
         .t-dur-val {
-          font-size: 0.74rem;
-          font-weight: 700;
+          font-size: 0.76rem;
+          font-weight: 800;
           color: #475569;
         }
 
         .t-line-track {
           height: 2px;
           background: #CBD5E1;
-          margin: 0.2rem 0.5rem;
+          margin: 0.25rem 0.6rem;
           position: relative;
         }
 
         .t-stop-label {
-          font-size: 0.68rem;
+          font-size: 0.7rem;
           color: #059669;
-          font-weight: 700;
+          font-weight: 800;
         }
 
         .ticket-inclusions-chips {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.4rem;
-          margin-bottom: 0.8rem;
+          gap: 0.45rem;
+          margin-bottom: 0.9rem;
         }
 
         .inc-chip {
           background: #F1F5F9;
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           color: #475569;
-          padding: 0.15rem 0.45rem;
-          border-radius: 4px;
+          padding: 0.2rem 0.55rem;
+          border-radius: 6px;
         }
 
         .ticket-footer-row {
@@ -3408,89 +3603,84 @@ export default function PlanJourney() {
           justify-content: space-between;
           align-items: center;
           flex-wrap: wrap;
-          gap: 0.5rem;
+          gap: 0.6rem;
         }
 
         .t-price-currency {
-          font-size: 1rem;
-          font-weight: 800;
+          font-size: 1.1rem;
+          font-weight: 900;
           color: var(--color-green);
         }
 
         .t-price-num {
-          font-size: 1.35rem;
+          font-size: 1.45rem;
           font-weight: 900;
           color: var(--color-navy);
         }
 
         .t-price-unit {
-          font-size: 0.75rem;
+          font-size: 0.78rem;
           color: #64748B;
         }
 
         .t-return-note {
           display: block;
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           color: #64748B;
         }
 
-        /* Hotel Budget Tiers & Hotel Cards */
+        /* Hotel Cards */
         .hotel-tier-pills {
           display: flex;
-          gap: 0.4rem;
+          gap: 0.5rem;
           flex-wrap: wrap;
-          width: 100%;
-          box-sizing: border-box;
         }
 
         .hotel-tier-btn {
-          border: 1px solid #CBD5E1;
-          background: #F8FAFC;
+          border: 1.5px solid #CBD5E1;
+          background: #FFFFFF;
           border-radius: 999px;
-          padding: 0.35rem 0.75rem;
-          font-size: 0.78rem;
+          padding: 0.4rem 0.85rem;
+          font-size: 0.8rem;
           font-weight: 700;
           color: #475569;
           cursor: pointer;
-          white-space: nowrap;
         }
 
         .hotel-tier-btn.active {
           background: var(--color-navy);
           color: white;
           border-color: var(--color-navy);
+          box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
         }
 
         .hotels-selection-stack {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
-          width: 100%;
-          box-sizing: border-box;
+          gap: 1.2rem;
         }
 
         .hotel-select-card {
           display: grid;
-          grid-template-columns: 160px 1fr 180px;
-          gap: 1rem;
+          grid-template-columns: 180px 1fr 190px;
+          gap: 1.2rem;
           border: 1.5px solid #E2E8F0;
-          border-radius: 14px;
-          padding: 1rem;
+          border-radius: 18px;
+          padding: 1.2rem;
           background: #FFFFFF;
           cursor: pointer;
           transition: all 0.2s;
-          box-sizing: border-box;
-          width: 100%;
         }
 
         .hotel-select-card:hover {
           border-color: #94A3B8;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
         }
 
         .hotel-select-card.selected {
           border-color: var(--color-green);
           background: #FAFDFB;
-          box-shadow: 0 0 0 2.5px rgba(21, 155, 117, 0.2);
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.18), 0 8px 24px rgba(0, 0, 0, 0.06);
         }
 
         .hotel-card-left {
@@ -3499,77 +3689,73 @@ export default function PlanJourney() {
 
         .hotel-card-img {
           width: 100%;
-          height: 120px;
+          height: 130px;
           object-fit: cover;
-          border-radius: 10px;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .hotel-rating-chip {
           position: absolute;
-          bottom: 8px;
-          left: 8px;
-          background: rgba(15, 23, 42, 0.85);
+          bottom: 10px;
+          left: 10px;
+          background: rgba(15, 23, 42, 0.88);
           color: #FBBF24;
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           font-weight: 800;
-          padding: 0.15rem 0.45rem;
+          padding: 0.2rem 0.55rem;
           border-radius: 6px;
         }
 
         .hotel-tier-badge {
-          font-size: 0.68rem;
+          font-size: 0.7rem;
           font-weight: 800;
-          padding: 0.15rem 0.5rem;
+          padding: 0.2rem 0.55rem;
           border-radius: 999px;
-          white-space: nowrap;
         }
 
         .hotel-tier-badge.tier-budget { background: #DCFCE7; color: #166534; }
         .hotel-tier-badge.tier-comfort { background: #DBEAFE; color: #1E40AF; }
-        .hotel-tier-badge.tier-luxury { background: #F3E8FF; color: #6B21A8; }
+        .hotel-tier-badge.tier-luxury { background: #FEF3C7; color: #92400E; }
 
         .hotel-loc-text {
-          font-size: 0.72rem;
+          font-size: 0.76rem;
           color: #64748B;
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          gap: 0.2rem;
-          word-break: break-word;
+          gap: 0.25rem;
         }
 
         .hotel-title {
-          font-size: 1.05rem;
+          font-size: 1.15rem;
           font-weight: 800;
           color: var(--color-navy);
-          margin: 0.2rem 0;
+          margin: 0.25rem 0;
           word-break: break-word;
         }
 
-        .hotel-room-type {
-          font-size: 0.78rem;
+        .hotel-room-type, .hotel-meals-tag {
+          font-size: 0.82rem;
           color: #475569;
-          margin: 0 0 0.2rem;
-        }
-
-        .hotel-meals-tag {
-          font-size: 0.74rem;
-          color: #059669;
-          font-weight: 700;
+          margin-bottom: 0.35rem;
           display: flex;
           align-items: center;
-          gap: 0.3rem;
-          margin: 0 0 0.4rem;
+          gap: 0.35rem;
         }
 
         .btn-toggle-hotel-details {
-          background: none;
-          border: none;
+          background: #EFF6FF;
+          border: 1px solid #BFDBFE;
           color: #1D4ED8;
-          font-size: 0.74rem;
-          font-weight: 700;
-          padding: 0;
+          font-size: 0.76rem;
+          font-weight: 800;
+          padding: 0.3rem 0.7rem;
+          border-radius: 6px;
           cursor: pointer;
-          text-decoration: underline;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          margin-top: 0.3rem;
         }
 
         .hotel-amenities-row {
@@ -3579,8 +3765,11 @@ export default function PlanJourney() {
         }
 
         .am-chip {
-          font-size: 0.68rem;
-          color: #64748B;
+          background: #F1F5F9;
+          font-size: 0.72rem;
+          color: #475569;
+          padding: 0.18rem 0.5rem;
+          border-radius: 6px;
         }
 
         .hotel-card-right {
@@ -3589,71 +3778,74 @@ export default function PlanJourney() {
           justify-content: space-between;
           text-align: right;
           border-left: 1px dashed #E2E8F0;
-          padding-left: 1rem;
+          padding-left: 1.2rem;
         }
 
         .h-price-label {
-          font-size: 0.7rem;
+          font-size: 0.72rem;
           color: #64748B;
+          text-transform: uppercase;
+          font-weight: 700;
           display: block;
         }
 
         .h-curr {
-          font-size: 1rem;
-          font-weight: 800;
+          font-size: 1.1rem;
+          font-weight: 900;
           color: var(--color-green);
         }
 
         .h-val {
-          font-size: 1.4rem;
+          font-size: 1.55rem;
           font-weight: 900;
           color: var(--color-navy);
         }
 
         .h-night {
-          font-size: 0.75rem;
+          font-size: 0.78rem;
           color: #64748B;
         }
 
         .h-total-stay {
+          font-size: 0.76rem;
+          color: #64748B;
           display: block;
-          font-size: 0.74rem;
-          color: #475569;
           margin-top: 0.2rem;
         }
 
-        /* Meal Plans Grid */
+        /* Meal Plans */
         .meals-selection-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 0.8rem;
-          width: 100%;
-          box-sizing: border-box;
+          gap: 1rem;
         }
 
         .meal-plan-card {
           border: 1.5px solid #E2E8F0;
           background: #FFFFFF;
-          border-radius: 12px;
-          padding: 0.9rem;
+          border-radius: 14px;
+          padding: 1.1rem;
           cursor: pointer;
           transition: all 0.2s;
-          box-sizing: border-box;
+        }
+
+        .meal-plan-card:hover {
+          border-color: #94A3B8;
         }
 
         .meal-plan-card.active {
           border-color: var(--color-green);
           background: #F0FDF4;
-          box-shadow: 0 0 0 2px rgba(21, 155, 117, 0.2);
+          box-shadow: 0 0 0 2.5px rgba(21, 155, 117, 0.2);
         }
 
         .meal-tag {
-          font-size: 0.65rem;
+          font-size: 0.68rem;
           font-weight: 800;
-          color: #059669;
+          color: #166534;
           background: #DCFCE7;
-          padding: 0.15rem 0.4rem;
-          border-radius: 4px;
+          padding: 0.2rem 0.5rem;
+          border-radius: 6px;
         }
 
         .meal-radio {
@@ -3664,7 +3856,6 @@ export default function PlanJourney() {
           display: flex;
           align-items: center;
           justify-content: center;
-          flex-shrink: 0;
         }
 
         .meal-radio.checked {
@@ -3673,63 +3864,63 @@ export default function PlanJourney() {
         }
 
         .meal-plan-card h5 {
-          font-size: 0.95rem;
+          font-size: 1.05rem;
           font-weight: 800;
           color: var(--color-navy);
-          margin: 0.3rem 0 0.15rem;
+          margin: 0.35rem 0 0.2rem;
         }
 
         .meal-plan-card p {
-          font-size: 0.76rem;
+          font-size: 0.8rem;
           color: #64748B;
-          margin: 0 0 0.5rem;
+          margin-bottom: 0.5rem;
         }
 
         .meal-rate-badge {
-          display: inline-block;
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           font-weight: 700;
-          color: #0F766E;
+          color: var(--color-green);
+          background: #F0FDF4;
+          padding: 0.2rem 0.5rem;
+          border-radius: 6px;
+          display: inline-block;
         }
 
-        /* Dynamic Calculation Table */
+        /* Dynamic Calculation Receipt */
         .calculation-breakdown-table {
           background: #F8FAFC;
-          border: 1px solid #E2E8F0;
-          border-radius: 14px;
-          padding: 1.2rem;
-          width: 100%;
-          box-sizing: border-box;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 18px;
+          padding: 1.5rem;
         }
 
         .calc-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 0.7rem 0;
+          padding: 0.85rem 0;
           border-bottom: 1px dashed #E2E8F0;
-          gap: 0.5rem;
+          gap: 1rem;
         }
 
         .calc-item-desc {
-          flex-grow: 1;
+          min-width: 0;
+          word-break: break-word;
         }
 
         .calc-item-desc strong {
           display: block;
-          font-size: 0.88rem;
+          font-size: 0.94rem;
           color: var(--color-navy);
-          word-break: break-word;
         }
 
         .calc-item-desc span {
-          font-size: 0.74rem;
+          font-size: 0.78rem;
           color: #64748B;
-          word-break: break-word;
         }
 
         .calc-item-cost {
-          font-size: 1rem;
+          font-size: 1.1rem;
           font-weight: 800;
           color: var(--color-navy);
           flex-shrink: 0;
@@ -3739,33 +3930,35 @@ export default function PlanJourney() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-top: 1rem;
-          padding-top: 1rem;
+          margin-top: 1.2rem;
+          padding-top: 1.2rem;
           border-top: 2px solid #CBD5E1;
-          gap: 0.5rem;
+          gap: 1rem;
+          flex-wrap: wrap;
         }
 
         .c-tot-label {
           display: block;
-          font-size: 0.85rem;
-          font-weight: 800;
+          font-size: 0.95rem;
+          font-weight: 900;
           color: var(--color-navy);
           letter-spacing: 0.5px;
         }
 
         .c-tot-sub {
-          font-size: 0.72rem;
+          font-size: 0.76rem;
           color: #64748B;
         }
 
         .c-tot-amount {
-          font-size: 1.8rem;
+          font-size: 2rem;
           font-weight: 900;
           color: var(--color-green);
+          line-height: 1;
         }
 
         .c-tot-pp {
-          font-size: 0.78rem;
+          font-size: 0.82rem;
           color: #64748B;
           font-weight: 700;
         }
@@ -3774,76 +3967,157 @@ export default function PlanJourney() {
         .fixed-packages-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 1.2rem;
-          width: 100%;
-          box-sizing: border-box;
+          gap: 1.4rem;
         }
 
         .fixed-pkg-card {
           border: 2px solid #E2E8F0;
           background: #FFFFFF;
-          border-radius: 16px;
-          padding: 1.4rem;
+          border-radius: 20px;
+          padding: 1.6rem;
           cursor: pointer;
           transition: all 0.25s ease;
           display: flex;
           flex-direction: column;
+          min-width: 0;
           box-sizing: border-box;
-          width: 100%;
         }
 
         .fixed-pkg-card:hover {
           border-color: #94A3B8;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+          transform: translateY(-3px);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
         }
 
         .fixed-pkg-card.selected {
           border-color: var(--color-green);
           background: #FAFDFB;
-          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.15), 0 8px 24px rgba(0, 0, 0, 0.06);
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.18), 0 12px 30px rgba(0, 0, 0, 0.08);
         }
 
         .fixed-card-top {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 0.8rem;
+          margin-bottom: 0.75rem;
+        }
+
+        .pkg-badge {
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 0.25rem 0.65rem;
+          border-radius: 999px;
+        }
+
+        .pkg-badge.pkg-tag-popular { background: #FEF3C7; color: #92400E; }
+        .pkg-badge.pkg-tag-best { background: #DCFCE7; color: #166534; }
+        .pkg-badge.pkg-tag-vip { background: #DBEAFE; color: #1E40AF; }
+
+        .pkg-radio-indicator {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          border: 2px solid #CBD5E1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .pkg-radio-indicator.active {
+          background: var(--color-green);
+          border-color: var(--color-green);
+        }
+
+        .pkg-name {
+          font-size: 1.25rem;
+          font-weight: 900;
+          color: var(--color-navy);
+          margin-bottom: 0.25rem;
+          word-break: break-word;
         }
 
         .pkg-duration-badge {
           display: inline-flex;
           align-items: center;
-          gap: 0.3rem;
-          font-size: 0.78rem;
-          font-weight: 700;
+          gap: 0.35rem;
+          font-size: 0.8rem;
+          font-weight: 800;
           color: #1D4ED8;
           background: #EFF6FF;
-          padding: 0.2rem 0.5rem;
+          padding: 0.25rem 0.6rem;
           border-radius: 6px;
-          margin-bottom: 0.6rem;
+          margin-bottom: 0.75rem;
           width: fit-content;
         }
 
         .pkg-highlights-text {
-          font-size: 0.82rem;
-          color: #475569;
-          line-height: 1.5;
+          font-size: 0.84rem;
+          color: #64748B;
+          line-height: 1.45;
           margin-bottom: 0.9rem;
+          word-break: break-word;
+        }
+
+        .pkg-price-row {
+          display: flex;
+          align-items: baseline;
+          gap: 0.2rem;
+          margin-bottom: 0.9rem;
+          padding-bottom: 0.8rem;
+          border-bottom: 1.5px solid #F1F5F9;
+        }
+
+        .pkg-price-currency {
+          font-size: 1.2rem;
+          font-weight: 900;
+          color: var(--color-green);
+        }
+
+        .pkg-price-amount {
+          font-size: 1.8rem;
+          font-weight: 900;
+          color: var(--color-navy);
+        }
+
+        .pkg-price-unit {
+          font-size: 0.82rem;
+          color: #64748B;
+        }
+
+        .btn-toggle-pkg-details {
+          background: #EFF6FF;
+          color: #1D4ED8;
+          border: 1px solid #BFDBFE;
+          border-radius: 8px;
+          padding: 0.45rem 0.8rem;
+          font-size: 0.78rem;
+          font-weight: 700;
+          cursor: pointer;
+          width: 100%;
+          margin-bottom: 0.8rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+
+        .btn-toggle-pkg-details:hover {
+          background: #DBEAFE;
         }
 
         .pkg-facilities-list {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
-          font-size: 0.82rem;
+          gap: 0.6rem;
+          font-size: 0.84rem;
           color: #334155;
           margin-bottom: 1.2rem;
           flex-grow: 1;
         }
 
         .fac-title {
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           font-weight: 800;
           text-transform: uppercase;
           color: #64748B;
@@ -3853,101 +4127,21 @@ export default function PlanJourney() {
         .fac-item {
           display: flex;
           align-items: flex-start;
-          gap: 0.45rem;
-        }
-
-        /* Daily Itinerary Timeline */
-        .itinerary-timeline-wrap {
-          display: flex;
-          flex-direction: column;
-          gap: 1.2rem;
-          margin-top: 1rem;
-        }
-
-        .itinerary-day-card {
-          display: flex;
-          gap: 1.2rem;
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
-          border-radius: 14px;
-          padding: 1.2rem;
-        }
-
-        .day-badge-column {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          flex-shrink: 0;
-        }
-
-        .day-pill {
-          background: var(--color-navy);
-          color: white;
-          padding: 0.35rem 0.75rem;
-          border-radius: 8px;
-          font-size: 0.8rem;
-          font-weight: 800;
-          text-transform: uppercase;
-        }
-
-        .day-line {
-          width: 2px;
-          flex-grow: 1;
-          background: #CBD5E1;
-          margin-top: 0.5rem;
-        }
-
-        .day-content-column {
-          flex-grow: 1;
-        }
-
-        .day-title {
-          font-size: 1.05rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin-bottom: 0.8rem;
+          gap: 0.5rem;
           word-break: break-word;
         }
 
-        .day-events-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.6rem;
-        }
-
-        .day-event-row {
-          display: flex;
-          align-items: baseline;
-          gap: 0.8rem;
-          font-size: 0.86rem;
-        }
-
-        .event-time-badge {
-          background: #E2E8F0;
-          color: #1E293B;
-          font-size: 0.74rem;
-          font-weight: 700;
-          padding: 0.2rem 0.5rem;
-          border-radius: 6px;
-          flex-shrink: 0;
-        }
-
-        .event-desc {
-          color: #334155;
-          line-height: 1.45;
-          word-break: break-word;
-        }
-
-        /* Summary Card */
+        /* Summary Sidebar */
         .summary-card {
-          background: white;
-          border-radius: 18px;
-          padding: 1.5rem;
-          border: 1px solid #E2E8F0;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+          background: #FFFFFF;
+          border-radius: 22px;
+          padding: 1.8rem;
+          border: 1.5px solid #E2E8F0;
+          box-shadow: 0 10px 35px -5px rgba(0, 0, 0, 0.06);
           position: sticky;
           top: 90px;
           width: 100%;
+          min-width: 0;
           box-sizing: border-box;
         }
 
@@ -3955,12 +4149,14 @@ export default function PlanJourney() {
           display: flex;
           align-items: center;
           gap: 0.6rem;
-          margin-bottom: 1rem;
+          margin-bottom: 1.2rem;
+          padding-bottom: 0.8rem;
+          border-bottom: 1.5px solid #F1F5F9;
         }
 
         .summary-header h3 {
-          font-size: 1.2rem;
-          font-weight: 800;
+          font-size: 1.3rem;
+          font-weight: 900;
           color: var(--color-navy);
           margin: 0;
         }
@@ -3968,37 +4164,39 @@ export default function PlanJourney() {
         .summary-stats-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 0.6rem;
-          margin-bottom: 1.2rem;
+          gap: 0.75rem;
+          margin-bottom: 1.4rem;
         }
 
         .stat-pill {
           background: #F8FAFC;
           border: 1px solid #E2E8F0;
-          border-radius: 10px;
-          padding: 0.6rem 0.8rem;
+          border-radius: 12px;
+          padding: 0.75rem 0.9rem;
         }
 
         .stat-label {
           display: block;
           font-size: 0.72rem;
           color: #64748B;
+          font-weight: 700;
+          text-transform: uppercase;
         }
 
         .stat-value {
-          font-size: 0.95rem;
-          font-weight: 800;
+          font-size: 1.05rem;
+          font-weight: 900;
           color: var(--color-navy);
         }
 
         .summary-route-track {
           border-left: 2px dashed #CBD5E1;
           margin-left: 10px;
-          padding-left: 16px;
+          padding-left: 18px;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
-          margin-bottom: 1.2rem;
+          gap: 1.1rem;
+          margin-bottom: 1.4rem;
         }
 
         .track-point {
@@ -4007,95 +4205,246 @@ export default function PlanJourney() {
 
         .point-dot {
           position: absolute;
-          left: -22px;
+          left: -24px;
           top: 4px;
-          width: 10px;
-          height: 10px;
+          width: 12px;
+          height: 12px;
           border-radius: 50%;
           background: var(--color-navy);
         }
 
         .point-dot.origin-dot {
           background: var(--color-green);
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.25);
         }
 
         .point-role {
           display: block;
-          font-size: 0.68rem;
+          font-size: 0.7rem;
           color: #64748B;
-          text-transform: uppercase;
           font-weight: 700;
+          text-transform: uppercase;
         }
 
         .point-sub {
           display: block;
-          font-size: 0.74rem;
+          font-size: 0.75rem;
           color: #64748B;
         }
 
         .expense-breakdown-box {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          padding: 1rem;
-          margin-bottom: 1.2rem;
+          border-top: 1.5px solid #F1F5F9;
+          padding-top: 1.1rem;
+          margin-bottom: 1.4rem;
         }
 
         .expense-title {
-          font-size: 0.9rem;
+          font-size: 0.88rem;
           font-weight: 800;
           color: var(--color-navy);
-          margin-bottom: 0.6rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 0.8rem;
         }
 
         .expense-row {
           display: flex;
           justify-content: space-between;
-          font-size: 0.82rem;
-          margin-bottom: 0.4rem;
+          align-items: center;
+          font-size: 0.85rem;
           color: #475569;
+          margin-bottom: 0.55rem;
+          gap: 0.5rem;
         }
 
         .expense-total-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding-top: 0.6rem;
-          margin-top: 0.6rem;
-          border-top: 1.5px solid #CBD5E1;
+          border-top: 2px solid #E2E8F0;
+          padding-top: 0.9rem;
+          margin-top: 0.9rem;
+          gap: 0.5rem;
         }
 
         .total-amount {
-          font-size: 1.45rem;
+          font-size: 1.65rem;
           font-weight: 900;
           color: var(--color-green);
         }
 
-        /* Modals & Checkout */
+        .register-trip-btn {
+          background: linear-gradient(135deg, var(--color-green) 0%, #047857 100%) !important;
+          border: none !important;
+          padding: 0.85rem !important;
+          font-size: 0.95rem !important;
+          font-weight: 800 !important;
+          border-radius: 12px !important;
+          box-shadow: 0 6px 18px rgba(21, 155, 117, 0.35) !important;
+          transition: all 0.2s !important;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          color: white;
+        }
+
+        .register-trip-btn:hover {
+          transform: translateY(-2px) !important;
+          box-shadow: 0 8px 24px rgba(21, 155, 117, 0.45) !important;
+        }
+
+        /* Daily Itinerary Step */
+        .itinerary-timeline-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 1.2rem;
+        }
+
+        .itinerary-day-card {
+          display: flex;
+          gap: 1rem;
+        }
+
+        .day-badge-column {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .day-pill {
+          background: var(--color-navy);
+          color: white;
+          font-size: 0.74rem;
+          font-weight: 800;
+          padding: 0.35rem 0.75rem;
+          border-radius: 999px;
+          white-space: nowrap;
+        }
+
+        .day-line {
+          width: 2px;
+          flex-grow: 1;
+          background: #CBD5E1;
+          margin-top: 6px;
+        }
+
+        .day-content-column {
+          flex-grow: 1;
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 14px;
+          padding: 1rem;
+          min-width: 0;
+        }
+
+        .day-title {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin-bottom: 0.6rem;
+          word-break: break-word;
+        }
+
+        .day-events-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .day-event-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.6rem;
+          font-size: 0.84rem;
+          color: #334155;
+          word-break: break-word;
+        }
+
+        .event-time-badge {
+          background: #EFF6FF;
+          color: #1D4ED8;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 0.15rem 0.45rem;
+          border-radius: 4px;
+          white-space: nowrap;
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+
+        /* Form Controls */
+        .roavio-input, .roavio-select, .roavio-textarea {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          border: 1.5px solid #CBD5E1;
+          border-radius: 10px;
+          font-size: 0.9rem;
+          background: #FFFFFF;
+          color: var(--color-navy);
+          outline: none;
+          box-sizing: border-box;
+          transition: all 0.2s;
+        }
+
+        .roavio-input:focus, .roavio-select:focus, .roavio-textarea:focus {
+          border-color: var(--color-green);
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.15);
+        }
+
+        .form-row-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+        }
+
+        .input-group-gps {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .gps-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          padding: 0 0.8rem;
+          background: #EFF6FF;
+          color: #1D4ED8;
+          border: 1.5px solid #BFDBFE;
+          border-radius: 10px;
+          font-size: 0.82rem;
+          font-weight: 700;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+
+        /* Modals & Checkout Styling */
         .plan-modal-overlay {
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(15, 23, 42, 0.7);
+          background: rgba(15, 23, 42, 0.75);
           backdrop-filter: blur(4px);
           z-index: 9999;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 1rem;
+          overflow-y: auto;
         }
 
         .plan-modal-box {
-          background: #FFFFFF;
+          background: white;
           border-radius: 20px;
           width: 100%;
-          max-width: 850px;
+          max-width: 680px;
           max-height: 90vh;
           overflow-y: auto;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-          position: relative;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+          box-sizing: border-box;
         }
 
         .plan-modal-header {
@@ -4103,7 +4452,7 @@ export default function PlanJourney() {
           justify-content: space-between;
           align-items: center;
           padding: 1.2rem 1.5rem;
-          border-bottom: 1px solid #E2E8F0;
+          border-bottom: 1.5px solid #F1F5F9;
         }
 
         .modal-title {
@@ -4114,7 +4463,7 @@ export default function PlanJourney() {
         }
 
         .modal-subtitle {
-          font-size: 0.8rem;
+          font-size: 0.78rem;
           color: #64748B;
         }
 
@@ -4126,115 +4475,66 @@ export default function PlanJourney() {
         }
 
         .plan-modal-body {
-          padding: 1.2rem;
-        }
-
-        .explore-main-img {
-          width: 100%;
-          height: 260px;
-          object-fit: cover;
-          border-radius: 14px;
-        }
-
-        .explore-thumbs-row {
-          display: flex;
-          gap: 0.6rem;
-          margin-top: 0.6rem;
-        }
-
-        .explore-thumb {
-          width: 70px;
-          height: 54px;
-          object-fit: cover;
-          border-radius: 8px;
-          cursor: pointer;
-          opacity: 0.6;
-          border: 2px solid transparent;
-          flex-shrink: 0;
-        }
-
-        .explore-thumb.active {
-          opacity: 1;
-          border-color: var(--color-green);
-        }
-
-        .explore-specs-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 0.8rem;
-          background: #F8FAFC;
-          padding: 1rem;
-          border-radius: 12px;
-        }
-
-        .spec-tile {
-          display: flex;
-          align-items: center;
-          gap: 0.6rem;
-        }
-
-        .spec-k {
-          display: block;
-          font-size: 0.72rem;
-          color: #64748B;
-        }
-
-        .spec-v {
-          font-size: 0.85rem;
-          color: var(--color-navy);
+          padding: 1.5rem;
         }
 
         .plan-modal-footer {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 1rem 1.2rem;
-          border-top: 1px solid #E2E8F0;
-          flex-wrap: wrap;
-          gap: 0.6rem;
+          padding: 1rem 1.5rem;
+          border-top: 1.5px solid #F1F5F9;
+          background: #F8FAFC;
         }
 
         .checkout-trip-strip {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
           background: #F8FAFC;
           border: 1px solid #E2E8F0;
           border-radius: 12px;
           padding: 1rem;
           margin-bottom: 1.2rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           flex-wrap: wrap;
-          gap: 0.6rem;
+          gap: 0.8rem;
         }
 
         .strip-badge {
           font-size: 0.68rem;
           font-weight: 800;
-          color: #059669;
-          letter-spacing: 0.5px;
+          color: #166534;
+          background: #DCFCE7;
+          padding: 0.2rem 0.5rem;
+          border-radius: 6px;
         }
 
-        .strip-info h4 {
-          font-size: 1.1rem;
+        .checkout-trip-strip h4 {
+          font-size: 1.05rem;
           font-weight: 800;
           color: var(--color-navy);
-          margin: 0.1rem 0;
+          margin: 0.2rem 0;
         }
 
-        .strip-info p {
-          font-size: 0.82rem;
+        .checkout-trip-strip p {
+          font-size: 0.8rem;
           color: #64748B;
           margin: 0;
         }
 
         .strip-stats {
           display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 0.2rem;
-          font-size: 0.78rem;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+
+        .strip-stats span {
+          background: white;
+          border: 1px solid #CBD5E1;
+          font-size: 0.74rem;
           font-weight: 700;
-          color: var(--color-navy);
+          padding: 0.25rem 0.6rem;
+          border-radius: 6px;
         }
 
         .pay-methods-tabs {
@@ -4248,11 +4548,11 @@ export default function PlanJourney() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0.5rem;
-          padding: 0.7rem;
+          gap: 0.4rem;
+          padding: 0.7rem 0.5rem;
           border-radius: 10px;
           border: 1.5px solid #CBD5E1;
-          background: #F8FAFC;
+          background: #FFFFFF;
           font-size: 0.82rem;
           font-weight: 700;
           color: #475569;
@@ -4263,125 +4563,83 @@ export default function PlanJourney() {
           border-color: var(--color-green);
           background: #F0FDF4;
           color: #166534;
+          box-shadow: 0 0 0 2px rgba(21, 155, 117, 0.2);
         }
 
         .upi-apps-row {
           display: flex;
           gap: 0.5rem;
+          flex-wrap: wrap;
         }
 
         .app-chip {
-          flex: 1;
-          padding: 0.5rem;
+          padding: 0.4rem 0.8rem;
           border-radius: 8px;
-          border: 1px solid #CBD5E1;
-          background: #FFFFFF;
+          border: 1.5px solid #CBD5E1;
+          background: white;
           font-size: 0.8rem;
           font-weight: 700;
           cursor: pointer;
         }
 
         .app-chip.selected {
-          border-color: var(--color-green);
-          background: #F0FDF4;
-          color: #166534;
-        }
-
-        .banks-radio-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.6rem;
-        }
-
-        .bank-tile {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.6rem;
-          border: 1px solid #CBD5E1;
-          border-radius: 8px;
-          font-size: 0.82rem;
-          cursor: pointer;
-        }
-
-        .bank-tile.active {
-          border-color: var(--color-green);
-          background: #F0FDF4;
-          color: #166534;
-          font-weight: 700;
+          border-color: var(--color-navy);
+          background: var(--color-navy);
+          color: white;
         }
 
         .checkout-fare-summary {
           background: #F8FAFC;
           border: 1px solid #E2E8F0;
           border-radius: 12px;
-          padding: 1rem;
+          padding: 1.1rem;
         }
 
         .fare-line {
           display: flex;
           justify-content: space-between;
           font-size: 0.84rem;
-          margin-bottom: 0.4rem;
           color: #475569;
+          margin-bottom: 0.4rem;
         }
 
         .fare-line-total {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          border-top: 1.5px solid #CBD5E1;
           padding-top: 0.8rem;
           margin-top: 0.8rem;
-          border-top: 2px solid #CBD5E1;
-        }
-
-        .total-title {
-          display: block;
-          font-size: 0.95rem;
-          font-weight: 800;
-          color: var(--color-navy);
-        }
-
-        .total-sub {
-          font-size: 0.72rem;
-          color: #64748B;
         }
 
         .total-num {
-          font-size: 1.6rem;
+          font-size: 1.5rem;
           font-weight: 900;
           color: var(--color-green);
         }
 
         .checkout-footer-bar {
           display: flex;
-          justify-content: flex-end;
-          gap: 0.8rem;
+          justify-content: space-between;
+          align-items: center;
+          gap: 1rem;
         }
 
-        .booking-confirmed-splash {
-          padding: 2rem 1.5rem;
-          text-align: center;
-        }
-
-        .success-icon-badge {
-          width: 64px;
-          height: 64px;
-          border-radius: 50%;
-          background: #DCFCE7;
-          color: #166534;
+        .btn-pay-confirm {
           display: flex;
           align-items: center;
-          justify-content: center;
-          margin: 0 auto 1rem;
+          gap: 0.5rem;
+          padding: 0.85rem 1.4rem;
+          font-weight: 800;
         }
 
+        /* Success Pass Ticket */
         .confirmed-ticket-pass {
-          background: #FFFFFF;
-          border: 2px dashed #CBD5E1;
-          border-radius: 14px;
+          background: #F8FAFC;
+          border: 1.5px solid #BBF7D0;
+          border-radius: 16px;
           padding: 1.2rem;
-          margin-top: 1.2rem;
+          margin: 1.2rem 0;
           text-align: left;
         }
 
@@ -4389,7 +4647,7 @@ export default function PlanJourney() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-bottom: 1px solid #E2E8F0;
+          border-bottom: 1.5px solid #E2E8F0;
           padding-bottom: 0.8rem;
           margin-bottom: 0.8rem;
         }
@@ -4397,8 +4655,13 @@ export default function PlanJourney() {
         .pass-label {
           font-size: 0.7rem;
           font-weight: 800;
-          color: #059669;
-          letter-spacing: 0.5px;
+          color: #166534;
+        }
+
+        .pass-header h4 {
+          margin: 0;
+          font-size: 1rem;
+          color: var(--color-navy);
         }
 
         .pass-pnr-box {
@@ -4412,8 +4675,7 @@ export default function PlanJourney() {
         }
 
         .pnr-v {
-          font-size: 1rem;
-          font-weight: 800;
+          font-size: 0.95rem;
           color: var(--color-navy);
         }
 
@@ -4455,7 +4717,7 @@ export default function PlanJourney() {
         }
 
         /* =========================================================================
-           RESPONSIVE MOBILE VIEW & SLIDER BREAKPOINTS (< 992px & < 768px)
+           ADVANCED RESPONSIVE MOBILE VIEW & HORIZONTAL SLIDERS (< 992px & < 768px)
         ========================================================================= */
         @media (max-width: 992px) {
           .planner-grid {
@@ -4464,7 +4726,7 @@ export default function PlanJourney() {
 
           .summary-card {
             position: static;
-            margin-top: 1.5rem;
+            margin-top: 2rem;
           }
 
           .spotlight-grid {
@@ -4475,70 +4737,137 @@ export default function PlanJourney() {
             height: 200px;
           }
 
-          .form-row-2, .form-row-3 {
+          .form-row-2 {
             grid-template-columns: 1fr;
-          }
-
-          .explore-specs-grid {
-            grid-template-columns: repeat(2, 1fr);
           }
         }
 
         @media (max-width: 768px) {
+          .plan-hero {
+            padding: 3rem 0 2.2rem;
+          }
+
+          .hero-main-title {
+            font-size: 1.75rem;
+          }
+
           .planner-card, .dest-spotlight-card, .choice-mode-card {
             padding: 1.1rem;
-            border-radius: 14px;
+            border-radius: 16px;
           }
 
           .choice-tabs-grid {
             grid-template-columns: 1fr;
           }
 
-          /* TOUCH HORIZONTAL SLIDING TRACK ON MOBILE */
+          /* TOUCH HORIZONTAL SLIDING CAROUSEL */
           .mobile-slide-track {
             display: flex !important;
             overflow-x: auto !important;
             scroll-snap-type: x mandatory !important;
             -webkit-overflow-scrolling: touch !important;
             gap: 12px !important;
-            padding-bottom: 8px !important;
-            padding-top: 4px !important;
+            padding: 4px 4px 12px 4px !important;
+            margin-left: -4px !important;
+            margin-right: -4px !important;
             scrollbar-width: thin !important;
+            scrollbar-color: #94A3B8 #F1F5F9 !important;
           }
 
           .mobile-slide-track::-webkit-scrollbar {
-            height: 5px;
+            height: 5px !important;
+          }
+
+          .mobile-slide-track::-webkit-scrollbar-track {
+            background: #F1F5F9 !important;
+            border-radius: 999px !important;
           }
 
           .mobile-slide-track::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 999px;
+            background: #94A3B8 !important;
+            border-radius: 999px !important;
           }
 
           .mobile-slide-item {
             flex: 0 0 88% !important;
             max-width: 88% !important;
+            min-width: 270px !important;
             scroll-snap-align: start !important;
             box-sizing: border-box !important;
           }
 
-          .duration-presets-grid .mobile-slide-item {
-            flex: 0 0 45% !important;
-            max-width: 45% !important;
+          /* Attraction Stop Card on Mobile */
+          .selected-stop-card {
+            padding: 1rem;
           }
 
-          /* Responsive Hotel Card on Mobile */
+          .stop-card-main {
+            gap: 0.75rem;
+          }
+
+          .stop-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+          }
+
+          .stop-name {
+            font-size: 1rem;
+          }
+
+          .stop-card-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.6rem;
+          }
+
+          .btn-toggle-details-pill {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .explore-btn-group {
+            width: 100%;
+            justify-content: space-between;
+          }
+
+          .explore-pill-btn {
+            flex-grow: 1;
+            justify-content: center;
+          }
+
+          /* Destination Spotlight on Mobile */
+          .spotlight-header-top {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+          }
+
+          .btn-toggle-spotlight {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+            display: flex;
+          }
+
+          /* Transport Ticket on Mobile */
+          .ticket-timeline-row {
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0.4rem;
+          }
+
+          .t-dur-val {
+            font-size: 0.72rem;
+          }
+
+          /* Hotel Card on Mobile */
           .hotel-select-card {
             grid-template-columns: 1fr;
-            gap: 0.8rem;
-          }
-
-          .hotel-card-left {
-            width: 100%;
+            gap: 0.9rem;
           }
 
           .hotel-card-img {
-            height: 140px;
+            height: 150px;
           }
 
           .hotel-card-right {
@@ -4547,40 +4876,38 @@ export default function PlanJourney() {
             padding-left: 0;
             padding-top: 0.8rem;
             text-align: left;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
           }
 
-          /* Responsive Attraction Stop Card */
-          .stop-card-main {
-            gap: 0.7rem;
+          .hotel-card-right .btn {
+            width: 100%;
           }
 
-          .stop-img {
-            width: 55px;
-            height: 55px;
+          /* Fixed Package on Mobile */
+          .fixed-packages-grid .mobile-slide-item {
+            flex: 0 0 88% !important;
+            max-width: 88% !important;
+            min-width: 270px !important;
           }
 
-          .stop-name {
-            font-size: 0.98rem;
+          /* Duration Presets on Mobile */
+          .duration-presets-grid .mobile-slide-item {
+            flex: 0 0 150px !important;
+            max-width: 150px !important;
+            min-width: 150px !important;
           }
 
-          .ticket-timeline-row {
-            grid-template-columns: 1fr auto 1fr;
-            gap: 0.4rem;
-          }
-
-          .t-line-track {
-            margin: 0.2rem 0.2rem;
+          /* Meal Plans on Mobile */
+          .meals-selection-grid .mobile-slide-item {
+            flex: 0 0 80% !important;
+            max-width: 80% !important;
+            min-width: 230px !important;
           }
 
           .pay-methods-tabs {
             grid-template-columns: 1fr;
-          }
-
-          .banks-radio-grid {
-            grid-template-columns: repeat(2, 1fr);
           }
 
           .pass-grid {
@@ -4589,14 +4916,15 @@ export default function PlanJourney() {
         }
 
         @media (max-width: 480px) {
-          .mobile-slide-item {
-            flex: 0 0 94% !important;
-            max-width: 94% !important;
+          .main-planner-container {
+            padding-left: 10px;
+            padding-right: 10px;
           }
 
-          .duration-presets-grid .mobile-slide-item {
-            flex: 0 0 65% !important;
-            max-width: 65% !important;
+          .mobile-slide-item {
+            flex: 0 0 92% !important;
+            max-width: 92% !important;
+            min-width: 260px !important;
           }
 
           .calc-total-banner {
@@ -4609,19 +4937,21 @@ export default function PlanJourney() {
             margin-top: 0.5rem;
           }
 
-          .explore-specs-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .banks-radio-grid {
-            grid-template-columns: 1fr;
-          }
-
           .pass-grid {
             grid-template-columns: 1fr;
           }
+
+          .checkout-footer-bar {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .checkout-footer-bar .btn {
+            width: 100%;
+            justify-content: center;
+          }
         }
-      `}</style>
+`}</style>
     </div>
   );
 }

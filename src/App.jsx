@@ -59,6 +59,8 @@ export default function App() {
           <Route path="buses" element={<BusBooking />} />
           <Route path="plan" element={<PlanJourney />} />
           <Route path="plan-journey" element={<PlanJourney />} />
+          <Route path="tours" element={<PlanJourney />} />
+          <Route path="tour" element={<PlanJourney />} />
           <Route path="map" element={<LiveMap />} />
           <Route path="my-trips" element={<MyTrips />} />
           <Route path="my-tickets" element={<MyTrips defaultTab="tickets" />} />
