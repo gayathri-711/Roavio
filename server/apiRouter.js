@@ -322,6 +322,16 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
       };
 
       dbStore.bookings.unshift(newBooking);
+
+      // Increment bookings count on traveler record if exists
+      const userIndex = dbStore.users.findIndex(u => 
+        (u.id && u.id === newBooking.userId) || 
+        (u.email && u.email.toLowerCase() === (newBooking.email || '').toLowerCase())
+      );
+      if (userIndex >= 0) {
+        dbStore.users[userIndex].bookingsCount = (dbStore.users[userIndex].bookingsCount || 0) + 1;
+        dbStore.users[userIndex].lastBookingAt = new Date().toISOString();
+      }
       dbStore.save();
 
       // Trigger automatic mobile ticket notification workflow
@@ -573,6 +583,84 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
 
       res.writeHead(result.success ? 200 : 400);
       res.end(JSON.stringify(result));
+      return;
+    }
+
+    // =========================================================================
+    // 8. ADMIN USER & BOOKING MANAGEMENT ENDPOINTS
+    // =========================================================================
+
+    // GET /api/admin/users
+    if (pathname === '/api/admin/users' && req.method === 'GET') {
+      res.setHeader('Content-Type', 'application/json');
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        success: true,
+        count: dbStore.users.length,
+        users: dbStore.users
+      }));
+      return;
+    }
+
+    // POST /api/admin/record-user (Upsert user on registration or login)
+    if (pathname === '/api/admin/record-user' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
+      const data = await readBody();
+      const email = String(data.email || '').trim().toLowerCase();
+
+      if (!email) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ success: false, error: 'Email is required to record user' }));
+        return;
+      }
+
+      const existingIndex = dbStore.users.findIndex(u => 
+        (u.email && u.email.toLowerCase() === email) || (data.id && u.id === data.id)
+      );
+
+      const userRecord = {
+        id: data.id || `usr-${Date.now().toString().slice(-4)}`,
+        name: data.name || data.fullName || 'Traveler',
+        fullName: data.fullName || data.name || 'Traveler',
+        email: email,
+        phone: data.phone || data.mobileNumber || '+91 98765 43210',
+        mobileNumber: data.mobileNumber || data.phone || '9876543210',
+        city: data.city || 'New Delhi',
+        role: data.role || (email.includes('admin') ? 'Administrator' : 'Traveler'),
+        avatar: data.avatar || (data.name || 'TR').substring(0, 2).toUpperCase(),
+        status: data.status || 'Active',
+        kycStatus: data.kycStatus || 'Verified',
+        bookingsCount: data.bookingsCount !== undefined ? data.bookingsCount : (existingIndex >= 0 ? (dbStore.users[existingIndex].bookingsCount || 0) : 0),
+        tripsPlanned: data.tripsPlanned !== undefined ? data.tripsPlanned : (existingIndex >= 0 ? (dbStore.users[existingIndex].tripsPlanned || 0) : 0),
+        registeredAt: data.registeredAt || (existingIndex >= 0 ? dbStore.users[existingIndex].registeredAt : new Date().toISOString()),
+        lastLoginAt: new Date().toISOString()
+      };
+
+      if (existingIndex >= 0) {
+        dbStore.users[existingIndex] = { ...dbStore.users[existingIndex], ...userRecord };
+      } else {
+        dbStore.users.unshift(userRecord);
+      }
+      dbStore.save();
+
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        success: true,
+        user: userRecord,
+        count: dbStore.users.length
+      }));
+      return;
+    }
+
+    // GET /api/admin/bookings
+    if (pathname === '/api/admin/bookings' && req.method === 'GET') {
+      res.setHeader('Content-Type', 'application/json');
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        success: true,
+        count: dbStore.bookings.length,
+        bookings: dbStore.bookings
+      }));
       return;
     }
 

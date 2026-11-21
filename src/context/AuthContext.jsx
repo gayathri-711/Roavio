@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
     try {
       if (user) {
         localStorage.setItem("roavio_user", JSON.stringify(user));
+        recordUserInStore(user);
       } else {
         localStorage.removeItem("roavio_user");
       }
@@ -24,6 +25,53 @@ export const AuthProvider = ({ children }) => {
       console.error("Error writing user to localStorage:", e);
     }
   }, [user]);
+
+  /**
+   * Helper to ensure every registered or logged-in user is stored in
+   * the persistent platform user directory and synced with the Admin backend.
+   */
+  const recordUserInStore = (userObj) => {
+    if (!userObj || !userObj.email) return;
+    try {
+      const email = String(userObj.email).trim().toLowerCase();
+      const storedList = JSON.parse(localStorage.getItem("roavio_registered_users") || "[]");
+      const existingIdx = storedList.findIndex(u => u.email && u.email.toLowerCase() === email);
+
+      const record = {
+        id: userObj.id || `usr-${Date.now().toString().slice(-4)}`,
+        name: userObj.name || userObj.fullName || "Traveler",
+        fullName: userObj.fullName || userObj.name || "Traveler",
+        email: email,
+        phone: userObj.phone || userObj.mobileNumber || "+91 98765 43210",
+        mobileNumber: userObj.mobileNumber || userObj.phone || "9876543210",
+        city: userObj.city || "New Delhi",
+        role: userObj.role || (email.includes("admin") ? "Administrator" : "Traveler"),
+        avatar: userObj.avatar || (userObj.name || "TR").substring(0, 2).toUpperCase(),
+        status: userObj.status || "Active",
+        kycStatus: "Verified",
+        bookingsCount: existingIdx >= 0 ? (storedList[existingIdx].bookingsCount || 0) : 0,
+        tripsPlanned: existingIdx >= 0 ? (storedList[existingIdx].tripsPlanned || 0) : 0,
+        registeredAt: existingIdx >= 0 ? (storedList[existingIdx].registeredAt || new Date().toISOString()) : new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
+      };
+
+      if (existingIdx >= 0) {
+        storedList[existingIdx] = { ...storedList[existingIdx], ...record };
+      } else {
+        storedList.unshift(record);
+      }
+      localStorage.setItem("roavio_registered_users", JSON.stringify(storedList));
+
+      // Asynchronously sync with backend admin database
+      fetch("/api/admin/record-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(record)
+      }).catch(err => console.warn("Admin user record sync:", err.message));
+    } catch (e) {
+      console.warn("Could not save to registered users list:", e);
+    }
+  };
 
   /**
    * Flexible login supporting either:
@@ -84,6 +132,7 @@ export const AuthProvider = ({ children }) => {
         isLoggedIn: true
       };
 
+      recordUserInStore(loggedInUser);
       setUser(loggedInUser);
       return { success: true, user: loggedInUser };
     } catch (err) {
@@ -121,16 +170,7 @@ export const AuthProvider = ({ children }) => {
         isLoggedIn: true
       };
 
-      // Also persist to registered users list
-      try {
-        const storedList = JSON.parse(localStorage.getItem("roavio_registered_users") || "[]");
-        const filtered = storedList.filter(u => u.email.toLowerCase() !== newUser.email.toLowerCase());
-        filtered.push({ ...newUser, registeredAt: new Date().toISOString() });
-        localStorage.setItem("roavio_registered_users", JSON.stringify(filtered));
-      } catch (e) {
-        console.warn("Could not save to registered users list:", e);
-      }
-
+      recordUserInStore(newUser);
       setUser(newUser);
       return { success: true, user: newUser };
     } catch (err) {

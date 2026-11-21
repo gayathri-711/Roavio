@@ -58,10 +58,62 @@ export const TripsProvider = ({ children }) => {
     return key === "rahul.sharma@example.com" ? INITIAL_BOOKINGS : [];
   };
 
+  // Helper to load all platform bookings across all users for admin views
+  const loadAllPlatformBookings = () => {
+    try {
+      const stored = localStorage.getItem("roavio_all_platform_bookings");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error("Error reading platform bookings:", e);
+    }
+    return INITIAL_BOOKINGS;
+  };
+
   // States initialized per logged-in user
   const [savedIds, setSavedIds] = useState(() => loadUserSaved(userKey));
   const [plannedTrips, setPlannedTrips] = useState(() => loadUserPlanned(userKey));
   const [bookings, setBookings] = useState(() => loadUserBookings(userKey));
+  const [allPlatformBookings, setAllPlatformBookings] = useState(() => loadAllPlatformBookings());
+
+  // Periodically / on-mount sync platform bookings with backend API
+  useEffect(() => {
+    fetch("/api/admin/bookings")
+      .then(res => res.json())
+      .then(data => {
+        if (data?.bookings && Array.isArray(data.bookings)) {
+          setAllPlatformBookings(prev => {
+            const map = new Map();
+            // Server bookings first
+            data.bookings.forEach(b => {
+              const bId = b.bookingId || b.id;
+              if (bId) map.set(bId, {
+                ...b,
+                id: bId,
+                type: b.category || b.type || "pass",
+                route: b.route || `${b.sourceLocation || ""} ➔ ${b.destination || ""}`.trim() || b.title,
+                date: b.travelDate || b.bookingDate || b.date,
+                fare: b.amount || b.fare || 0,
+                status: b.bookingStatus || b.status || "Confirmed"
+              });
+            });
+            // Previous local bookings merged
+            prev.forEach(b => {
+              const bId = b.id || b.bookingId;
+              if (bId && !map.has(bId)) map.set(bId, b);
+            });
+            const merged = Array.from(map.values());
+            try {
+              localStorage.setItem("roavio_all_platform_bookings", JSON.stringify(merged));
+            } catch (e) {}
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Switch data whenever the logged in user changes or user logs in/out
   useEffect(() => {
@@ -186,17 +238,51 @@ export const TripsProvider = ({ children }) => {
   };
 
   const addBooking = (bookingData) => {
+    const bookingEmail = bookingData.email || user?.email || "";
     const newBooking = {
       ...bookingData,
       id: bookingData.id || `BK-${Math.floor(10000 + Math.random() * 90000)}`,
       pnr: bookingData.pnr || `ROA-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
       status: bookingData.status || "Confirmed",
-      userEmail: user?.email || bookingData.email || "",
-      userId: user?.id || "",
+      userEmail: bookingEmail,
+      email: bookingEmail,
+      userId: user?.id || bookingData.userId || "usr-101",
       leadPassenger: bookingData.leadPassenger || user?.name || "Traveler",
+      fare: bookingData.fare || bookingData.amount || 2500,
+      amount: bookingData.amount || bookingData.fare || 2500,
       bookingDate: new Date().toISOString().split("T")[0]
     };
+
+    // 1. Update user-scoped bookings
     setBookings(prev => [newBooking, ...prev]);
+
+    // 2. Update platform-wide bookings store for Admin dashboard
+    setAllPlatformBookings(prev => {
+      const updated = [newBooking, ...prev.filter(b => (b.id !== newBooking.id && b.pnr !== newBooking.pnr))];
+      try {
+        localStorage.setItem("roavio_all_platform_bookings", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // 3. Increment bookingsCount for this user in registered users registry
+    if (bookingEmail) {
+      try {
+        const storedUsers = JSON.parse(localStorage.getItem("roavio_registered_users") || "[]");
+        const idx = storedUsers.findIndex(u => u.email && u.email.toLowerCase() === bookingEmail.toLowerCase());
+        if (idx >= 0) {
+          storedUsers[idx].bookingsCount = (storedUsers[idx].bookingsCount || 0) + 1;
+          storedUsers[idx].lastBookingAt = new Date().toISOString();
+          localStorage.setItem("roavio_registered_users", JSON.stringify(storedUsers));
+          fetch("/api/admin/record-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(storedUsers[idx])
+          }).catch(() => {});
+        }
+      } catch (e) {}
+    }
+
     return newBooking;
   };
 
@@ -204,6 +290,13 @@ export const TripsProvider = ({ children }) => {
     setBookings(prev =>
       prev.map(b => (b.id === bookingId ? { ...b, status: "Cancelled" } : b))
     );
+    setAllPlatformBookings(prev => {
+      const updated = prev.map(b => ((b.id === bookingId || b.bookingId === bookingId) ? { ...b, status: "Cancelled", bookingStatus: "Cancelled" } : b));
+      try {
+        localStorage.setItem("roavio_all_platform_bookings", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
   };
 
   // Distance helper from user current GPS to destination
@@ -224,6 +317,7 @@ export const TripsProvider = ({ children }) => {
         deletePlannedTrip,
         removePlannedTrip: deletePlannedTrip,
         bookings,
+        allPlatformBookings,
         addBooking,
         cancelBooking,
         userLocation,

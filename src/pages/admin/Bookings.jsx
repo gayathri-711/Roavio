@@ -14,34 +14,47 @@ import {
 import { useTrips } from "../../context/TripsContext";
 
 export default function AdminBookings() {
-  const { bookings, cancelBooking } = useTrips();
+  const { bookings, allPlatformBookings, cancelBooking } = useTrips();
+  const bookingsList = allPlatformBookings && allPlatformBookings.length > 0 ? allPlatformBookings : bookings;
+
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [previewTicket, setPreviewTicket] = useState(null);
 
   const filtered = useMemo(() => {
-    return bookings.filter((b) => {
-      if (typeFilter !== "All" && b.type !== typeFilter) return false;
-      if (statusFilter !== "All" && b.status !== statusFilter) return false;
+    return bookingsList.filter((b) => {
+      const bType = (b.type || b.category || "").toLowerCase();
+      if (typeFilter !== "All") {
+        if (typeFilter === "pass" && !["pass", "tour"].includes(bType)) return false;
+        if (typeFilter !== "pass" && bType !== typeFilter.toLowerCase()) return false;
+      }
+
+      const bStatus = b.status || b.bookingStatus || "Confirmed";
+      if (statusFilter !== "All" && bStatus.toLowerCase() !== statusFilter.toLowerCase()) return false;
+
       if (search.trim()) {
         const q = search.toLowerCase();
         return (
           b.title?.toLowerCase().includes(q) ||
           b.pnr?.toLowerCase().includes(q) ||
-          b.route?.toLowerCase().includes(q)
+          b.providerReference?.toLowerCase().includes(q) ||
+          b.route?.toLowerCase().includes(q) ||
+          b.leadPassenger?.toLowerCase().includes(q) ||
+          b.email?.toLowerCase().includes(q) ||
+          b.userEmail?.toLowerCase().includes(q)
         );
       }
       return true;
     });
-  }, [bookings, search, typeFilter, statusFilter]);
+  }, [bookingsList, search, typeFilter, statusFilter]);
 
   return (
     <div className="admin-bookings-page">
       <div className="admin-page-header">
         <div>
-          <h1>Reservations & Ticket Management ({bookings.length})</h1>
-          <p>Monitor multi-modal transport inventory, passenger seat assignments, and reservation statuses.</p>
+          <h1>Reservations & Ticket Management ({bookingsList.length})</h1>
+          <p>Monitor multi-modal transport inventory, passenger seat assignments, and reservation statuses across all users.</p>
         </div>
       </div>
 
@@ -99,58 +112,68 @@ export default function AdminBookings() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((b) => (
-              <tr key={b.id}>
-                <td>
-                  <span className={`admin-type-pill ${b.type}`}>
-                    {b.type === "flight" && <Plane size={12} />}
-                    {b.type === "train" && <Train size={12} />}
-                    {b.type === "bus" && <Bus size={12} />}
-                    {b.type === "pass" && <TicketCheck size={12} />}
-                    {b.category || b.type}
-                  </span>
-                </td>
-                <td className="font-mono font-bold">{b.pnr}</td>
-                <td>
-                  <strong className="booking-title-text">{b.title}</strong>
-                  <span className="booking-operator-text">{b.operator}</span>
-                </td>
-                <td>{b.route || "Local Monument"}</td>
-                <td>{b.date}</td>
-                <td>
-                  <span>{b.passengers || 1} Pax</span>
-                  <span className="seat-badge">{b.seat || "Standard"}</span>
-                </td>
-                <td className="font-bold text-green">
-                  ₹{b.fare?.toLocaleString()}
-                </td>
-                <td>
-                  <span className={`status-pill ${b.status?.toLowerCase()}`}>
-                    {b.status}
-                  </span>
-                </td>
-                <td>
-                  <div className="action-buttons-cell">
-                    <button 
-                      onClick={() => setPreviewTicket(b)}
-                      className="table-action-icon-btn text-blue"
-                      title="Inspect E-Ticket"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    {b.status !== "Cancelled" && (
+            {filtered.map((b) => {
+              const bType = (b.type || b.category || "flight").toLowerCase();
+              const bPnr = b.pnr || b.providerReference || "ROA-CONF";
+              const bDate = b.date || b.travelDate || b.bookingDate || "2026-11-21";
+              const bFare = b.fare || b.amount || 0;
+              const bStatus = b.status || b.bookingStatus || "Confirmed";
+              const bPassenger = b.leadPassenger || b.email || b.userEmail || "Traveler";
+
+              return (
+                <tr key={b.id || b.bookingId || bPnr}>
+                  <td>
+                    <span className={`admin-type-pill ${bType}`}>
+                      {bType === "flight" && <Plane size={12} />}
+                      {bType === "train" && <Train size={12} />}
+                      {bType === "bus" && <Bus size={12} />}
+                      {(bType === "pass" || bType === "tour") && <TicketCheck size={12} />}
+                      {b.category || bType}
+                    </span>
+                  </td>
+                  <td className="font-mono font-bold">{bPnr}</td>
+                  <td>
+                    <strong className="booking-title-text">{b.title}</strong>
+                    <span className="booking-operator-text">{b.operator || b.providerName || "Roavio Certified"}</span>
+                    <span className="text-muted small d-block">Passenger: {bPassenger}</span>
+                  </td>
+                  <td>{b.route || `${b.sourceLocation || ""} ➔ ${b.destination || ""}`.trim() || "Local Attraction"}</td>
+                  <td>{bDate}</td>
+                  <td>
+                    <span>{b.passengers || 1} Pax</span>
+                    <span className="seat-badge">{b.seat || b.seatClass || "Standard"}</span>
+                  </td>
+                  <td className="font-bold text-green">
+                    ₹{Number(bFare).toLocaleString()}
+                  </td>
+                  <td>
+                    <span className={`status-pill ${bStatus.toLowerCase()}`}>
+                      {bStatus}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-buttons-cell">
                       <button 
-                        onClick={() => cancelBooking(b.id)}
-                        className="table-action-icon-btn text-red"
-                        title="Cancel Booking"
+                        onClick={() => setPreviewTicket(b)}
+                        className="table-action-icon-btn text-blue"
+                        title="Inspect E-Ticket"
                       >
-                        <XCircle size={16} />
+                        <Eye size={16} />
                       </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+                      {bStatus !== "Cancelled" && (
+                        <button 
+                          onClick={() => cancelBooking(b.id || b.bookingId)}
+                          className="table-action-icon-btn text-red"
+                          title="Cancel Booking"
+                        >
+                          <XCircle size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

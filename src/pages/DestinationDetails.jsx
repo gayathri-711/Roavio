@@ -38,7 +38,24 @@ export default function DestinationDetails() {
   const { isSaved, toggleSaveDestination, getDistanceFromUser, userLocation, addBooking } = useTrips();
 
   const destination = getDestinationById(id) || DESTINATIONS[0];
-  const [activeImage, setActiveImage] = useState(destination.image);
+  const [activeImage, setActiveImage] = useState(destination?.image || "");
+  const [ticketModalOpen, setTicketModalOpen] = useState(false);
+  const [passCount, setPassCount] = useState(2);
+  const [isProcessingPass, setIsProcessingPass] = useState(false);
+  const [passBooked, setPassBooked] = useState(false);
+  const [confirmedPass, setConfirmedPass] = useState(null);
+  const [sharedToast, setSharedToast] = useState(false);
+
+  // Traveler Registration & Payment State
+  const [visitorName, setVisitorName] = useState(user?.name || "Rahul Sharma");
+  const [visitorMobile, setVisitorMobile] = useState(user?.phone ? user.phone.replace(/\D/g, '').slice(-10) : "9876543210");
+  const [visitorEmail, setVisitorEmail] = useState(user?.email || "rahul.sharma@example.com");
+  const [paymentMethod, setPaymentMethod] = useState("upi"); // "upi" | "card" | "netbanking"
+  const [upiId, setUpiId] = useState("traveler@okaxis");
+  const [cardNumber, setCardNumber] = useState("4532 8920 1142 8821");
+  const [cardExpiry, setCardExpiry] = useState("11/29");
+  const [cardCvv, setCardCvv] = useState("824");
+  const [selectedBank, setSelectedBank] = useState("HDFC Bank");
 
   // Sync active photo and reset modal states when destination ID changes
   useEffect(() => {
@@ -57,23 +74,6 @@ export default function DestinationDetails() {
       if (user.email) setVisitorEmail(user.email);
     }
   }, [user]);
-  const [ticketModalOpen, setTicketModalOpen] = useState(false);
-  const [passCount, setPassCount] = useState(2);
-  const [isProcessingPass, setIsProcessingPass] = useState(false);
-  const [passBooked, setPassBooked] = useState(false);
-  const [confirmedPass, setConfirmedPass] = useState(null);
-  const [sharedToast, setSharedToast] = useState(false);
-
-  // Traveler Registration & Payment State
-  const [visitorName, setVisitorName] = useState(user?.name || "Rahul Sharma");
-  const [visitorMobile, setVisitorMobile] = useState(user?.phone ? user.phone.replace(/\D/g, '').slice(-10) : "9876543210");
-  const [visitorEmail, setVisitorEmail] = useState(user?.email || "rahul.sharma@example.com");
-  const [paymentMethod, setPaymentMethod] = useState("upi"); // "upi" | "card" | "netbanking"
-  const [upiId, setUpiId] = useState("traveler@okaxis");
-  const [cardNumber, setCardNumber] = useState("4532 8920 1142 8821");
-  const [cardExpiry, setCardExpiry] = useState("11/29");
-  const [cardCvv, setCardCvv] = useState("824");
-  const [selectedBank, setSelectedBank] = useState("HDFC Bank");
 
   const saved = isSaved(destination.id);
   const dist = getDistanceFromUser(destination.lat, destination.lng);
@@ -243,7 +243,7 @@ export default function DestinationDetails() {
                 <span className="dist-indicator">
                   <Navigation size={13} className="text-orange" />
                   {dist !== null
-                    ? `${dist.toLocaleString()} km from ${userLocation.isLive ? "your GPS location" : "Delhi"}`
+                    ? `${dist.toLocaleString()} km from ${userLocation?.isLive ? "your GPS location" : "Delhi"}`
                     : `${destination.city}, ${destination.state}`}
                 </span>
               </div>
@@ -349,7 +349,7 @@ export default function DestinationDetails() {
                 </Link>
               </div>
               <p className="text-muted small mb-3">
-                Showing direct geodesic route between your GPS coordinates ({userLocation.lat.toFixed(2)}, {userLocation.lng.toFixed(2)}) and {destination.name}.
+                Showing direct geodesic route between your GPS coordinates ({userLocation?.lat ? userLocation.lat.toFixed(2) : "28.61"}, {userLocation?.lng ? userLocation.lng.toFixed(2) : "77.21"}) and {destination.name}.
               </p>
               <MapComponent userLocation={userLocation} destination={destination} height="380px" />
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Users, 
   Search, 
@@ -9,15 +9,108 @@ import {
   MapPin, 
   Check, 
   X,
-  ExternalLink
+  ExternalLink,
+  Sparkles
 } from "lucide-react";
 import { SAMPLE_USERS } from "../../data/adminData";
 
+// Helper to merge local registered users with default sample users
+const getInitialCombinedUsers = () => {
+  try {
+    const registered = JSON.parse(localStorage.getItem("roavio_registered_users") || "[]");
+    const emailMap = new Set();
+    const result = [];
+
+    // Registered or logged-in users first
+    registered.forEach((u) => {
+      const email = (u.email || "").toLowerCase();
+      if (email && !emailMap.has(email)) {
+        emailMap.add(email);
+        result.push({
+          id: u.id || `usr-${Date.now().toString().slice(-4)}`,
+          name: u.name || u.fullName || "Traveler",
+          email: u.email,
+          phone: u.phone || u.mobileNumber || "+91 98765 43210",
+          city: u.city || "New Delhi",
+          role: u.role || (email.includes("admin") ? "Administrator" : "Traveler"),
+          status: u.status || "Active",
+          kycStatus: u.kycStatus || "Verified",
+          bookingsCount: u.bookingsCount || 0,
+          tripsPlanned: u.tripsPlanned || 0,
+          joined: u.registeredAt ? new Date(u.registeredAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Nov 2026",
+          isLiveUser: true
+        });
+      }
+    });
+
+    // Then sample seed users
+    SAMPLE_USERS.forEach((u) => {
+      const email = (u.email || "").toLowerCase();
+      if (!emailMap.has(email)) {
+        emailMap.add(email);
+        result.push(u);
+      }
+    });
+
+    return result;
+  } catch (e) {
+    return SAMPLE_USERS;
+  }
+};
+
 export default function AdminUsers() {
-  const [usersList, setUsersList] = useState(SAMPLE_USERS);
+  const [usersList, setUsersList] = useState(() => getInitialCombinedUsers());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedUser, setSelectedUser] = useState(null);
+
+  // Sync with backend API on mount
+  useEffect(() => {
+    fetch("/api/admin/users")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.users && Array.isArray(data.users)) {
+          setUsersList((prev) => {
+            const emailMap = new Set();
+            const merged = [];
+
+            // Backend users first
+            data.users.forEach((u) => {
+              const email = (u.email || "").toLowerCase();
+              if (email && !emailMap.has(email)) {
+                emailMap.add(email);
+                merged.push({
+                  id: u.id,
+                  name: u.fullName || u.name || "Traveler",
+                  email: u.email,
+                  phone: u.mobileNumber || u.phone || "+91 98765 43210",
+                  city: u.city || "New Delhi",
+                  role: u.role || "Traveler",
+                  status: u.status || "Active",
+                  kycStatus: u.kycStatus || (u.mobileVerified ? "Verified" : "Pending"),
+                  bookingsCount: u.bookingsCount || 0,
+                  tripsPlanned: u.tripsPlanned || 0,
+                  joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Nov 2026",
+                  isLiveUser: true
+                });
+              }
+            });
+
+            // Previous list (local storage + samples)
+            prev.forEach((u) => {
+              const email = (u.email || "").toLowerCase();
+              if (email && !emailMap.has(email)) {
+                emailMap.add(email);
+                merged.push(u);
+              }
+            });
+
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
     return usersList.filter((u) => {
@@ -35,15 +128,28 @@ export default function AdminUsers() {
   }, [usersList, search, statusFilter]);
 
   const toggleUserStatus = (id) => {
-    setUsersList(usersList.map((u) => {
-      if (u.id === id) {
-        return {
-          ...u,
-          status: u.status === "Active" ? "Suspended" : "Active"
-        };
-      }
-      return u;
-    }));
+    setUsersList((prev) => {
+      const next = prev.map((u) => {
+        if (u.id === id) {
+          const updated = {
+            ...u,
+            status: u.status === "Active" ? "Suspended" : "Active"
+          };
+          // Persist back to local storage if it's a registered user
+          try {
+            const registered = JSON.parse(localStorage.getItem("roavio_registered_users") || "[]");
+            const regIdx = registered.findIndex((r) => r.email?.toLowerCase() === u.email?.toLowerCase());
+            if (regIdx >= 0) {
+              registered[regIdx].status = updated.status;
+              localStorage.setItem("roavio_registered_users", JSON.stringify(registered));
+            }
+          } catch (e) {}
+          return updated;
+        }
+        return u;
+      });
+      return next;
+    });
   };
 
   return (
@@ -101,7 +207,7 @@ export default function AdminUsers() {
                 <td>
                   <div className="user-profile-flex">
                     <div className="table-avatar">
-                      {usr.name.split(" ").map((n) => n[0]).join("")}
+                      {(usr.name || "TR").split(" ").filter(Boolean).map((n) => n[0]).join("").slice(0, 2) || "TR"}
                     </div>
                     <div>
                       <strong className="user-name-text">{usr.name}</strong>

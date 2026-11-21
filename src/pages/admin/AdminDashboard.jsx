@@ -25,10 +25,94 @@ import {
   SAMPLE_USERS 
 } from "../../data/adminData";
 import { useTrips } from "../../context/TripsContext";
+import { useEffect } from "react";
+
+// Helper to merge local registered users with default sample users
+const getInitialCombinedUsers = () => {
+  try {
+    const registered = JSON.parse(localStorage.getItem("roavio_registered_users") || "[]");
+    const emailMap = new Set();
+    const result = [];
+
+    registered.forEach((u) => {
+      const email = (u.email || "").toLowerCase();
+      if (email && !emailMap.has(email)) {
+        emailMap.add(email);
+        result.push({
+          id: u.id || `usr-${Date.now().toString().slice(-4)}`,
+          name: u.name || u.fullName || "Traveler",
+          email: u.email,
+          city: u.city || "New Delhi",
+          role: u.role || (email.includes("admin") ? "Administrator" : "Traveler"),
+          status: u.status || "Active",
+          bookingsCount: u.bookingsCount || 0,
+          tripsPlanned: u.tripsPlanned || 0
+        });
+      }
+    });
+
+    SAMPLE_USERS.forEach((u) => {
+      const email = (u.email || "").toLowerCase();
+      if (!emailMap.has(email)) {
+        emailMap.add(email);
+        result.push(u);
+      }
+    });
+
+    return result;
+  } catch (e) {
+    return SAMPLE_USERS;
+  }
+};
 
 export default function AdminDashboard() {
-  const { bookings } = useTrips();
+  const { bookings, allPlatformBookings } = useTrips();
+  const bookingsList = allPlatformBookings && allPlatformBookings.length > 0 ? allPlatformBookings : bookings;
+
+  const [usersList, setUsersList] = useState(() => getInitialCombinedUsers());
   const [chartYear, setChartYear] = useState("2026");
+
+  // Sync users with backend API
+  useEffect(() => {
+    fetch("/api/admin/users")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.users && Array.isArray(data.users)) {
+          setUsersList((prev) => {
+            const emailMap = new Set();
+            const merged = [];
+
+            data.users.forEach((u) => {
+              const email = (u.email || "").toLowerCase();
+              if (email && !emailMap.has(email)) {
+                emailMap.add(email);
+                merged.push({
+                  id: u.id,
+                  name: u.fullName || u.name || "Traveler",
+                  email: u.email,
+                  city: u.city || "New Delhi",
+                  role: u.role || "Traveler",
+                  status: u.status || "Active",
+                  bookingsCount: u.bookingsCount || 0,
+                  tripsPlanned: u.tripsPlanned || 0
+                });
+              }
+            });
+
+            prev.forEach((u) => {
+              const email = (u.email || "").toLowerCase();
+              if (!emailMap.has(email)) {
+                emailMap.add(email);
+                merged.push(u);
+              }
+            });
+
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Max value for CSS bar height calculation
   const maxMonthlyRevenue = Math.max(...MONTHLY_BOOKINGS_DATA.map((d) => d.revenue));
@@ -232,26 +316,34 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {bookings.slice(0, 5).map((b) => (
-                  <tr key={b.id}>
-                    <td>
-                      <span className={`admin-type-pill ${b.type}`}>
-                        {b.type === "flight" && <Plane size={12} />}
-                        {b.type === "train" && <Train size={12} />}
-                        {b.type === "bus" && <Bus size={12} />}
-                        {b.type === "pass" && <TicketCheck size={12} />}
-                        {b.category || b.type}
-                      </span>
-                    </td>
-                    <td className="font-mono">{b.pnr}</td>
-                    <td className="font-semibold">{b.title}</td>
-                    <td>{b.date}</td>
-                    <td className="font-bold text-green">₹{b.fare?.toLocaleString()}</td>
-                    <td>
-                      <span className="badge badge-green">{b.status}</span>
-                    </td>
-                  </tr>
-                ))}
+                {bookingsList.slice(0, 5).map((b) => {
+                  const bType = (b.type || b.category || "flight").toLowerCase();
+                  const bPnr = b.pnr || b.providerReference || "ROA-CONF";
+                  const bDate = b.date || b.travelDate || b.bookingDate || "2026-11-21";
+                  const bFare = b.fare || b.amount || 0;
+                  const bStatus = b.status || b.bookingStatus || "Confirmed";
+
+                  return (
+                    <tr key={b.id || b.bookingId || bPnr}>
+                      <td>
+                        <span className={`admin-type-pill ${bType}`}>
+                          {bType === "flight" && <Plane size={12} />}
+                          {bType === "train" && <Train size={12} />}
+                          {bType === "bus" && <Bus size={12} />}
+                          {(bType === "pass" || bType === "tour") && <TicketCheck size={12} />}
+                          {b.category || bType}
+                        </span>
+                      </td>
+                      <td className="font-mono">{bPnr}</td>
+                      <td className="font-semibold">{b.title}</td>
+                      <td>{bDate}</td>
+                      <td className="font-bold text-green">₹{Number(bFare).toLocaleString()}</td>
+                      <td>
+                        <span className="badge badge-green">{bStatus}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -267,21 +359,21 @@ export default function AdminDashboard() {
           </div>
 
           <div className="users-list-stack">
-            {SAMPLE_USERS.slice(0, 4).map((usr) => (
+            {usersList.slice(0, 5).map((usr) => (
               <div key={usr.id} className="user-row-item">
                 <div className="user-avatar-pill">
-                  {usr.name.split(" ").map((n) => n[0]).join("")}
+                  {(usr.name || "TR").split(" ").filter(Boolean).map((n) => n[0]).join("").slice(0, 2) || "TR"}
                 </div>
                 <div className="user-meta-info">
                   <div className="flex-between">
                     <strong>{usr.name}</strong>
-                    <span className="badge badge-green">{usr.status}</span>
+                    <span className="badge badge-green">{usr.status || "Active"}</span>
                   </div>
                   <span className="user-email-text">{usr.email}</span>
                   <div className="user-sub-stats">
-                    <span>{usr.city}</span> · 
-                    <span>{usr.bookingsCount} Bookings</span> · 
-                    <span>{usr.tripsPlanned} Trips</span>
+                    <span>{usr.city || "New Delhi"}</span> · 
+                    <span>{usr.bookingsCount || 0} Bookings</span> · 
+                    <span>{usr.tripsPlanned || 0} Trips</span>
                   </div>
                 </div>
               </div>
