@@ -23,18 +23,30 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
     return;
   }
 
-  // Helper to read JSON request body
-  const readBody = () => new Promise((resolve) => {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      try {
-        resolve(body ? JSON.parse(body) : {});
-      } catch (e) {
-        resolve({});
+  // Helper to read JSON request body (supports both Vercel Serverless parsed body & native Node stream)
+  const readBody = () => {
+    if (req.body !== undefined && req.body !== null) {
+      if (typeof req.body === 'string') {
+        try { return Promise.resolve(JSON.parse(req.body)); } catch (e) { return Promise.resolve({}); }
       }
+      return Promise.resolve(req.body);
+    }
+    return new Promise((resolve) => {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', () => {
+        try {
+          resolve(body ? JSON.parse(body) : {});
+        } catch (e) {
+          resolve({});
+        }
+      });
+      // Safety timeout if stream was ended before listener attached
+      setTimeout(() => {
+        if (!body) resolve({});
+      }, 3000);
     });
-  });
+  };
 
   try {
     // =========================================================================
