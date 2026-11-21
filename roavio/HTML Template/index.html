@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!--<< Header Area >>-->
+    <head>
+       <!-- ========== Meta Tags ========== -->
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="author" content="webtend">
+        <meta name="description" content="Roavio - Travel & Tour Booking Html Template">
+        <!-- ======== Page title ============ -->
+        <title>Roavio - Travel & Tour Booking Html Template</title>
+        <!--<< Favcion >>-->
+        <link rel="shortcut icon" href="assets/img/favicon.svg">
+        <!--<< Bootstrap min.css >>-->
+        <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+        <!--<< All Min Css >>-->
+        <link rel="stylesheet" href="assets/css/all.min.css">
+        <!--<< Animate.css >>-->
+        <link rel="stylesheet" href="assets/css/animate.css">
+        <!--<< Magnific Popup.css >>-->
+        <link rel="stylesheet" href="assets/css/magnific-popup.css">
+        <!--<< MeanMenu.css >>-->
+        <link rel="stylesheet" href="assets/css/meanmenu.css">
+        <!--<< Swiper Bundle.css >>-->
+        <link rel="stylesheet" href="assets/css/swiper-bundle.min.css">
+        <!--<< Nice Select.css >>-->
+        <link rel="stylesheet" href="assets/css/nice-select.css">
+        <!--<< Flacticon.css >>-->
+        <link rel="stylesheet" href="assets/css/flacticon.css">
+        <!--<< Main.css >>-->
+        <link rel="stylesheet" href="assets/css/main.css">
+        <!-- MakeMyTrip & Yatra Style CSS -->
+        <link rel="stylesheet" href="assets/css/yatra-theme.css">
+        <link rel="stylesheet" href="assets/css/roavio-results.css">
+        <!-- Leaflet Map CSS & Roavio India Tours CSS -->
+        <link rel="stylesheet" href="assets/css/leaflet.css">
+        <link rel="stylesheet" href="assets/css/roavio-tours.css">
+        <link rel="stylesheet" href="assets/css/roavio-homepage.css">
+    </head>
+    <body>
+
+    
+        <!-- Preloader Start -->
+         <div id="preloader" class="preloader">
+            <div class="animation-preloader">
+                <div class="spinner">                
+                </div>
+                <div class="txt-loading">
+                    <span data-text-preloader="R" class="letters-loading">
+                        R
+                    </span>
+                     <span data-text-preloader="O" class="letters-loading">
+                        O
+                    </span>
+                     <span data-text-preloader="A" class="letters-loading">
+                        A
+                    </span>
+                    <span data-text-preloader="V" class="letters-loading">
+                        V
+                    </span>
+                    <span data-text-preloader="I" class="letters-loading">
+                        I
+                    </span>
+                    <span data-text-preloader="O" class="letters-loading">
+                        O
+                    </span>
+                </div>
+                <p class="text-center">Loading</p>
+            </div>
+            <div class="loader">
+                <div class="row">
+                    <div class="col-3 loader-section section-left">
+                        <div class="bg"></div>
+                    </div>
+                    <div class="col-3 loader-section section-left">
+                        <div class="bg"></div>
+                    </div>
+                    <div class="col-3 loader-section section-right">
+                        <div class="bg"></div>
+                    </div>
+                    <div class="col-3 loader-section section-right">
+                        <div class="bg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>   
+
+        
+        <!-- MouseCursor Start -->
+        <div class="mouseCursor cursor-outer"></div>
+        <div class="mouseCursor cursor-inner"></div>
+
+         <div class="fix-area">
+            <div class="offcanvas__info">
+                <div class="offcanvas__wrapper">
+                    <div class="offcanvas__content">
+                        <div class="offcanvas__top mb-5 d-flex justify-content-between align-items-center">
+                            <div class="offcanvas__logo">
+                                <a href="index.html">
+                                    <img src="assets/img/logo/black-logo.svg" alt="logo-img">
+                                </a>
+                            </div>
+                            <div class="offcanvas__close">
+                                <button>
+                                <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text d-none d-xl-block">
+                            Nullam dignissim, ante scelerisque the  is euismod fermentum odio sem semper the is erat, a feugiat leo urna eget eros. Duis Aenean a imperdiet risus.
+                        </p>
+                        <div class="mobile-menu fix mb-3"></div>
+                        <div class="offcanvas__contact">
+                            <h3>Get Appointment</h3>
+                            <form action="#" id="contact-form" method="POST" class="contact-form-items">
+                                <div class="row g-4">
+                                    <div class="col-lg-12">
+                                        <div class="form-clt">
+                                            <input type="text" name="name" id="name33" placeholder="Name">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <div class="form-clt">
+                                            <input type="text" name="name" id="email33" placeholder="Email Address">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <div class="form-clt">
+                                            <textarea name="message" id="message2" placeholder="Enter message..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="social-icon d-flex align-items-center">
+                                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#"><i class="fab fa-twitter"></i></a>
+                                <a href="#"><i class="fab fa-youtube"></i></a>
+                                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="offcanvas__overlay"></div>
+
+         <!-- Header-Top Section Start -->
+        <div class="yatra-top-bar">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span>India’s Leading Online Travel Company</span>
+                        <span class="yatra-top-badge">Roavio Certified</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <a href="tel:18001029900"><i class="fa-solid fa-headset me-1 text-danger"></i> 24x7 Helpline: 1800 102 9900</a>
+                        <span class="d-none d-md-inline text-muted">|</span>
+                        <a href="contact.html" class="d-none d-md-inline"><i class="fa-solid fa-briefcase me-1"></i> Roavio for Business</a>
+                        <span class="d-none d-md-inline text-muted">|</span>
+                        <a href="tour-list.html" class="d-none d-sm-inline"><i class="fa-solid fa-suitcase-rolling me-1"></i> My Bookings</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Header Section Start -->
+         <header id="header-sticky" class="header-1">
+            <div class="container-fluid">
+                <div class="mega-menu-wrapper">
+                    <div class="header-main">
+                        <div class="header-left">
+                            <div class="logo">
+                                <a href="index.html" class="header-logo">
+                                    <img src="assets/img/logo/black-logo.svg" alt="logo-img">
+                                </a>
+                            </div>
+                             <div class="mean__menu-wrapper">
+                                <div class="main-menu">
+                                    <nav id="mobile-menu">
+                                        <ul>
+                                            <li class="active"><a href="index.html">Home</a></li>
+                                            <li><a href="tours.html">Explore India Tours</a></li>
+                                            <li><a href="#roavio-tours-preview-section">Top Places</a></li>
+                                            <li><a href="#roavio-trust-section">Why Roavio</a></li>
+                                            <li><a href="#roavio-services-section">Our Services</a></li>
+                                            <li><a href="#roavio-feedback-section">Reviews</a></li>
+                                            <li><a href="#roavio-contact-section">Contact Us</a></li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="header-right d-flex justify-content-end align-items-center">
+                            <a href="tours.html" class="mmt-header-my-trips d-none d-lg-inline-flex">
+                                <i class="fa-solid fa-compass"></i> 175+ Tours
+                            </a>
+                            <a href="#roavio-services-section" class="mmt-header-my-trips d-none d-md-inline-flex">
+                                <i class="fa-solid fa-percent"></i> Offers
+                            </a>
+                            <div class="header-button">
+                                <a href="tours.html" class="yatra-login-btn">
+                                    <i class="fa-solid fa-map-location-dot"></i> Explore Tours
+                                </a>
+                            </div>
+                            <div class="header__hamburger d-xl-none my-auto ms-3">
+                                <div class="sidebar__toggle">
+                                    <i class="fas fa-bars"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header> 
+
+        <!-- Main Homepage Content Layer -->
+        <main id="main-content">
+                <!-- ==========================================================================
+     Roavio Style Hero & Search Section (With Autoplaying Background Video)
+     ========================================================================== -->
+<section class="yatra-hero-wrapper fix position-relative">
+    <!-- Background Video Element -->
+    <div class="yatra-video-bg-container">
+        <video autoplay muted loop playsinline class="yatra-bg-video" preload="auto">
+            <source src="assets/img/home-2/video.mp4" type="video/mp4">
+        </video>
+        <div class="yatra-video-overlay"></div>
+    </div>
+
+    <div class="container yatra-hero-content-layer">
+        <!-- Headline -->
+        <div class="yatra-hero-headline text-center">
+            <h1>Experience Incredible India with Roavio</h1>
+            <p>Book verified travel tickets & explore breathtaking tourist destinations across every Indian state</p>
+        </div>
+
+        <!-- Dual Mode Switcher: Book Tickets vs Explore Tourist Places -->
+        <div class="text-center mb-4">
+            <div class="roavio-hero-mode-switch">
+                <button type="button" class="roavio-mode-btn active" id="roavio-mode-book-btn">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Book Travel & Entry Tickets</span>
+                </button>
+                <button type="button" class="roavio-mode-btn" id="roavio-mode-explore-btn">
+                    <i class="fa-solid fa-compass"></i>
+                    <span>Explore Tourist Places</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ==============================================
+             Option 1: Book Tickets Search Card
+             ============================================== -->
+        <div id="roavio-ticket-search-card">
+            <!-- Category Tabs (Flights, Hotels, Trains, Buses, Holidays, Cabs) -->
+            <div class="yatra-category-tabs">
+                <div class="yatra-cat-tab active" data-cat="flights">
+                    <i class="fa-solid fa-plane-departure"></i>
+                    <span>Flights</span>
+                </div>
+                <div class="yatra-cat-tab" data-cat="hotels">
+                    <i class="fa-solid fa-hotel"></i>
+                    <span>Hotels</span>
+                </div>
+                <div class="yatra-cat-tab" data-cat="trains">
+                    <i class="fa-solid fa-train"></i>
+                    <span>Trains</span>
+                </div>
+                <div class="yatra-cat-tab" data-cat="buses">
+                    <i class="fa-solid fa-bus"></i>
+                    <span>Buses</span>
+                </div>
+                <div class="yatra-cat-tab" data-cat="holidays">
+                    <i class="fa-solid fa-umbrella-beach"></i>
+                    <span>Holidays</span>
+                </div>
+                <div class="yatra-cat-tab" data-cat="cabs">
+                    <i class="fa-solid fa-taxi"></i>
+                    <span>Outstation Cabs</span>
+                </div>
+            </div>
+
+            <!-- Booking Engine Card -->
+            <div class="yatra-search-card">
+                <!-- Trip Type Selector -->
+                <div class="yatra-trip-type-bar">
+                    <div class="yatra-radio-group">
+                        <label class="yatra-radio-item">
+                            <input type="radio" name="yatra_trip_type" value="oneway" checked>
+                            <span>One Way</span>
+                        </label>
+                        <label class="yatra-radio-item">
+                            <input type="radio" name="yatra_trip_type" value="roundtrip">
+                            <span>Round Trip</span>
+                        </label>
+                        <label class="yatra-radio-item">
+                            <input type="radio" name="yatra_trip_type" value="multicity">
+                            <span>Multi-City</span>
+                        </label>
+                    </div>
+                    <div class="yatra-student-banner">
+                        <strong>Official Booking Partner</strong> · Instant confirmation & zero cancellation fees
+                    </div>
+                </div>
+
+                <!-- Inputs Grid -->
+                <div class="yatra-input-grid">
+                    <div class="yatra-input-block" id="yatra-from-block" title="Click to choose Departure City">
+                        <span class="yatra-input-label" id="yatra-from-label">DEPART FROM</span>
+                        <div class="yatra-input-city" id="yatra-from-city">New Delhi</div>
+                        <span class="yatra-input-sub" id="yatra-from-sub">DEL, Indira Gandhi International</span>
+                        <div class="yatra-input-click-hint"><i class="fa-solid fa-location-dot"></i> Change city ▼</div>
+                    </div>
+
+                    <div class="yatra-swap-container">
+                        <button type="button" class="yatra-swap-btn" id="yatra-swap-btn" title="Swap Cities">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        </button>
+                    </div>
+
+                    <div class="yatra-input-block" id="yatra-to-block" title="Click to choose Destination City">
+                        <span class="yatra-input-label" id="yatra-to-label">GOING TO</span>
+                        <div class="yatra-input-city" id="yatra-to-city">Mumbai</div>
+                        <span class="yatra-input-sub" id="yatra-to-sub">BOM, Chhatrapati Shivaji Maharaj</span>
+                        <div class="yatra-input-click-hint"><i class="fa-solid fa-location-dot"></i> Change destination ▼</div>
+                    </div>
+
+                    <div class="yatra-input-block" id="yatra-date-block" title="Click to change Departure Date">
+                        <span class="yatra-input-label" id="yatra-date-label">DEPARTURE DATE</span>
+                        <div class="yatra-input-city" id="yatra-date-val">24 Nov '26</div>
+                        <span class="yatra-input-sub" id="yatra-date-sub">Tuesday</span>
+                        <div class="yatra-input-click-hint"><i class="fa-regular fa-calendar"></i> Change date ▼</div>
+                        <input type="date" id="roavio-native-dep-date" style="position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0;">
+                    </div>
+
+                    <div class="yatra-input-block" id="yatra-return-block" title="Click to choose Return Date">
+                        <span class="yatra-input-label">RETURN DATE</span>
+                        <div class="yatra-input-city" id="yatra-return-date" style="opacity: 0.35;">28 Nov '26</div>
+                        <span class="yatra-input-sub" id="yatra-return-sub">Save more on round trip</span>
+                        <div class="yatra-input-click-hint"><i class="fa-regular fa-calendar-plus"></i> Add return date ▼</div>
+                        <input type="date" id="roavio-native-ret-date" style="position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0;">
+                    </div>
+
+                    <div class="yatra-input-block" id="yatra-travellers-block" title="Click to change Travellers & Class">
+                        <span class="yatra-input-label" id="yatra-travellers-label">TRAVELLER(S), CLASS</span>
+                        <div class="yatra-input-city" id="yatra-travellers-val">1 Traveller</div>
+                        <span class="yatra-input-sub" id="yatra-travellers-sub">Economy</span>
+                        <div class="yatra-input-click-hint"><i class="fa-solid fa-user-group"></i> Change ▼</div>
+                    </div>
+                </div>
+
+                <!-- Special Fares Row -->
+                <div class="yatra-special-fares">
+                    <span class="yatra-fare-title">Select A Fare Type:</span>
+                    <span class="yatra-fare-chip active">Regular Fare</span>
+                    <span class="yatra-fare-chip">Armed Forces (Special Rates)</span>
+                    <span class="yatra-fare-chip">Senior Citizen (Flat ₹600 Off)</span>
+                    <span class="yatra-fare-chip">Student Special (10kg Extra Baggage)</span>
+                    <span class="yatra-fare-chip">Doctors & Nurses</span>
+                </div>
+
+                <!-- Action Button -->
+                <div class="yatra-search-action-row">
+                    <button type="button" class="yatra-search-btn" id="yatra-main-search-btn">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span id="yatra-search-text">Search Flights</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==============================================
+             Option 2: Explore Tourist Places Search Card
+             ============================================== -->
+        <div id="roavio-explore-search-card" style="display: none;">
+            <div class="roavio-hero-explore-panel">
+                <form id="roavio-hero-explore-form" action="tours.html" method="GET">
+                    <div class="roavio-explore-grid">
+                        <div class="roavio-explore-field">
+                            <label><i class="fa-solid fa-magnifying-glass text-danger me-1"></i> Tourist Place / Keyword</label>
+                            <input type="text" name="q" id="hero-explore-place" placeholder="e.g. Taj Mahal, Munnar, Solang, Hampi...">
+                        </div>
+                        <div class="roavio-explore-field" style="position: relative;">
+                            <label><i class="fa-solid fa-map-pin text-primary me-1"></i> Indian State</label>
+                            <select name="state" id="hero-explore-state" style="width: 100% !important; display: block !important; cursor: pointer;">
+                                <option value="All States">📍 All Indian States</option>
+                                <option value="Delhi">Delhi (National Capital)</option>
+                                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                <option value="Rajasthan">Rajasthan</option>
+                                <option value="Kerala">Kerala</option>
+                                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                <option value="Goa">Goa</option>
+                                <option value="Jammu & Kashmir">Jammu & Kashmir</option>
+                                <option value="Ladakh">Ladakh</option>
+                                <option value="Uttarakhand">Uttarakhand</option>
+                                <option value="Karnataka">Karnataka</option>
+                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="West Bengal">West Bengal</option>
+                                <option value="Punjab">Punjab</option>
+                                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                <option value="Odisha">Odisha</option>
+                                <option value="Gujarat">Gujarat</option>
+                                <option value="Telangana">Telangana</option>
+                                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                <option value="Assam">Assam</option>
+                                <option value="Meghalaya">Meghalaya</option>
+                                <option value="Sikkim">Sikkim</option>
+                                <option value="Bihar">Bihar</option>
+                                <option value="Andaman & Nicobar">Andaman & Nicobar</option>
+                            </select>
+                        </div>
+                        <div class="roavio-explore-field" style="position: relative;">
+                            <label><i class="fa-solid fa-compass text-warning me-1"></i> Experience</label>
+                            <select name="cat" id="hero-explore-cat" style="width: 100% !important; display: block !important; cursor: pointer;">
+                                <option value="all">🌟 All Categories</option>
+                                <option value="heritage">🏰 Heritage & Forts</option>
+                                <option value="hills">⛰️ Hill Stations</option>
+                                <option value="beaches">🏖️ Beaches & Coastal</option>
+                                <option value="spiritual">🛕 Spiritual & Temples</option>
+                                <option value="adventure">❄️ Snow & Adventure</option>
+                                <option value="wildlife">🐅 Wildlife & Safari</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="roavio-explore-submit-btn">
+                            <i class="fa-solid fa-location-arrow"></i>
+                            <span>Explore Places</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     Roavio Super Offers Section
+     ========================================================================== -->
+<!-- ==========================================================================
+     Roavio Real-Time Search Results Section (Flights, Hotels, Holidays, Trains, Buses, Cabs)
+     ========================================================================== -->
+
+<!-- ==========================================================================
+     Requirement 2: Build Trust for Users
+     ========================================================================== -->
+<section class="roavio-trust-section">
+    <div class="container">
+        <div class="roavio-trust-header">
+            <span class="badge-pill"><i class="fa-solid fa-shield-halved"></i> Trust & Reliability First</span>
+            <h2>Why 50,000+ Travelers Trust Roavio</h2>
+            <p>Certified travel bookings, bank-grade payment security, and round-the-clock on-trip human assistance across every Indian state.</p>
+        </div>
+
+        <div class="roavio-trust-cards-row">
+            <div class="roavio-trust-card">
+                <div class="roavio-trust-icon-box">
+                    <i class="fa-solid fa-ticket"></i>
+                </div>
+                <h4>100% Verified E-Tickets</h4>
+                <p>Authorized IRCTC rail ticketing, certified airline passes, and official ASI monument tickets delivered with scannable QR codes.</p>
+            </div>
+
+            <div class="roavio-trust-card">
+                <div class="roavio-trust-icon-box">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h4>Bank-Grade Security</h4>
+                <p>Protected by 256-bit SSL encryption. Seamless checkout via UPI, RuPay, NetBanking, Visa, Mastercard with zero hidden charges.</p>
+            </div>
+
+            <div class="roavio-trust-card">
+                <div class="roavio-trust-icon-box">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h4>Zero Cancellation & Fast Refunds</h4>
+                <p>Sudden schedule change? Enjoy zero-penalty date shifts and 100% automated refunds back to your UPI or bank account within 15 mins.</p>
+            </div>
+
+            <div class="roavio-trust-card">
+                <div class="roavio-trust-icon-box">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <h4>24x7 Live Travel Concierge</h4>
+                <p>Real travel specialists on call and WhatsApp throughout your journey. Never travel alone—help is always one touch away.</p>
+            </div>
+        </div>
+
+        <div class="roavio-trust-stats-bar">
+            <div class="roavio-stat-item">
+                <div class="stat-num">50,000+</div>
+                <div class="stat-label">Happy Travelers</div>
+            </div>
+            <div class="roavio-stat-item">
+                <div class="stat-num">175+</div>
+                <div class="stat-label">Indian Destinations</div>
+            </div>
+            <div class="roavio-stat-item">
+                <div class="stat-num">4.9 ★</div>
+                <div class="stat-label">User Satisfaction</div>
+            </div>
+            <div class="roavio-stat-item">
+                <div class="stat-num">100%</div>
+                <div class="stat-label">Safety & Verified Stays</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     Requirement 3: Floating Tourist Place Pictures (Infinite Marquee)
+     ========================================================================== -->
+<section class="roavio-floating-showcase">
+    <div class="container text-center mb-4">
+        <span class="badge bg-danger px-3 py-2 rounded-pill fw-bold" style="font-size: 0.85rem; letter-spacing: 1px;">📸 INCREDIBLE INDIA SHOWCASE</span>
+        <h2 class="fw-bold mt-2" style="font-size: 2.3rem; color: #0f172a;">Glimpses of Iconic Tourist Places</h2>
+        <p class="text-muted" style="max-width: 650px; margin: 0 auto;">Click on any floating destination to view live distance, routes from your location, and available travel tickets</p>
+    </div>
+
+    <!-- Row 1: Forward Marquee -->
+    <div class="roavio-marquee-track">
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('taj-mahal')">
+            <img src="assets/img/india-tours/taj-mahal.jpg" alt="Taj Mahal">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">UNESCO Wonder</span>
+                <span class="roavio-floating-state">Uttar Pradesh</span>
+                <h4 class="roavio-floating-title">Taj Mahal & Agra Fort</h4>
+                <div class="roavio-floating-price">Entry from <strong>₹50</strong> · Agra</div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('amber-fort')">
+            <img src="assets/img/india-tours/amber-fort.jpg" alt="Amber Fort">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Royal Palace</span>
+                <span class="roavio-floating-state">Rajasthan</span>
+                <h4 class="roavio-floating-title">Amber Fort & Palace</h4>
+                <div class="roavio-floating-price">Entry from <strong>₹100</strong> · Jaipur</div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('munnar')">
+            <img src="assets/img/india-tours/munnar.jpg" alt="Munnar">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Tea Capital</span>
+                <span class="roavio-floating-state">Kerala</span>
+                <h4 class="roavio-floating-title">Munnar Tea Gardens</h4>
+                <div class="roavio-floating-price">Tour from <strong>₹150</strong> · Munnar</div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('solang-manali')">
+            <img src="assets/img/india-tours/solang-manali.jpg" alt="Solang Valley">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Snow Adventure</span>
+                <span class="roavio-floating-state">Himachal Pradesh</span>
+                <h4 class="roavio-floating-title">Solang Valley & Rohtang</h4>
+                <div class="roavio-floating-price">Adventure from <strong>₹550</strong> · Manali</div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('goa-baga')">
+            <img src="assets/img/india-tours/goa-baga.jpg" alt="Calangute & Baga">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Golden Beaches</span>
+                <span class="roavio-floating-state">Goa</span>
+                <h4 class="roavio-floating-title">Calangute & Baga Beach</h4>
+                <div class="roavio-floating-price">Water Sports from <strong>₹1,200</strong></div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('alleppey')">
+            <img src="assets/img/india-tours/alleppey.jpg" alt="Alleppey">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Backwaters</span>
+                <span class="roavio-floating-state">Kerala</span>
+                <h4 class="roavio-floating-title">Alleppey Houseboat</h4>
+                <div class="roavio-floating-price">Cruise from <strong>₹450</strong> · Alappuzha</div>
+            </div>
+        </div>
+        <!-- Duplicate for loop -->
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('taj-mahal')">
+            <img src="assets/img/india-tours/taj-mahal.jpg" alt="Taj Mahal">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">UNESCO Wonder</span>
+                <span class="roavio-floating-state">Uttar Pradesh</span>
+                <h4 class="roavio-floating-title">Taj Mahal & Agra Fort</h4>
+                <div class="roavio-floating-price">Entry from <strong>₹50</strong> · Agra</div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('amber-fort')">
+            <img src="assets/img/india-tours/amber-fort.jpg" alt="Amber Fort">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Royal Palace</span>
+                <span class="roavio-floating-state">Rajasthan</span>
+                <h4 class="roavio-floating-title">Amber Fort & Palace</h4>
+                <div class="roavio-floating-price">Entry from <strong>₹100</strong> · Jaipur</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Reverse Marquee -->
+    <div class="roavio-marquee-track roavio-marquee-reverse">
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('varanasi')">
+            <img src="assets/img/india-tours/varanasi.jpg" alt="Varanasi">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Spiritual Sanctum</span>
+                <span class="roavio-floating-state">Uttar Pradesh</span>
+                <h4 class="roavio-floating-title">Varanasi Ganga Aarti</h4>
+                <div class="roavio-floating-price">Boat Tour from <strong>₹300</strong></div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('dal-lake')">
+            <img src="assets/img/india-tours/dal-lake.jpg" alt="Dal Lake">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Heaven on Earth</span>
+                <span class="roavio-floating-state">Jammu & Kashmir</span>
+                <h4 class="roavio-floating-title">Dal Lake Shikara Cruise</h4>
+                <div class="roavio-floating-price">Shikara from <strong>₹700</strong> · Srinagar</div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('hampi')">
+            <img src="assets/img/india-tours/hampi.jpg" alt="Hampi">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Ancient Empire</span>
+                <span class="roavio-floating-state">Karnataka</span>
+                <h4 class="roavio-floating-title">Hampi Stone Chariot</h4>
+                <div class="roavio-floating-price">ASI Pass from <strong>₹40</strong> · Hampi</div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('pangong-lake')">
+            <img src="assets/img/india-tours/pangong-lake.jpg" alt="Pangong Lake">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">High Altitude</span>
+                <span class="roavio-floating-state">Ladakh</span>
+                <h4 class="roavio-floating-title">Pangong Tso Blue Lake</h4>
+                <div class="roavio-floating-price">Pass from <strong>₹550</strong> · Leh</div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('mysore-palace')">
+            <img src="assets/img/india-tours/mysore-palace.jpg" alt="Mysore Palace">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Grand Illumination</span>
+                <span class="roavio-floating-state">Karnataka</span>
+                <h4 class="roavio-floating-title">Mysore Palace & Hills</h4>
+                <div class="roavio-floating-price">Entry from <strong>₹100</strong> · Mysuru</div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('darjeeling')">
+            <img src="assets/img/india-tours/darjeeling.jpg" alt="Darjeeling">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Himalayan Sunrise</span>
+                <span class="roavio-floating-state">West Bengal</span>
+                <h4 class="roavio-floating-title">Darjeeling Tiger Hill</h4>
+                <div class="roavio-floating-price">Pass from <strong>₹100</strong> · Batasia Loop</div>
+            </div>
+        </div>
+        <!-- Duplicate for loop -->
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('varanasi')">
+            <img src="assets/img/india-tours/varanasi.jpg" alt="Varanasi">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Spiritual Sanctum</span>
+                <span class="roavio-floating-state">Uttar Pradesh</span>
+                <h4 class="roavio-floating-title">Varanasi Ganga Aarti</h4>
+                <div class="roavio-floating-price">Boat Tour from <strong>₹300</strong></div>
+            </div>
+        </div>
+        <div class="roavio-floating-card" onclick="selectFloatingDestination('dal-lake')">
+            <img src="assets/img/india-tours/dal-lake.jpg" alt="Dal Lake">
+            <div class="roavio-floating-overlay">
+                <span class="roavio-floating-tag">Heaven on Earth</span>
+                <span class="roavio-floating-state">Jammu & Kashmir</span>
+                <h4 class="roavio-floating-title">Dal Lake Shikara Cruise</h4>
+                <div class="roavio-floating-price">Shikara from <strong>₹700</strong> · Srinagar</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="roavio-results-section" id="roavio-search-results-section" style="display: none;">
+    <div class="container">
+        <!-- Results Header & Filters -->
+        <div class="roavio-results-header-card">
+            <div class="roavio-results-title">
+                <div class="roavio-cat-icon-badge">
+                    <i class="fa-solid fa-plane-departure" id="roavio-cat-icon"></i>
+                </div>
+                <div>
+                    <h3 id="roavio-results-heading">✈️ Flights from New Delhi to Mumbai</h3>
+                    <p id="roavio-results-meta">Loading verified Roavio fares...</p>
+                </div>
+            </div>
+            <div class="roavio-filter-pills">
+                <span class="roavio-filter-pill active" data-sort="all">All Options</span>
+                <span class="roavio-filter-pill" data-sort="cheapest">Cheapest Fare</span>
+                <span class="roavio-filter-pill" data-sort="fastest">Fastest Duration</span>
+                <span class="roavio-filter-pill" data-sort="top-rated">Top Rated ★</span>
+            </div>
+        </div>
+
+        <!-- Dynamic Results Cards injected by roavio-engine.js -->
+        <div id="roavio-results-list"></div>
+    </div>
+</section>
+
+
+<!-- ==========================================================================
+     Roavio All-India Tourist Places & Ticket Booking Section (Requirements 1, 2, 4)
+     ========================================================================== -->
+<!-- ==========================================================================
+     Top Tourist Places Across India (4 Photos Preview -> Links to tours.html)
+     ========================================================================== -->
+<section class="roavio-tours-preview-section" id="roavio-tours-preview-section">
+    <div class="container text-center">
+        <!-- Section Header -->
+        <div class="roavio-section-header mb-4">
+            <span class="section-badge"><i class="fa-solid fa-compass"></i> Discover Incredible India</span>
+            <h2>Top Tourist Places Across India</h2>
+            <p>Browse iconic monuments, serene hill stations, pristine beaches, and spiritual sanctuaries across every Indian state. Explore our full directory with live route distances, entry tickets, and transport booking.</p>
+        </div>
+
+        <!-- 4 Featured Photos for Title -->
+        <div class="roavio-title-featured-photos">
+            <a href="tours.html?q=Taj" class="roavio-title-photo-card text-decoration-none">
+                <img src="assets/img/india-tours/taj-mahal.jpg" alt="Taj Mahal, Agra">
+                <div class="roavio-title-photo-overlay">
+                    <span class="roavio-title-photo-badge">UNESCO Wonder</span>
+                    <span class="roavio-title-photo-state">Uttar Pradesh</span>
+                    <h4 class="roavio-title-photo-title">Taj Mahal & Agra Fort</h4>
+                    <div class="roavio-title-photo-price">
+                        <span>Agra</span>
+                        <span>★ 4.9 · From <strong>₹50</strong></span>
+                    </div>
+                </div>
+            </a>
+
+            <a href="tours.html?q=Munnar" class="roavio-title-photo-card text-decoration-none">
+                <img src="assets/img/india-tours/munnar.jpg" alt="Munnar Tea Gardens">
+                <div class="roavio-title-photo-overlay">
+                    <span class="roavio-title-photo-badge">God’s Own Country</span>
+                    <span class="roavio-title-photo-state">Kerala</span>
+                    <h4 class="roavio-title-photo-title">Munnar Misty Hills</h4>
+                    <div class="roavio-title-photo-price">
+                        <span>Munnar</span>
+                        <span>★ 4.9 · From <strong>₹150</strong></span>
+                    </div>
+                </div>
+            </a>
+
+            <a href="tours.html?q=Solang" class="roavio-title-photo-card text-decoration-none">
+                <img src="assets/img/india-tours/solang-manali.jpg" alt="Solang Valley, Manali">
+                <div class="roavio-title-photo-overlay">
+                    <span class="roavio-title-photo-badge">Snow Paradise</span>
+                    <span class="roavio-title-photo-state">Himachal Pradesh</span>
+                    <h4 class="roavio-title-photo-title">Solang Valley & Rohtang</h4>
+                    <div class="roavio-title-photo-price">
+                        <span>Manali</span>
+                        <span>★ 4.9 · From <strong>₹550</strong></span>
+                    </div>
+                </div>
+            </a>
+
+            <a href="tours.html?q=Goa" class="roavio-title-photo-card text-decoration-none">
+                <img src="assets/img/india-tours/goa-baga.jpg" alt="Calangute & Baga Beach">
+                <div class="roavio-title-photo-overlay">
+                    <span class="roavio-title-photo-badge">Beach Haven</span>
+                    <span class="roavio-title-photo-state">Goa</span>
+                    <h4 class="roavio-title-photo-title">Calangute & Baga Beach</h4>
+                    <div class="roavio-title-photo-price">
+                        <span>North Goa</span>
+                        <span>★ 4.8 · From <strong>₹1,200</strong></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Button linking to the new page tours.html -->
+        <div class="roavio-title-explore-btn-wrap text-center mt-4">
+            <a href="tours.html" class="roavio-explore-more-btn text-decoration-none">
+                <i class="fa-solid fa-compass me-2"></i>
+                <span>Explore More Places (See All 175+ Destinations Across India)</span>
+                <i class="fa-solid fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+
+<section class="yatra-offers-section">
+    <div class="container">
+        <div class="yatra-section-title">
+            <div>
+                <h2>Super Offers on Roavio</h2>
+                <p>Exclusive deals on Flights, Hotels & Holiday Packages with partner banks</p>
+            </div>
+            <a href="#yatra-packages-section" class="yatra-view-all">
+                View All Offers <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+        <div class="row g-4">
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="yatra-offer-card">
+                    <div class="yatra-offer-icon">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+                    <div class="yatra-offer-info">
+                        <h4>Flat 15% Instant Off</h4>
+                        <p>On Domestic Flights with ICICI & HDFC Credit Cards</p>
+                        <span class="yatra-promo-code">CODE: ROAVIO15</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="yatra-offer-card">
+                    <div class="yatra-offer-icon">
+                        <i class="fa-solid fa-plane-departure"></i>
+                    </div>
+                    <div class="yatra-offer-info">
+                        <h4>Up to ₹10,000 Off</h4>
+                        <p>On International Holidays (Bali, Dubai, Europe & Thailand)</p>
+                        <span class="yatra-promo-code">CODE: ROAVIOINTL</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="yatra-offer-card">
+                    <div class="yatra-offer-icon">
+                        <i class="fa-solid fa-hotel"></i>
+                    </div>
+                    <div class="yatra-offer-info">
+                        <h4>Flat 30% Off Hotels</h4>
+                        <p>Luxury Resorts, Heritage Haveli & Beach Villas across India</p>
+                        <span class="yatra-promo-code">CODE: ROAVIOSAVE</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="yatra-offer-card">
+                    <div class="yatra-offer-icon">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <div class="yatra-offer-info">
+                        <h4>Zero Convenience Fee</h4>
+                        <p>On first flight booking using UPI or NetBanking</p>
+                        <span class="yatra-promo-code">CODE: ROAVIOFREE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+                
+<!-- ==========================================================================
+     Requirement 4: Card for Our Services and Images
+     ========================================================================== -->
+<section class="roavio-services-section" id="roavio-services-section">
+    <div class="container">
+        <div class="roavio-trust-header">
+            <span class="badge-pill"><i class="fa-solid fa-briefcase"></i> What We Offer</span>
+            <h2>Our Premium Travel & Tour Services</h2>
+            <p>From monument entry passes to high-speed trains, scenic flights, and royal heritage resorts—everything for a seamless journey.</p>
+        </div>
+
+        <div class="roavio-services-grid">
+            <!-- Service 1: Monument Passes -->
+            <div class="roavio-service-card">
+                <div class="roavio-service-thumb">
+                    <img src="assets/img/india-tours/taj-mahal.jpg" alt="Monument & Heritage Passes">
+                    <div class="roavio-service-icon-pill">
+                        <i class="fa-solid fa-landmark-dome"></i>
+                    </div>
+                </div>
+                <div class="roavio-service-body">
+                    <h3 class="roavio-service-title">Official Monument & Entry Passes</h3>
+                    <p class="roavio-service-desc">Skip the long box-office queues at India's top UNESCO sites and monuments with instant digital QR entry passes.</p>
+                    <ul class="roavio-service-perks">
+                        <li><i class="fa-solid fa-check"></i> Skip-the-line instant QR entry</li>
+                        <li><i class="fa-solid fa-check"></i> Certified local historian guides</li>
+                        <li><i class="fa-solid fa-check"></i> Audio guides in 8 languages</li>
+                    </ul>
+                    <a href="#roavio-tours-section" class="roavio-service-btn">Explore Tourist Places <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+
+            <!-- Service 2: Train Bookings -->
+            <div class="roavio-service-card">
+                <div class="roavio-service-thumb">
+                    <img src="assets/img/home-1/tour/tour-1.jpg" alt="IRCTC Train Booking">
+                    <div class="roavio-service-icon-pill" style="background: #0284c7;">
+                        <i class="fa-solid fa-train"></i>
+                    </div>
+                </div>
+                <div class="roavio-service-body">
+                    <h3 class="roavio-service-title">IRCTC & Vande Bharat Rail Tickets</h3>
+                    <p class="roavio-service-desc">Authorized IRCTC partner ensuring confirmed seats in semi-high speed Vande Bharat, Shatabdi & Rajdhani express trains.</p>
+                    <ul class="roavio-service-perks">
+                        <li><i class="fa-solid fa-check"></i> Confirmed seat booking guarantee</li>
+                        <li><i class="fa-solid fa-check"></i> Live train running status & PNR tracker</li>
+                        <li><i class="fa-solid fa-check"></i> Zero convenience fee on UPI</li>
+                    </ul>
+                    <button type="button" class="roavio-service-btn" onclick="document.querySelector('.yatra-cat-tab[data-cat=\'trains\']')?.click(); document.getElementById('roavio-ticket-search-card')?.scrollIntoView({behavior:'smooth'});">Book Train Tickets <i class="fa-solid fa-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <!-- Service 3: Flights -->
+            <div class="roavio-service-card">
+                <div class="roavio-service-thumb">
+                    <img src="assets/img/home-1/tour/tour-3.jpg" alt="Flight Booking">
+                    <div class="roavio-service-icon-pill" style="background: #e11d48;">
+                        <i class="fa-solid fa-plane-departure"></i>
+                    </div>
+                </div>
+                <div class="roavio-service-body">
+                    <h3 class="roavio-service-title">Domestic & International Flights</h3>
+                    <p class="roavio-service-desc">Guaranteed lowest airfares on IndiGo, Air India, Vistara, and Akasa Air with zero penalty date changes.</p>
+                    <ul class="roavio-service-perks">
+                        <li><i class="fa-solid fa-check"></i> Free cancellation & instant refund option</li>
+                        <li><i class="fa-solid fa-check"></i> Student & defense personnel discounts</li>
+                        <li><i class="fa-solid fa-check"></i> 24x7 web check-in & boarding pass assist</li>
+                    </ul>
+                    <button type="button" class="roavio-service-btn" onclick="document.querySelector('.yatra-cat-tab[data-cat=\'flights\']')?.click(); document.getElementById('roavio-ticket-search-card')?.scrollIntoView({behavior:'smooth'});">Search Flights <i class="fa-solid fa-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <!-- Service 4: Buses -->
+            <div class="roavio-service-card">
+                <div class="roavio-service-thumb">
+                    <img src="assets/img/home-1/tour/tour-5.jpg" alt="Volvo AC Bus Booking">
+                    <div class="roavio-service-icon-pill" style="background: #16a34a;">
+                        <i class="fa-solid fa-bus"></i>
+                    </div>
+                </div>
+                <div class="roavio-service-body">
+                    <h3 class="roavio-service-title">Luxury Volvo AC Sleeper Buses</h3>
+                    <p class="roavio-service-desc">Travel comfortably between major Indian cities and scenic hill stations in verified Volvo 9600 & electric sleeper coaches.</p>
+                    <ul class="roavio-service-perks">
+                        <li><i class="fa-solid fa-check"></i> Live GPS bus tracking & emergency SOS</li>
+                        <li><i class="fa-solid fa-check"></i> Ergonomic private berths with USB & TV</li>
+                        <li><i class="fa-solid fa-check"></i> Sanitized blankets and complimentary water</li>
+                    </ul>
+                    <button type="button" class="roavio-service-btn" onclick="document.querySelector('.yatra-cat-tab[data-cat=\'buses\']')?.click(); document.getElementById('roavio-ticket-search-card')?.scrollIntoView({behavior:'smooth'});">Book Volvo Buses <i class="fa-solid fa-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <!-- Service 5: Hotels & Havelis -->
+            <div class="roavio-service-card">
+                <div class="roavio-service-thumb">
+                    <img src="assets/img/home-1/tour/tour-4.jpg" alt="Luxury Hotel & Haveli Booking">
+                    <div class="roavio-service-icon-pill" style="background: #9333ea;">
+                        <i class="fa-solid fa-hotel"></i>
+                    </div>
+                </div>
+                <div class="roavio-service-body">
+                    <h3 class="roavio-service-title">Luxury Resorts & Heritage Havelis</h3>
+                    <p class="roavio-service-desc">Handpicked stays across India—from royal Rajasthan palaces to Kerala private pool villas and Himalayan mountain chalets.</p>
+                    <ul class="roavio-service-perks">
+                        <li><i class="fa-solid fa-check"></i> Guaranteed best rate with free breakfast</li>
+                        <li><i class="fa-solid fa-check"></i> Pay at hotel option available</li>
+                        <li><i class="fa-solid fa-check"></i> Free room upgrades for Roavio members</li>
+                    </ul>
+                    <button type="button" class="roavio-service-btn" onclick="document.querySelector('.yatra-cat-tab[data-cat=\'hotels\']')?.click(); document.getElementById('roavio-ticket-search-card')?.scrollIntoView({behavior:'smooth'});">Find Hotels <i class="fa-solid fa-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <!-- Service 6: Adventure & Safaris -->
+            <div class="roavio-service-card">
+                <div class="roavio-service-thumb">
+                    <img src="assets/img/india-tours/jaisalmer-dunes.jpg" alt="Adventure & Wildlife Safaris">
+                    <div class="roavio-service-icon-pill" style="background: #ea580c;">
+                        <i class="fa-solid fa-campground"></i>
+                    </div>
+                </div>
+                <div class="roavio-service-body">
+                    <h3 class="roavio-service-title">Adventure Safaris & Expeditions</h3>
+                    <p class="roavio-service-desc">Exciting outdoor activities: Rishikesh river rafting, Thar desert sunset camel safaris, and Corbett tiger reserve open gypsy trails.</p>
+                    <ul class="roavio-service-perks">
+                        <li><i class="fa-solid fa-check"></i> Certified safety instructors & gear</li>
+                        <li><i class="fa-solid fa-check"></i> Forest department approved permits</li>
+                        <li><i class="fa-solid fa-check"></i> Private 4x4 open jeep & safari vehicles</li>
+                    </ul>
+                    <a href="#roavio-tours-section" class="roavio-service-btn">Book Adventure Tours <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ==========================================================================
+     Requirement 5a: Customer Feedback (Compact Testimonials & Reviews)
+     ========================================================================== -->
+<section class="roavio-feedback-section" id="roavio-feedback-section">
+    <div class="container">
+        <div class="roavio-feedback-header">
+            <span class="badge-pill"><i class="fa-solid fa-heart"></i> Verified Stories</span>
+            <h2>Loved by Travelers Across India</h2>
+            <p>Authentic feedback from travelers who booked their tours, transport, and stays through Roavio.</p>
+        </div>
+
+        <div class="roavio-feedback-grid">
+            <!-- Review 1 -->
+            <div class="roavio-feedback-card">
+                <div class="roavio-feedback-card-top">
+                    <div class="roavio-feedback-rating">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <span class="roavio-feedback-badge">Taj Mahal</span>
+                </div>
+                <p class="roavio-feedback-text">"Booking our Agra tour & Vande Bharat express tickets was a breeze. Sunrise e-ticket let us bypass massive queues effortlessly!"</p>
+                <div class="roavio-feedback-user">
+                    <div class="roavio-feedback-avatar">RS</div>
+                    <div class="roavio-feedback-user-info">
+                        <h5>Rahul Sharma</h5>
+                        <span>New Delhi · Agra Tour</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review 2 -->
+            <div class="roavio-feedback-card">
+                <div class="roavio-feedback-card-top">
+                    <div class="roavio-feedback-rating">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <span class="roavio-feedback-badge">Kerala</span>
+                </div>
+                <p class="roavio-feedback-text">"Our Alleppey private luxury houseboat was immaculate. Serene backwaters, fresh cuisine, and 24x7 support from Roavio!"</p>
+                <div class="roavio-feedback-user">
+                    <div class="roavio-feedback-avatar" style="background: #0284c7;">PN</div>
+                    <div class="roavio-feedback-user-info">
+                        <h5>Priya & Ankit</h5>
+                        <span>Mumbai · Munnar Tour</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review 3 -->
+            <div class="roavio-feedback-card">
+                <div class="roavio-feedback-card-top">
+                    <div class="roavio-feedback-rating">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <span class="roavio-feedback-badge">Himachal</span>
+                </div>
+                <p class="roavio-feedback-text">"Solang snow sports and Volvo bus bookings were seamless. Instant WhatsApp assistance made our trip stress-free."</p>
+                <div class="roavio-feedback-user">
+                    <div class="roavio-feedback-avatar" style="background: #16a34a;">VR</div>
+                    <div class="roavio-feedback-user-info">
+                        <h5>Vikram Rathore</h5>
+                        <span>Jaipur · Manali Tour</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review 4 -->
+            <div class="roavio-feedback-card">
+                <div class="roavio-feedback-card-top">
+                    <div class="roavio-feedback-rating">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <span class="roavio-feedback-badge">Hampi</span>
+                </div>
+                <p class="roavio-feedback-text">"As a solo traveler, the certified local guide and driver in Hampi were top tier. Punctual, safe, and deeply knowledgeable."</p>
+                <div class="roavio-feedback-user">
+                    <div class="roavio-feedback-avatar" style="background: #9333ea;">SK</div>
+                    <div class="roavio-feedback-user-info">
+                        <h5>Dr. Sneha K.</h5>
+                        <span>Bengaluru · Hampi Tour</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust Rating Banner (Compact) -->
+        <div class="roavio-trust-rating-banner">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fs-4 fw-bold text-warning">4.9 ★</span>
+                <span class="text-white fw-bold small">Overall Customer Rating</span>
+                <span class="text-muted small">· Based on 4,820+ verified traveler reviews across India</span>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="badge bg-danger px-2 py-1">✓ Verified Reviews</span>
+                <span class="badge bg-success px-2 py-1">✓ 100% Recommended</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ==========================================================================
+     Requirement 5b: 24x7 Compact Contact Bar (Reduced Space & Instant Concierge)
+     ========================================================================== -->
+<section class="roavio-compact-contact-strip" id="roavio-contact-section">
+    <div class="container">
+        <div class="roavio-compact-contact-box">
+            <div class="roavio-compact-contact-left">
+                <div class="roavio-compact-icon">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <div class="roavio-compact-text">
+                    <h4>Need Custom Tour Planning or Immediate Assistance?</h4>
+                    <p>Connect directly with our India travel specialists for instant quotes, customized itineraries, and group tour bookings.</p>
+                </div>
+            </div>
+            <div class="roavio-compact-actions">
+                <a href="tel:18001029900" class="roavio-compact-btn btn-phone">
+                    <i class="fa-solid fa-phone"></i>
+                    <span><strong>1800 102 9900</strong> <small>Toll-Free 24x7</small></span>
+                </a>
+                <a href="https://wa.me/919876543210" target="_blank" class="roavio-compact-btn btn-whatsapp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <span><strong>WhatsApp</strong> <small>Instant Reply</small></span>
+                </a>
+                <a href="mailto:support@roavio.com" class="roavio-compact-btn btn-email">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span><strong>Email Us</strong> <small>support@roavio.com</small></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer Section Start -->
+            <footer class="footer-section fix header-bg">
+                <div class="container">
+                    <div class="footer-widget-wrapper">
+                        <div class="row">
+                            <!-- Col 1: About Roavio -->
+                            <div class="col-xl-3 col-md-6 col-lg-3 wow fadeInUp">
+                                <div class="single-footer-widget">
+                                    <div class="widget-head">
+                                        <a href="index.html">
+                                            <img src="assets/img/logo/white-logo.svg" alt="Roavio">
+                                        </a>
+                                    </div>
+                                    <div class="footer-content mt-3">
+                                        <p>
+                                            Roavio is India's premier tour & travel booking platform. Explore 175+ iconic destinations across all 25 Indian states with certified entry passes, guided tour packages, and seamless transport ticketing.
+                                        </p>
+                                        <div class="d-flex align-items-center gap-2 mt-3 text-white fw-bold small">
+                                            <i class="fa-solid fa-shield-halved text-danger"></i> 100% Certified Booking Partner
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Col 2: Top Indian States & Destinations -->
+                            <div class="col-xl-3 col-md-6 col-lg-3 wow fadeInUp" data-wow-delay=".2s">
+                                <div class="single-footer-widget">
+                                    <div class="wid-title">
+                                        <h4>Top Indian States</h4>
+                                    </div>
+                                    <ul class="list-area">
+                                        <li><a href="tours.html?state=Rajasthan"><i class="fa-solid fa-chevron-right"></i> Rajasthan (Jaipur & Udaipur)</a></li>
+                                        <li><a href="tours.html?state=Kerala"><i class="fa-solid fa-chevron-right"></i> Kerala (Munnar & Alleppey)</a></li>
+                                        <li><a href="tours.html?state=Himachal Pradesh"><i class="fa-solid fa-chevron-right"></i> Himachal Pradesh (Manali & Solang)</a></li>
+                                        <li><a href="tours.html?state=Goa"><i class="fa-solid fa-chevron-right"></i> Goa (Calangute & Panaji)</a></li>
+                                        <li><a href="tours.html?state=Jammu %26 Kashmir"><i class="fa-solid fa-chevron-right"></i> Jammu & Kashmir (Gulmarg & Dal Lake)</a></li>
+                                        <li><a href="tours.html" class="fw-bold text-danger"><i class="fa-solid fa-arrow-right text-danger"></i> View All 175+ Destinations Across 25 States</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Col 3: Booking Services -->
+                            <div class="col-xl-2 col-md-4 col-lg-2 wow fadeInUp" data-wow-delay=".4s">
+                                <div class="single-footer-widget">
+                                    <div class="wid-title">
+                                        <h4>Booking Services</h4>
+                                    </div>
+                                    <ul class="list-area">
+                                        <li><a href="tours.html"><i class="fa-solid fa-chevron-right"></i> Tour Packages</a></li>
+                                        <li><a href="tours.html"><i class="fa-solid fa-chevron-right"></i> Monument Passes</a></li>
+                                        <li><a href="#hero-search-tabs"><i class="fa-solid fa-chevron-right"></i> Domestic Flights</a></li>
+                                        <li><a href="#hero-search-tabs"><i class="fa-solid fa-chevron-right"></i> IRCTC Trains</a></li>
+                                        <li><a href="#hero-search-tabs"><i class="fa-solid fa-chevron-right"></i> Volvo AC Buses</a></li>
+                                        <li><a href="#hero-search-tabs"><i class="fa-solid fa-chevron-right"></i> Verified Hotels</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Col 4: Contact & Help Desk (Compact) -->
+                            <div class="col-xl-4 col-md-6 col-lg-4 wow fadeInUp" data-wow-delay=".6s">
+                                <div class="single-footer-widget">
+                                    <div class="wid-title">
+                                        <h4>24x7 Help Desk</h4>
+                                    </div>
+                                    <div class="roavio-footer-contact-compact">
+                                        <div class="footer-contact-row">
+                                            <i class="fa-solid fa-phone text-danger"></i>
+                                            <span><strong>1800 102 9900</strong> (Toll-Free 24x7)</span>
+                                        </div>
+                                        <div class="footer-contact-row">
+                                            <i class="fa-brands fa-whatsapp text-success"></i>
+                                            <span><strong>+91 98765 43210</strong> (WhatsApp Instant)</span>
+                                        </div>
+                                        <div class="footer-contact-row">
+                                            <i class="fa-solid fa-envelope text-info"></i>
+                                            <span>support@roavio.com</span>
+                                        </div>
+                                        <div class="footer-contact-row text-white-50">
+                                            <i class="fa-solid fa-location-dot text-warning"></i>
+                                            <span>Connaught Place, New Delhi (HQ) · Mumbai · Bengaluru</span>
+                                        </div>
+                                        <div class="footer-contact-row text-success-emphasis fw-semibold">
+                                            <i class="fa-solid fa-clock text-success"></i>
+                                            <span>Open 24 Hours · 7 Days a Week · 365 Days</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom style-1">
+                    <div class="container">
+                        <div class="footer-wrapper d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <h2 class="wow fadeInUp" data-wow-delay=".3s">Roavio</h2>
+                            <div class="text-item wow fadeInUp" data-wow-delay=".5s">
+                                <p>© 2026 <span>ROAVIO Travel Technologies.</span> All rights reserved.</p>
+                            </div>
+                            <div class="d-flex gap-3 text-muted small">
+                                <a href="about.html" class="text-muted">About Us</a>
+                                <a href="tours.html" class="text-muted">Explore India</a>
+                                <a href="contact.html" class="text-muted">Contact Support</a>
+                            </div>
+                            <a href="#" class="icon"><i class="fa-solid fa-chevron-up"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+
+        <!--<< All JS Plugins >>-->
+        <script src="assets/js/jquery-3.7.1.min.js"></script>
+        <!--<< Viewport Js >>-->
+        <script src="assets/js/viewport.jquery.js"></script>
+        <!--<< Bootstrap Js >>-->
+        <script src="assets/js/bootstrap.bundle.min.js"></script>
+        <!--<< Gsap Min Js >>-->
+        <script src="assets/js/gsap.min.js"></script>
+        <!--<< ScrollTrigger Min Js >>-->
+        <script src="assets/js/ScrollTrigger.min.js"></script>
+        <!--<< ScrollSmoother Min Js >>-->
+        <script src="assets/js/ScrollSmoother.min.js"></script>
+        <!--<< ScrollToPlugin Min Js >>-->
+        <script src="assets/js/split-type.min.js"></script>
+        <!--<< SplitText Min Js >>-->
+        <script src="assets/js/SplitText.min.js"></script>
+        <!--<< nice-selec Js >>-->
+        <script src="assets/js/jquery.nice-select.min.js"></script>
+        <!--<< Waypoints Js >>-->
+        <script src="assets/js/jquery.waypoints.js"></script>
+        <!--<< Counterup Js >>-->
+        <script src="assets/js/jquery.counterup.min.js"></script>
+        <!--<< Swiper Slider Js >>-->
+        <script src="assets/js/swiper-bundle.min.js"></script>
+        <!--<< MeanMenu Js >>-->
+        <script src="assets/js/jquery.meanmenu.min.js"></script>
+        <!--<< Magnific Popup Js >>-->
+        <script src="assets/js/jquery.magnific-popup.min.js"></script>
+        <!--<< Wow Animation Js >>-->
+        <script src="assets/js/wow.min.js"></script>
+        <!--<< Main.js >>-->
+        <script src="assets/js/main.js"></script>
+        
+<!-- Roavio Tour Ticket Booking Modal (Requirement 1) -->
+<div class="roavio-modal-overlay" id="roavio-tour-ticket-modal"></div>
+
+<!-- Roavio Direct Transport Booking Modal (Requirement 4) -->
+<div class="roavio-modal-overlay" id="roavio-transport-modal"></div>
+
+<!-- ==========================================================================
+     Roavio Interactive City / Destination Selector Modal
+     ========================================================================== -->
+<div class="roavio-city-picker-backdrop" id="roavio-city-picker-backdrop">
+    <div class="roavio-city-picker-modal">
+        <div class="roavio-city-picker-header">
+            <h4><i class="fa-solid fa-plane-departure text-danger" id="roavio-picker-icon"></i> <span id="roavio-picker-title">Select Departure City / Station</span></h4>
+            <button type="button" class="roavio-city-picker-close" id="roavio-city-picker-close">&times;</button>
+        </div>
+        <div class="roavio-city-search-box">
+            <i class="fa-solid fa-magnifying-glass roavio-city-search-icon"></i>
+            <input type="text" id="roavio-city-search-input" class="roavio-city-search-input" placeholder="Search city, airport code, or tourist destination (e.g. Goa, Jaipur, Mumbai)..." autocomplete="off">
+        </div>
+        <div class="roavio-city-filter-chips">
+            <button type="button" class="roavio-city-chip active" data-filter="all">All Places</button>
+            <button type="button" class="roavio-city-chip" data-filter="metro">Top Metros</button>
+            <button type="button" class="roavio-city-chip" data-filter="tourist">Tourist Spots</button>
+            <button type="button" class="roavio-city-chip" data-filter="hills">Hill Stations</button>
+            <button type="button" class="roavio-city-chip" data-filter="beaches">Beaches</button>
+            <button type="button" class="roavio-city-chip" data-filter="heritage">Heritage</button>
+        </div>
+        <div class="roavio-city-list" id="roavio-city-list">
+            <!-- Dynamic cities rendered here -->
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     Roavio Quick Travellers & Class Picker Modal
+     ========================================================================== -->
+<div class="roavio-city-picker-backdrop" id="roavio-travellers-picker-backdrop">
+    <div class="roavio-city-picker-modal" style="max-width: 460px;">
+        <div class="roavio-city-picker-header">
+            <h4><i class="fa-solid fa-user-group text-danger"></i> Select Travellers & Class</h4>
+            <button type="button" class="roavio-city-picker-close" id="roavio-travellers-picker-close">&times;</button>
+        </div>
+        <div style="padding: 20px 24px;">
+            <label class="fw-bold small text-muted mb-2 d-block">NUMBER OF PASSENGERS</label>
+            <div class="d-flex gap-2 mb-4" id="roavio-traveller-count-group">
+                <button type="button" class="btn btn-outline-danger flex-fill active py-2 fw-bold" data-count="1">1</button>
+                <button type="button" class="btn btn-outline-danger flex-fill py-2 fw-bold" data-count="2">2</button>
+                <button type="button" class="btn btn-outline-danger flex-fill py-2 fw-bold" data-count="3">3</button>
+                <button type="button" class="btn btn-outline-danger flex-fill py-2 fw-bold" data-count="4">4</button>
+                <button type="button" class="btn btn-outline-danger flex-fill py-2 fw-bold" data-count="5+">5+</button>
+            </div>
+
+            <label class="fw-bold small text-muted mb-2 d-block">TRAVEL CLASS / CABIN</label>
+            <div class="d-flex flex-column gap-2 mb-4" id="roavio-class-group">
+                <button type="button" class="btn btn-light text-start border p-2 active fw-semibold" data-class="Economy">
+                    <i class="fa-solid fa-check text-danger me-2"></i> Economy / Coach (Best Value)
+                </button>
+                <button type="button" class="btn btn-light text-start border p-2 fw-semibold" data-class="Premium Economy">
+                    <i class="fa-solid fa-check text-muted me-2"></i> Premium Economy / AC 3-Tier
+                </button>
+                <button type="button" class="btn btn-light text-start border p-2 fw-semibold" data-class="Business">
+                    <i class="fa-solid fa-check text-muted me-2"></i> Business / Executive / AC 2-Tier
+                </button>
+                <button type="button" class="btn btn-light text-start border p-2 fw-semibold" data-class="First Class">
+                    <i class="fa-solid fa-check text-muted me-2"></i> First Class / Volvo AC Sleeper
+                </button>
+            </div>
+
+            <button type="button" class="btn btn-danger w-100 py-2 fw-bold rounded-pill" id="roavio-apply-travellers-btn">
+                Apply Selection
+            </button>
+        </div>
+    </div>
+</div>
+
+        <!-- Leaflet Map JS -->
+        <script src="assets/js/leaflet.js"></script>
+        <!-- India Tourist Places Database -->
+        <script src="assets/js/india-tours-data.js"></script>
+        <!-- Roavio Tours & Map Engine -->
+        <script src="assets/js/roavio-tours.js"></script>
+        <!-- MakeMyTrip & Yatra Interactive JS -->
+        <script src="assets/js/roavio-engine.js"></script>
+        <script src="assets/js/roavio-homepage.js"></script>
+
+    
+<!-- Roavio Instant Booking Modal -->
+<div class="roavio-modal-overlay" id="roavio-booking-modal">
+    <div class="roavio-modal-card">
+        <div class="roavio-modal-header">
+            <h4><i class="fa-solid fa-shield-halved text-danger me-2"></i> Confirm Your Roavio Booking</h4>
+            <button type="button" class="roavio-modal-close" onclick="closeRoavioBookingModal()">✕</button>
+        </div>
+        <div class="roavio-modal-body">
+            <div class="p-3 mb-3 bg-light rounded border">
+                <h5 class="fw-bold text-dark mb-1" id="roavio-modal-item-name">IndiGo 6E-2054</h5>
+                <p class="text-muted small mb-2" id="roavio-modal-route">DEL to BOM</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-secondary small">Total Payable Fare:</span>
+                    <span class="fw-bold fs-4 text-danger" id="roavio-modal-price">₹4,250</span>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Primary Traveller Name</label>
+                <input type="text" class="form-control" id="roavio-book-pax-name" placeholder="e.g. Rahul Sharma" value="Rahul Sharma">
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Email Address (for E-Ticket / Voucher)</label>
+                <input type="email" class="form-control" placeholder="rahul.sharma@example.com" value="rahul.sharma@example.com">
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Mobile Number</label>
+                <input type="tel" class="form-control" placeholder="+91 98765 43210" value="+91 98765 43210">
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" checked id="termsCheck">
+                <label class="form-check-label small text-muted" for="termsCheck">
+                    Add Free Cancellation Guarantee (Full refund if canceled up to 24 hrs)
+                </label>
+            </div>
+            <button type="button" class="roavio-confirm-btn" onclick="confirmRoavioBooking()">
+                Complete Booking & Pay
+            </button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

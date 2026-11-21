@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables & secrets (CRITICAL SECURITY)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Production build output
+dist/
+dist-ssr/
+
+# Temporary test artifacts & screenshots
+scratch/
+dom_dump.html
+full_page.png
+screenshot.png
+test_sample.pdf
+*.log
+
+# Editor directories & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

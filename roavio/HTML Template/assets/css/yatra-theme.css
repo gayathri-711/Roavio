@@ -1,0 +1,886 @@
+/* ==========================================================================
+   Yatra.com Authentic Design System & Theme for Roavio
+   ========================================================================== */
+
+:root {
+  --yatra-red: #ea2330;
+  --yatra-red-hover: #c91522;
+  --yatra-red-light: #fff0f1;
+  --yatra-navy: #1a2b49;
+  --yatra-dark: #222222;
+  --yatra-gray-bg: #f3f5f8;
+  --yatra-gray-text: #666666;
+  --yatra-border: #e2e6ea;
+  --yatra-green: #2b8941;
+  --yatra-orange: #ff6d38;
+  --yatra-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.06);
+  --yatra-shadow-md: 0 6px 20px rgba(0, 0, 0, 0.1);
+  --yatra-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.16);
+  --yatra-radius-lg: 14px;
+  --yatra-radius-md: 8px;
+  --yatra-radius-sm: 4px;
+}
+
+body {
+  background-color: var(--yatra-gray-bg);
+  color: var(--yatra-dark);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ==========================================================================
+   Yatra Header & Top Navigation Bar
+   ========================================================================== */
+.yatra-top-bar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--yatra-border);
+  padding: 6px 0;
+  font-size: 0.82rem;
+  color: var(--yatra-gray-text);
+}
+
+.yatra-top-bar a {
+  color: var(--yatra-gray-text);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.yatra-top-bar a:hover {
+  color: var(--yatra-red);
+}
+
+.yatra-top-badge {
+  background: var(--yatra-red-light);
+  color: var(--yatra-red);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: 5px;
+}
+
+.yatra-header-main {
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 12px 0;
+  position: relative;
+  z-index: 100;
+}
+
+.yatra-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.yatra-nav-link {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: #333333;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+}
+
+.yatra-nav-link:hover {
+  color: var(--yatra-red);
+}
+
+.yatra-login-btn {
+  background: var(--yatra-red);
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 8px 22px;
+  border-radius: var(--yatra-radius-md);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(234, 35, 48, 0.25);
+  transition: all 0.25s ease;
+}
+
+.yatra-login-btn:hover {
+  background: var(--yatra-red-hover);
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(234, 35, 48, 0.35);
+}
+
+/* ==========================================================================
+   Yatra Hero Section (With Autoplaying Background Video)
+   ========================================================================== */
+.yatra-hero-wrapper {
+  position: relative;
+  overflow: hidden;
+  padding: 40px 0 70px 0;
+  min-height: 560px;
+  background: #0f1c3f;
+}
+
+.yatra-video-bg-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.yatra-bg-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  filter: brightness(0.65) saturate(1.1);
+}
+
+.yatra-video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(15, 28, 63, 0.72) 0%, rgba(26, 43, 73, 0.5) 55%, rgba(243, 245, 248, 0.98) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.yatra-hero-content-layer {
+  position: relative;
+  z-index: 5;
+}
+
+.yatra-hero-headline {
+  text-align: center;
+  color: #ffffff;
+  margin-bottom: 24px;
+}
+
+.yatra-hero-headline h1 {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.yatra-hero-headline p {
+  font-size: 1.05rem;
+  color: #e2e8f0;
+  margin-bottom: 0;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================================================
+   Yatra Category Tabs (Flights, Hotels, Holidays, Buses, Trains, Cabs)
+   ========================================================================== */
+.yatra-category-tabs {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: var(--yatra-radius-lg) var(--yatra-radius-lg) 0 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #f0f2f5;
+  padding: 0 10px;
+  overflow-x: auto;
+  position: relative;
+  z-index: 10;
+}
+
+.yatra-cat-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px;
+  color: #4a5568;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.yatra-cat-tab i {
+  font-size: 1.25rem;
+  color: #718096;
+  transition: color 0.2s ease;
+}
+
+.yatra-cat-tab:hover {
+  color: var(--yatra-red);
+}
+
+.yatra-cat-tab:hover i {
+  color: var(--yatra-red);
+}
+
+.yatra-cat-tab.active {
+  color: var(--yatra-red);
+  border-bottom: 3px solid var(--yatra-red);
+  background: #fffafa;
+}
+
+.yatra-cat-tab.active i {
+  color: var(--yatra-red);
+}
+
+/* ==========================================================================
+   Yatra Signature Booking Box Card
+   ========================================================================== */
+.yatra-search-card {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 0 0 var(--yatra-radius-lg) var(--yatra-radius-lg);
+  box-shadow: var(--yatra-shadow-lg);
+  padding: 30px;
+  position: relative;
+  z-index: 5;
+}
+
+.yatra-trip-type-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.yatra-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.yatra-radio-item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2d3748;
+}
+
+.yatra-radio-item input[type="radio"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #a0aec0;
+  border-radius: 50%;
+  margin-right: 8px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.yatra-radio-item input[type="radio"]:checked {
+  border-color: var(--yatra-red);
+}
+
+.yatra-radio-item input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 8px;
+  height: 8px;
+  background: var(--yatra-red);
+  border-radius: 50%;
+}
+
+.yatra-student-banner {
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+.yatra-student-banner strong {
+  color: var(--yatra-red);
+}
+
+/* Input Fields Grid (Yatra Style) */
+.yatra-input-grid {
+  display: grid;
+  grid-template-columns: 2fr 44px 2fr 1.5fr 1.5fr 2fr;
+  border: 1px solid var(--yatra-border);
+  border-radius: var(--yatra-radius-md);
+  margin-bottom: 22px;
+  background: #ffffff;
+  overflow: visible;
+}
+
+.yatra-input-block {
+  padding: 12px 18px;
+  border-right: 1px solid var(--yatra-border);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.yatra-input-block:last-child {
+  border-right: none;
+}
+
+.yatra-input-block:hover {
+  background-color: #fafbfc;
+}
+
+.yatra-input-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--yatra-gray-text);
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.yatra-input-city {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--yatra-dark);
+  line-height: 1.2;
+}
+
+.yatra-input-sub {
+  font-size: 0.8rem;
+  color: #718096;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* Swap Button */
+.yatra-swap-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.yatra-swap-btn {
+  width: 34px;
+  height: 34px;
+  background: #ffffff;
+  border: 1px solid var(--yatra-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--yatra-red);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+}
+
+.yatra-swap-btn:hover {
+  transform: rotate(180deg);
+  border-color: var(--yatra-red);
+  background: var(--yatra-red-light);
+}
+
+/* Special Fares Row */
+.yatra-special-fares {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 25px;
+  padding: 10px 16px;
+  background: #fafbfc;
+  border-radius: var(--yatra-radius-md);
+  border: 1px solid #edf2f7;
+}
+
+.yatra-fare-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.yatra-fare-chip {
+  padding: 6px 14px;
+  background: #ffffff;
+  border: 1px solid var(--yatra-border);
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.yatra-fare-chip:hover,
+.yatra-fare-chip.active {
+  background: var(--yatra-red-light);
+  border-color: var(--yatra-red);
+  color: var(--yatra-red);
+}
+
+/* Yatra Search Button */
+.yatra-search-action-row {
+  display: flex;
+  justify-content: center;
+}
+
+.yatra-search-btn {
+  background: var(--yatra-red);
+  color: #ffffff;
+  border: none;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 14px 70px;
+  border-radius: var(--yatra-radius-md);
+  box-shadow: 0 6px 18px rgba(234, 35, 48, 0.35);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.yatra-search-btn:hover {
+  background: var(--yatra-red-hover);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(234, 35, 48, 0.5);
+}
+
+/* ==========================================================================
+   Yatra "Why Yatra" Benefits Strip
+   ========================================================================== */
+.yatra-benefits-strip {
+  background: #ffffff;
+  border-radius: var(--yatra-radius-lg);
+  box-shadow: var(--yatra-shadow-sm);
+  padding: 22px 26px;
+  margin: 30px auto 40px auto;
+  max-width: 1100px;
+  border: 1px solid #edf2f7;
+}
+
+.yatra-benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.yatra-benefit-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--yatra-red-light);
+  color: var(--yatra-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.yatra-benefit-text h5 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--yatra-dark);
+  margin-bottom: 2px;
+}
+
+.yatra-benefit-text p {
+  font-size: 0.8rem;
+  color: var(--yatra-gray-text);
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Yatra Super Offers Section
+   ========================================================================== */
+.yatra-offers-section {
+  padding: 20px 0 50px 0;
+}
+
+.yatra-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.yatra-section-title h2 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--yatra-navy);
+  margin-bottom: 4px;
+}
+
+.yatra-section-title p {
+  font-size: 0.95rem;
+  color: var(--yatra-gray-text);
+  margin-bottom: 0;
+}
+
+.yatra-view-all {
+  color: var(--yatra-red);
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap 0.2s ease;
+}
+
+.yatra-view-all:hover {
+  gap: 10px;
+  color: var(--yatra-red-hover);
+}
+
+.yatra-offer-card {
+  background: #ffffff;
+  border-radius: var(--yatra-radius-md);
+  box-shadow: var(--yatra-shadow-sm);
+  border: 1px solid var(--yatra-border);
+  padding: 18px 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.yatra-offer-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--yatra-shadow-md);
+  border-color: #cbd5e0;
+}
+
+.yatra-offer-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+  background: var(--yatra-red-light);
+  color: var(--yatra-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.yatra-offer-info h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.yatra-offer-info p {
+  font-size: 0.8rem;
+  color: var(--yatra-gray-text);
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.yatra-promo-code {
+  display: inline-block;
+  padding: 3px 9px;
+  background: #f7fafc;
+  border: 1px dashed var(--yatra-red);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--yatra-red);
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Yatra Handpicked Holiday Packages (The 6 Cards)
+   ========================================================================== */
+.yatra-packages-section {
+  padding: 20px 0 60px 0;
+}
+
+.yatra-pkg-card {
+  background: #ffffff;
+  border-radius: var(--yatra-radius-md);
+  box-shadow: var(--yatra-shadow-sm);
+  border: 1px solid var(--yatra-border);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.yatra-pkg-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--yatra-shadow-lg);
+  border-color: var(--yatra-red);
+}
+
+.yatra-pkg-image {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.yatra-pkg-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.yatra-pkg-card:hover .yatra-pkg-image img {
+  transform: scale(1.08);
+}
+
+.yatra-pkg-tag {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--yatra-red);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.yatra-pkg-duration {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(26, 43, 73, 0.85);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.yatra-pkg-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.yatra-pkg-location {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--yatra-red);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.yatra-pkg-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--yatra-navy);
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+
+.yatra-pkg-title a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.yatra-pkg-title a:hover {
+  color: var(--yatra-red);
+}
+
+.yatra-pkg-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+}
+
+.yatra-star-pill {
+  background: var(--yatra-green);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.yatra-inclusions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--yatra-border);
+}
+
+.yatra-inc-chip {
+  font-size: 0.78rem;
+  color: #4a5568;
+  background: #f7fafc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #edf2f7;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.yatra-inc-chip i {
+  color: var(--yatra-red);
+  font-size: 0.82rem;
+}
+
+.yatra-pkg-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.yatra-price-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.yatra-price-prefix {
+  font-size: 0.72rem;
+  color: var(--yatra-gray-text);
+  text-transform: uppercase;
+}
+
+.yatra-price-slashed {
+  font-size: 0.85rem;
+  color: #a0aec0;
+  text-decoration: line-through;
+  margin-right: 6px;
+}
+
+.yatra-price-current {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--yatra-red);
+  line-height: 1;
+}
+
+.yatra-book-btn {
+  background: var(--yatra-red);
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 9px 22px;
+  border-radius: var(--yatra-radius-md);
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(234, 35, 48, 0.25);
+}
+
+.yatra-book-btn:hover {
+  background: var(--yatra-red-hover);
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(234, 35, 48, 0.4);
+}
+
+/* ==========================================================================
+   Yatra App Download & Member Banner
+   ========================================================================== */
+.yatra-app-strip {
+  background: linear-gradient(90deg, #1a2b49 0%, #243b68 100%);
+  color: #ffffff;
+  border-radius: var(--yatra-radius-lg);
+  padding: 35px 40px;
+  margin-bottom: 50px;
+}
+
+.yatra-app-strip h3 {
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+
+.yatra-app-strip p {
+  color: #cbd5e0;
+  font-size: 0.95rem;
+  margin-bottom: 0;
+}
+
+.yatra-store-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff !important;
+  padding: 8px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+}
+
+.yatra-store-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .yatra-input-grid {
+    grid-template-columns: 1fr;
+    border: none;
+    gap: 10px;
+  }
+  .yatra-input-block {
+    border: 1px solid var(--yatra-border);
+    border-radius: var(--yatra-radius-md);
+  }
+  .yatra-swap-container {
+    display: none;
+  }
+  .yatra-search-card {
+    padding: 20px;
+  }
+  .yatra-search-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,862 @@
+/* ==========================================================================
+   MakeMyTrip & Yatra Style Design System for Roavio
+   ========================================================================== */
+
+:root {
+  --mmt-blue-primary: #008cff;
+  --mmt-blue-dark: #051329;
+  --mmt-blue-navy: #0a223d;
+  --mmt-blue-gradient: linear-gradient(93deg, #53b2fe, #065af3);
+  --mmt-orange: #ff6d38;
+  --mmt-red: #ea2330;
+  --mmt-green: #00a65a;
+  --mmt-gold: #f5a623;
+  --mmt-bg-light: #f4f6fa;
+  --mmt-text-dark: #1a1a1a;
+  --mmt-text-muted: #757575;
+  --mmt-border: #e7e7e7;
+  --mmt-radius-lg: 16px;
+  --mmt-radius-md: 10px;
+  --mmt-radius-sm: 6px;
+  --mmt-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --mmt-shadow-md: 0 6px 24px rgba(0, 0, 0, 0.1);
+  --mmt-shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.15);
+}
+
+body {
+  background-color: var(--mmt-bg-light);
+  color: var(--mmt-text-dark);
+}
+
+/* ==========================================================================
+   Hero & Header Area (MakeMyTrip Style with Video Background)
+   ========================================================================== */
+.mmt-hero-wrapper {
+  position: relative;
+  overflow: hidden;
+  padding: 40px 0 70px 0;
+  min-height: 560px;
+  background: #051329;
+}
+
+.mmt-video-bg-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.mmt-bg-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  filter: brightness(0.68) saturate(1.1);
+}
+
+.mmt-video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(5, 19, 41, 0.72) 0%, rgba(10, 38, 74, 0.45) 55%, rgba(244, 246, 250, 0.98) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.mmt-hero-content-layer {
+  position: relative;
+  z-index: 5;
+}
+
+.mmt-hero-headline {
+  text-align: center;
+  color: #ffffff;
+  margin-bottom: 25px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.mmt-hero-headline h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.mmt-hero-headline p {
+  color: #b0c4de;
+  font-size: 1.05rem;
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Category Tabs (Flights, Hotels, Holidays, Trains, Buses, Cabs)
+   ========================================================================== */
+.mmt-category-tabs-wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 50px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+  padding: 6px 14px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  margin-bottom: -32px;
+}
+
+.mmt-cat-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  border-radius: 30px;
+  cursor: pointer;
+  color: #4a4a4a;
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: all 0.25s ease;
+  user-select: none;
+  text-decoration: none;
+}
+
+.mmt-cat-tab i {
+  font-size: 1.35rem;
+  margin-bottom: 4px;
+  color: #718096;
+  transition: all 0.25s ease;
+}
+
+.mmt-cat-tab:hover {
+  color: var(--mmt-blue-primary);
+}
+
+.mmt-cat-tab:hover i {
+  color: var(--mmt-blue-primary);
+  transform: translateY(-2px);
+}
+
+.mmt-cat-tab.active {
+  background: #eaf5ff;
+  color: var(--mmt-blue-primary);
+}
+
+.mmt-cat-tab.active i {
+  color: var(--mmt-blue-primary);
+}
+
+/* ==========================================================================
+   MakeMyTrip Signature Floating Search Box Card
+   ========================================================================== */
+.mmt-search-card {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: var(--mmt-radius-lg);
+  box-shadow: var(--mmt-shadow-lg);
+  padding: 50px 30px 30px 30px;
+  position: relative;
+  z-index: 5;
+}
+
+/* Trip Type Radio Bar */
+.mmt-trip-type-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.mmt-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.mmt-radio-item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333333;
+}
+
+.mmt-radio-item input[type="radio"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #a0aec0;
+  border-radius: 50%;
+  margin-right: 8px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.mmt-radio-item input[type="radio"]:checked {
+  border-color: var(--mmt-blue-primary);
+}
+
+.mmt-radio-item input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 8px;
+  height: 8px;
+  background: var(--mmt-blue-primary);
+  border-radius: 50%;
+}
+
+.mmt-sub-notice {
+  font-size: 0.88rem;
+  color: #718096;
+}
+
+.mmt-sub-notice span {
+  color: var(--mmt-blue-primary);
+  font-weight: 600;
+}
+
+/* Grid of Inputs */
+.mmt-input-grid {
+  display: grid;
+  grid-template-columns: 2fr 40px 2fr 1.5fr 1.5fr 2fr;
+  border: 1px solid var(--mmt-border);
+  border-radius: var(--mmt-radius-md);
+  overflow: visible;
+  position: relative;
+  margin-bottom: 22px;
+  background: #ffffff;
+}
+
+.mmt-input-block {
+  padding: 12px 18px;
+  border-right: 1px solid var(--mmt-border);
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mmt-input-block:last-child {
+  border-right: none;
+}
+
+.mmt-input-block:hover {
+  background-color: #f7fafc;
+}
+
+.mmt-input-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #718096;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.mmt-input-city {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a202c;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.mmt-input-airport {
+  font-size: 0.8rem;
+  color: #4a5568;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.mmt-input-date {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a202c;
+  line-height: 1.2;
+}
+
+.mmt-input-day {
+  font-size: 0.8rem;
+  color: #4a5568;
+}
+
+/* Swap Button */
+.mmt-swap-btn-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.mmt-swap-btn {
+  width: 32px;
+  height: 32px;
+  background: #ffffff;
+  border: 1px solid var(--mmt-border);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--mmt-blue-primary);
+  font-size: 0.85rem;
+  transition: transform 0.3s ease;
+}
+
+.mmt-swap-btn:hover {
+  transform: rotate(180deg);
+  background: #f0f7ff;
+}
+
+/* Special Fares Row */
+.mmt-special-fares {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 30px;
+  padding: 10px 14px;
+  background: #f7fafc;
+  border-radius: var(--mmt-radius-md);
+}
+
+.mmt-fare-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4a5568;
+  margin-right: 8px;
+}
+
+.mmt-fare-chip {
+  padding: 6px 14px;
+  background: #ffffff;
+  border: 1px solid var(--mmt-border);
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2d3748;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.mmt-fare-chip:hover,
+.mmt-fare-chip.active {
+  border-color: var(--mmt-blue-primary);
+  background: #ebf5ff;
+  color: var(--mmt-blue-primary);
+}
+
+/* Big Search Button */
+.mmt-search-btn-wrapper {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.mmt-search-btn {
+  background: var(--mmt-blue-gradient);
+  color: #ffffff;
+  border: none;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 60px;
+  border-radius: 50px;
+  box-shadow: 0 6px 20px rgba(6, 90, 243, 0.45);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mmt-search-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 26px rgba(6, 90, 243, 0.6);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Offers & Deals Strip (MakeMyTrip / Yatra Style)
+   ========================================================================== */
+.mmt-offers-section {
+  padding: 65px 0 40px 0;
+}
+
+.mmt-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 25px;
+}
+
+.mmt-section-title h2 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #1a202c;
+  margin-bottom: 4px;
+}
+
+.mmt-section-title p {
+  font-size: 0.95rem;
+  color: #718096;
+  margin-bottom: 0;
+}
+
+.mmt-view-all-link {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--mmt-blue-primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap 0.2s ease;
+}
+
+.mmt-view-all-link:hover {
+  gap: 10px;
+  color: #065af3;
+}
+
+/* Offer Card */
+.mmt-offer-card {
+  background: #ffffff;
+  border-radius: var(--mmt-radius-md);
+  box-shadow: var(--mmt-shadow-sm);
+  border: 1px solid #edf2f7;
+  padding: 18px 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.mmt-offer-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--mmt-shadow-md);
+  border-color: #cbd5e0;
+}
+
+.mmt-offer-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  background: #ebf5ff;
+  color: var(--mmt-blue-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.mmt-offer-content h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.mmt-offer-content p {
+  font-size: 0.82rem;
+  color: #718096;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.mmt-coupon-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #edf2f7;
+  border: 1px dashed #a0aec0;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2b6cb0;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Handpicked Holiday Packages (The 6 Cards - MakeMyTrip / Yatra Style)
+   ========================================================================== */
+.mmt-packages-section {
+  padding: 30px 0 60px 0;
+}
+
+.mmt-pkg-card {
+  background: #ffffff;
+  border-radius: var(--mmt-radius-lg);
+  box-shadow: var(--mmt-shadow-sm);
+  border: 1px solid #edf2f7;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mmt-pkg-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--mmt-shadow-lg);
+  border-color: #b3d7ff;
+}
+
+.mmt-pkg-img-wrap {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.mmt-pkg-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.mmt-pkg-card:hover .mmt-pkg-img-wrap img {
+  transform: scale(1.08);
+}
+
+.mmt-pkg-badge-deal {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--mmt-red);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mmt-pkg-duration {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mmt-pkg-fav-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e53e3e;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.mmt-pkg-fav-btn:hover {
+  transform: scale(1.15);
+}
+
+/* Card Body */
+.mmt-pkg-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.mmt-pkg-destination {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--mmt-blue-primary);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mmt-pkg-title {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: #1a202c;
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+
+.mmt-pkg-title a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.mmt-pkg-title a:hover {
+  color: var(--mmt-blue-primary);
+}
+
+.mmt-pkg-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+}
+
+.mmt-star-badge {
+  background: #00a65a;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.mmt-review-count {
+  color: #718096;
+}
+
+/* Inclusions Icons */
+.mmt-inclusions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--mmt-border);
+}
+
+.mmt-inc-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: #4a5568;
+  background: #f7fafc;
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid #edf2f7;
+}
+
+.mmt-inc-item i {
+  color: var(--mmt-blue-primary);
+  font-size: 0.85rem;
+}
+
+/* Price & CTA Row */
+.mmt-pkg-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.mmt-price-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.mmt-price-from {
+  font-size: 0.75rem;
+  color: #718096;
+  text-transform: uppercase;
+}
+
+.mmt-price-slashed {
+  font-size: 0.85rem;
+  color: #a0aec0;
+  text-decoration: line-through;
+  margin-right: 6px;
+}
+
+.mmt-price-main {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1a202c;
+  line-height: 1;
+}
+
+.mmt-price-unit {
+  font-size: 0.78rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.mmt-book-btn {
+  background: var(--mmt-blue-primary);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 9px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 140, 255, 0.3);
+}
+
+.mmt-book-btn:hover {
+  background: #0077db;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 140, 255, 0.45);
+}
+
+/* ==========================================================================
+   Trust & Assurance Strip (Yatra / MakeMyTrip Certified)
+   ========================================================================== */
+.mmt-trust-strip {
+  background: #ffffff;
+  border-radius: var(--mmt-radius-lg);
+  box-shadow: var(--mmt-shadow-sm);
+  padding: 28px 20px;
+  margin-bottom: 50px;
+}
+
+.mmt-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mmt-trust-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #eaf5ff;
+  color: var(--mmt-blue-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  flex-shrink: 0;
+}
+
+.mmt-trust-text h5 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 3px;
+}
+
+.mmt-trust-text p {
+  font-size: 0.82rem;
+  color: #718096;
+  margin-bottom: 0;
+}
+
+/* Responsive Overrides */
+@media (max-width: 991px) {
+  .mmt-input-grid {
+    grid-template-columns: 1fr;
+    border: none;
+    gap: 10px;
+  }
+  .mmt-input-block {
+    border: 1px solid var(--mmt-border);
+    border-radius: var(--mmt-radius-md);
+  }
+  .mmt-swap-btn-container {
+    display: none;
+  }
+  .mmt-category-tabs-wrapper {
+    overflow-x: auto;
+    justify-content: flex-start;
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+  .mmt-search-card {
+    padding: 30px 20px;
+  }
+  .mmt-search-btn-wrapper {
+    position: static;
+    transform: none;
+    margin-top: 25px;
+    text-align: center;
+  }
+  .mmt-search-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Header Action Buttons (MakeMyTrip / Yatra style) */
+.mmt-login-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(93deg, #53b2fe, #065af3);
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 8px 20px;
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(6, 90, 243, 0.3);
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+.mmt-login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(6, 90, 243, 0.45);
+  color: #ffffff !important;
+}
+.mmt-header-my-trips {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #2d3748;
+  margin-right: 18px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.mmt-header-my-trips:hover {
+  color: var(--mmt-blue-primary);
+}
