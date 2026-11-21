@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   MapPin, 
@@ -6,13 +6,15 @@ import {
   Users, 
   ArrowRightLeft, 
   Search,
-  ArrowRight
+  ArrowRight,
+  ChevronDown
 } from "lucide-react";
+import { DESTINATIONS } from "../../data/destinations";
 
 export default function JourneySearch() {
   const navigate = useNavigate();
   const [fromLocation, setFromLocation] = useState("New Delhi");
-  const [destination, setDestination] = useState("Munnar, Kerala");
+  const [destination, setDestination] = useState("Ooty Nilgiri Mountain Toy Train");
   const [travelDate, setTravelDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
@@ -21,23 +23,34 @@ export default function JourneySearch() {
   const [travelers, setTravelers] = useState("2 Travelers");
   const [validationError, setValidationError] = useState("");
 
-  const popularCities = [
+  const majorDepartureCities = [
     "New Delhi",
     "Mumbai, Maharashtra",
     "Bengaluru, Karnataka",
-    "Kochi, Kerala",
-    "Jaipur, Rajasthan",
-    "Kolkata, West Bengal",
     "Chennai, Tamil Nadu",
+    "Kolkata, West Bengal",
     "Hyderabad, Telangana",
-    "Agra, Uttar Pradesh",
-    "Munnar, Kerala",
-    "Goa",
-    "Manali, Himachal Pradesh",
-    "Shimla, Himachal Pradesh",
-    "Varanasi, Uttar Pradesh",
-    "Leh Ladakh"
+    "Ahmedabad, Gujarat",
+    "Pune, Maharashtra",
+    "Kochi, Kerala",
+    "Coimbatore, Tamil Nadu",
+    "Jaipur, Rajasthan",
+    "Chandigarh",
+    "Lucknow, Uttar Pradesh",
+    "Madurai, Tamil Nadu",
+    "Goa"
   ];
+
+  // Group all 175 destinations by State for clean, organized dropdown exploration
+  const destinationsByState = useMemo(() => {
+    const map = {};
+    DESTINATIONS.forEach((d) => {
+      const stateName = d.state || "Other Destinations";
+      if (!map[stateName]) map[stateName] = [];
+      map[stateName].push(d);
+    });
+    return map;
+  }, []);
 
   const handleSwap = () => {
     const temp = fromLocation;
@@ -48,18 +61,32 @@ export default function JourneySearch() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (!fromLocation.trim() || !destination.trim()) {
-      setValidationError("Please select both origin and destination.");
+      setValidationError("Please select both origin and destination from the dropdown.");
       return;
     }
     setValidationError("");
 
-    // Navigate to plan-journey with query params
+    // Identify if selected destination matches a specific place in our database
+    const matchedDest = DESTINATIONS.find(
+      (d) => 
+        d.name.toLowerCase() === destination.toLowerCase() ||
+        destination.toLowerCase().includes(d.name.toLowerCase()) ||
+        destination.toLowerCase().includes(d.city.toLowerCase())
+    );
+
+    const destId = matchedDest ? matchedDest.id : (destination.toLowerCase().includes("ooty") ? "ooty" : "");
+
     const params = new URLSearchParams({
       from: fromLocation,
       to: destination,
       date: travelDate,
       travelers: travelers
     });
+
+    if (destId) {
+      params.set("dest", destId);
+    }
+
     navigate(`/plan-journey?${params.toString()}`);
   };
 
@@ -70,25 +97,35 @@ export default function JourneySearch() {
       )}
 
       <form onSubmit={handleSearchSubmit} className="journey-search-card">
-        {/* Field 1: From Location */}
+        {/* Field 1: From Location Dropdown */}
         <div className="search-field-group">
           <label className="field-label">From Location</label>
           <div className="field-input-box">
             <MapPin size={18} className="field-icon text-navy" />
-            <input 
-              type="text" 
-              list="from-cities-list"
+            <select 
               value={fromLocation}
               onChange={(e) => setFromLocation(e.target.value)}
-              placeholder="Enter Origin City"
-              className="field-input"
+              className="field-select"
               required
-            />
-            <datalist id="from-cities-list">
-              {popularCities.map((c) => (
-                <option key={c} value={c} />
+            >
+              <option value="">-- Choose Origin / City --</option>
+              <optgroup label="🌟 Major Departure Hubs">
+                {majorDepartureCities.map((c) => (
+                  <option key={`from-${c}`} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </optgroup>
+              {Object.keys(destinationsByState).sort().map((state) => (
+                <optgroup key={`from-state-${state}`} label={`📍 ${state}`}>
+                  {destinationsByState[state].map((d) => (
+                    <option key={`from-dest-${d.id}`} value={d.name}>
+                      {d.name} ({d.city})
+                    </option>
+                  ))}
+                </optgroup>
               ))}
-            </datalist>
+            </select>
           </div>
         </div>
 
@@ -104,25 +141,40 @@ export default function JourneySearch() {
           </button>
         </div>
 
-        {/* Field 2: Destination */}
+        {/* Field 2: Destination Dropdown */}
         <div className="search-field-group">
           <label className="field-label">Destination</label>
           <div className="field-input-box">
             <MapPin size={18} className="field-icon text-green" />
-            <input 
-              type="text" 
-              list="to-cities-list"
+            <select 
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              placeholder="Where to go?"
-              className="field-input"
+              className="field-select destination-select"
               required
-            />
-            <datalist id="to-cities-list">
-              {popularCities.map((c) => (
-                <option key={c} value={c} />
+            >
+              <option value="">-- Choose Destination --</option>
+              <optgroup label="🔥 Top Tourist Places">
+                <option value="Ooty Nilgiri Mountain Toy Train">Ooty Nilgiri Mountain Toy Train (Tamil Nadu)</option>
+                <option value="Taj Mahal & Agra Fort">Taj Mahal & Agra Fort (Uttar Pradesh)</option>
+                <option value="Munnar Tea Hills">Munnar Tea Gardens (Kerala)</option>
+                <option value="Amber Fort & City Palace">Amber Fort & Jaipur (Rajasthan)</option>
+                <option value="Calangute & Baga Beach">Goa Beaches (Goa)</option>
+                <option value="Solang Valley & Rohtang Pass">Manali & Solang Valley (Himachal)</option>
+                <option value="Varanasi Ganga Ghats">Varanasi Ghats (Uttar Pradesh)</option>
+                <option value="Pangong Tso Lake">Leh Ladakh & Pangong (Ladakh)</option>
+                <option value="Coorg Coffee Plantations">Coorg Coffee Hills (Karnataka)</option>
+                <option value="Kodaikanal Lake & Pillar Rocks">Kodaikanal (Tamil Nadu)</option>
+              </optgroup>
+              {Object.keys(destinationsByState).sort().map((state) => (
+                <optgroup key={`to-state-${state}`} label={`📍 ${state}`}>
+                  {destinationsByState[state].map((d) => (
+                    <option key={`to-dest-${d.id}`} value={d.name}>
+                      {d.name} ({d.city}, {d.state})
+                    </option>
+                  ))}
+                </optgroup>
               ))}
-            </datalist>
+            </select>
           </div>
         </div>
 
@@ -249,10 +301,26 @@ export default function JourneySearch() {
           width: 100%;
           border: none;
           background: transparent;
-          font-size: 0.92rem;
+          font-size: 0.90rem;
           font-weight: 600;
           color: var(--color-navy);
           outline: none;
+          cursor: pointer;
+          text-overflow: ellipsis;
+        }
+
+        .field-select optgroup {
+          font-weight: 800;
+          color: var(--color-navy);
+          background: #F1F5F9;
+          padding: 4px 0;
+        }
+
+        .field-select option {
+          font-weight: 500;
+          color: #1E293B;
+          background: #FFFFFF;
+          padding: 6px 8px;
         }
 
         .field-input::placeholder {

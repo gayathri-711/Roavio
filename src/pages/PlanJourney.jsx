@@ -89,6 +89,8 @@ export default function PlanJourney() {
 
   // Planning Form State - dynamically centered around the user's chosen destination
   const [tripType, setTripType] = useState("direct"); // "direct" (Go only to selected place) | "circuit" (Multi-Stop Tour)
+  const [selectedPackage, setSelectedPackage] = useState("all_inclusive"); // "all_inclusive" | "hotel_food" | "hotel_only" | "travel_only"
+  const [showDestDetails, setShowDestDetails] = useState(true);
   const [tripTitle, setTripTitle] = useState(
     matchedInitial ? `Trip to ${matchedInitial.name}` : "Trip to Ooty, Tamil Nadu"
   );
@@ -197,6 +199,215 @@ export default function PlanJourney() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return isNaN(diffDays) || diffDays <= 0 ? 7 : diffDays + 1;
   }, [startDate, endDate]);
+
+  // Primary Destination Spotlight
+  const primaryDest = selectedDestinations[0] || DESTINATIONS.find(d => d.id === "ooty") || DESTINATIONS[0];
+
+  // Dynamic Package Options Calculation based on Destination
+  const packageOptions = useMemo(() => {
+    const destName = primaryDest?.name || "Ooty";
+    const destCity = primaryDest?.city || "Ooty";
+    const baseTour = primaryDest?.tourPackagePrice ? (primaryDest.tourPackagePrice * 5.2) : 12900;
+
+    const allInclusiveRate = Math.max(9800, Math.round(baseTour * 1.0));
+    const hotelFoodRate = Math.max(6900, Math.round(baseTour * 0.65));
+    const hotelOnlyRate = Math.max(4400, Math.round(baseTour * 0.42));
+    const travelOnlyRate = Math.max(2900, Math.round(baseTour * 0.30));
+
+    return [
+      {
+        id: "all_inclusive",
+        name: "Travelling + Hotel + Food",
+        subtitle: "Complete All-Inclusive Holiday",
+        tag: "ALL-INCLUSIVE RECOMMENDED",
+        tagClass: "badge-green",
+        pricePerPerson: allInclusiveRate,
+        breakdown: {
+          transit: Math.round(allInclusiveRate * 0.38),
+          stay: Math.round(allInclusiveRate * 0.36),
+          meals: Math.round(allInclusiveRate * 0.20),
+          passes: Math.round(allInclusiveRate * 0.06)
+        },
+        inclusions: [
+          `Round-Trip Confirmed Travel (${preferredTransport})`,
+          `Verified 3★/4★ Resort Stay in ${destCity}`,
+          "All Daily Meals (Buffet Breakfast, Lunch & Dinner)",
+          `Dedicated Sightseeing Cab & Monument Passes for ${destName}`,
+          "24/7 Dedicated Concierge & On-trip Assistance"
+        ]
+      },
+      {
+        id: "hotel_food",
+        name: "Hotel + Food Package",
+        subtitle: "Resort Stay & Authentic Dining",
+        tag: "POPULAR FOR ROAD TRIPS",
+        tagClass: "badge-blue",
+        pricePerPerson: hotelFoodRate,
+        breakdown: {
+          transit: 0,
+          stay: Math.round(hotelFoodRate * 0.60),
+          meals: Math.round(hotelFoodRate * 0.34),
+          passes: Math.round(hotelFoodRate * 0.06)
+        },
+        inclusions: [
+          `Verified Resort / Hotel Stay in ${destCity}`,
+          "Daily Complimentary Buffet Breakfast & Authentic Dinner",
+          `Fast-Track Sightseeing Passes for ${destName}`,
+          "Welcome Drink, Evening Tea & High-Speed Wi-Fi",
+          "Self-arranged or personal vehicle transit (No transit fare charged)"
+        ]
+      },
+      {
+        id: "hotel_only",
+        name: "Hotel Only Package",
+        subtitle: "Comfort Accommodation Only",
+        tag: "FLEXIBLE DINE-AROUND",
+        tagClass: "badge-purple",
+        pricePerPerson: hotelOnlyRate,
+        breakdown: {
+          transit: 0,
+          stay: Math.round(hotelOnlyRate * 0.88),
+          meals: 0,
+          passes: Math.round(hotelOnlyRate * 0.12)
+        },
+        inclusions: [
+          `Verified 3★ Hotel / Scenic Resort Room in ${destCity}`,
+          "Complimentary Morning Tea/Coffee & Room Amenities",
+          `Official Monument / Attraction Pass to ${destName}`,
+          "Freedom to sample local cafes, bakeries & street food",
+          "Self-arranged transit and meals (Pay dining as you go)"
+        ]
+      },
+      {
+        id: "travel_only",
+        name: "Travelling Only Package",
+        subtitle: "Transit & Monument Pass",
+        tag: "INDEPENDENT TRAVELERS",
+        tagClass: "badge-orange",
+        pricePerPerson: travelOnlyRate,
+        breakdown: {
+          transit: Math.round(travelOnlyRate * 0.85),
+          stay: 0,
+          meals: 0,
+          passes: Math.round(travelOnlyRate * 0.15)
+        },
+        inclusions: [
+          `Confirmed Travel Booking (${preferredTransport})`,
+          `Official Entry Pass & Guided Walk for ${destName}`,
+          "Real-time Geodesic Transit Map & Directions Guide",
+          "Self-arranged hotel stay and meals"
+        ]
+      }
+    ];
+  }, [primaryDest, preferredTransport]);
+
+  const activePackage = packageOptions.find((p) => p.id === selectedPackage) || packageOptions[0];
+  const calculatedTotalBudget = activePackage.pricePerPerson * travelersCount;
+
+  // Day-by-Day Itinerary dynamically reflecting the chosen package inclusions
+  const dailyItinerary = useMemo(() => {
+    const dest = primaryDest;
+    const destName = dest?.name || "Ooty";
+    const destCity = dest?.city || "Ooty";
+    const activities = dest?.popularActivities || [
+      "Scenic Valley Viewpoints",
+      "Tea Plantation Stroll",
+      "Trekking & Nature Trails"
+    ];
+
+    const hasTransit = activePackage.breakdown.transit > 0;
+    const hasHotel = activePackage.breakdown.stay > 0;
+    const hasMeals = activePackage.breakdown.meals > 0;
+
+    return [
+      {
+        day: "Day 1",
+        title: `Departure & Arrival in ${destCity}`,
+        schedule: [
+          {
+            time: "08:30 AM",
+            activity: hasTransit 
+              ? `Depart from ${sourceCity} via ${preferredTransport}. Scenic panoramic travel.` 
+              : `Arrive in ${destCity} via personal vehicle/self-arranged transit. Roavio assistance active.`
+          },
+          {
+            time: "01:00 PM",
+            activity: hasHotel 
+              ? `Check-in at verified partner resort in ${destCity}. Refresh in your reserved room.` 
+              : `Arrival in ${destCity} central district and baggage drop.`
+          },
+          {
+            time: "02:30 PM",
+            activity: hasMeals 
+              ? `Welcome buffet lunch & specialty tea included in your ${activePackage.name}.` 
+              : `Leisure time to explore authentic local food spots and town cafes.`
+          },
+          {
+            time: "05:00 PM",
+            activity: `Sunset visit to ${dest.nearbyAttractions?.[0] || 'local lake & botanical promenade'}.`
+          },
+          {
+            time: "08:00 PM",
+            activity: hasMeals 
+              ? "Buffet dinner at resort dining hall (Included in your package)." 
+              : "Dinner at local dining establishments of your choice."
+          }
+        ]
+      },
+      {
+        day: "Day 2",
+        title: `Full-Day ${destName} Experience`,
+        schedule: [
+          {
+            time: "08:00 AM",
+            activity: hasMeals 
+              ? "Morning continental & South Indian breakfast at hotel (Included)." 
+              : "Morning breakfast and energizing beverage."
+          },
+          {
+            time: "09:30 AM",
+            activity: `Prime guided visit to ${destName} with fast-track entry passes.`
+          },
+          {
+            time: "01:00 PM",
+            activity: `Experience: ${activities[0] || 'Scenic Viewpoints & Nature Trail'}.`
+          },
+          {
+            time: "04:30 PM",
+            activity: `Local artisan crafts, tea plantations, and cultural spots in ${destCity}.`
+          },
+          {
+            time: "08:00 PM",
+            activity: hasMeals 
+              ? "Specialty chef dinner with regional dishes (Included in your package)." 
+              : "Evening stroll and dinner at local artisan cafes."
+          }
+        ]
+      },
+      {
+        day: "Day 3",
+        title: `Morning Panoramas & Return Journey`,
+        schedule: [
+          {
+            time: "08:00 AM",
+            activity: hasMeals 
+              ? "Sunrise breakfast with scenic valley views." 
+              : "Morning checkout preparation and breakfast."
+          },
+          {
+            time: "09:30 AM",
+            activity: `Final sightseeing at ${dest.nearbyAttractions?.[1] || 'local gardens & heritage viewpoints'}. Photography and souvenir shopping.`
+          },
+          {
+            time: "01:00 PM",
+            activity: hasTransit 
+              ? `Board return transit to ${sourceCity} with unforgettable memories of ${destName}.` 
+              : `Departure from ${destCity} at your own convenience.`
+          }
+        ]
+      }
+    ];
+  }, [primaryDest, sourceCity, preferredTransport, activePackage]);
 
   // Reorder stops
   const moveStop = (index, direction) => {
@@ -670,46 +881,206 @@ export default function PlanJourney() {
               </div>
             </div>
 
-            {/* Step 3: Budget & Notes */}
-            <div className="planner-card">
+            {/* Prominent Destination Details & Explore Showcase */}
+            {primaryDest && (
+              <div className="dest-spotlight-card mb-4">
+                <div className="spotlight-header">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="badge-pill-accent">{primaryDest.badge || "Featured Destination"}</span>
+                      <span className="badge-pill-cat">{primaryDest.categoryName || primaryDest.category}</span>
+                      <span className="badge-pill-rating">★ {primaryDest.rating || "4.7"} ({primaryDest.reviews ? primaryDest.reviews.toLocaleString() : "12,000"} ratings)</span>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => setShowDestDetails(!showDestDetails)}
+                      className="btn-toggle-spotlight"
+                    >
+                      {showDestDetails ? "Hide Quick Details ▲" : "Explore Destination Highlights ▼"}
+                    </button>
+                  </div>
+                  <h2 className="spotlight-title mt-2">{primaryDest.name}</h2>
+                  <div className="spotlight-loc-row">
+                    <MapPin size={15} className="text-green" />
+                    <span>{primaryDest.city}, {primaryDest.state}</span>
+                    <span className="dot-sep">·</span>
+                    <Clock size={15} className="text-navy" />
+                    <span>Best Time: {primaryDest.bestTime}</span>
+                  </div>
+                </div>
+
+                {showDestDetails && (
+                  <div className="spotlight-body mt-3">
+                    <div className="spotlight-grid">
+                      <div className="spotlight-img-box">
+                        <img src={primaryDest.image} alt={primaryDest.name} className="spotlight-main-img" />
+                        {primaryDest.gallery && primaryDest.gallery.length > 0 && (
+                          <div className="spotlight-thumbs">
+                            {[primaryDest.image, ...primaryDest.gallery].slice(0, 4).map((gImg, i) => (
+                              <img key={i} src={gImg} alt="Gallery" className="spotlight-thumb" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="spotlight-info-box">
+                        <p className="spotlight-desc">{primaryDest.description}</p>
+                        
+                        <div className="spotlight-highlights-block mt-3">
+                          <h5>Attraction Highlights & Sightseeing:</h5>
+                          <ul className="spotlight-highlights-list">
+                            {primaryDest.highlights?.map((h, i) => (
+                              <li key={i}>
+                                <CheckCircle2 size={15} className="text-green me-1" />
+                                <span>{h}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="spotlight-activities-pills mt-3">
+                          {primaryDest.popularActivities?.map((act, i) => (
+                            <span key={i} className="act-pill">🏷️ {act}</span>
+                          ))}
+                        </div>
+
+                        <div className="spotlight-actions-row mt-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuickExploreDest(primaryDest);
+                              setActiveExploreImg(primaryDest.image);
+                            }}
+                            className="btn btn-outline btn-sm d-flex align-items-center gap-1"
+                          >
+                            <Eye size={14} /> Fullscreen Photos & Specs
+                          </button>
+                          <Link
+                            to={`/destination/${primaryDest.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-outline btn-sm d-flex align-items-center gap-1"
+                          >
+                            <ExternalLink size={14} /> Official Destination Guide ↗
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Choose Travel Package (With Hotel + Food, With Hotel Only, Travelling + Hotel + Food, Travelling Only) */}
+            <div className="planner-card package-selection-step">
               <div className="card-section-title">
                 <span className="step-num">3</span>
                 <div>
-                  <h3>Budget & Travel Notes</h3>
-                  <p>Fine-tune budget limits and travel preferences</p>
+                  <h3>Choose Your Travel Package & Inclusions</h3>
+                  <p>Select what to include: Accommodation, Meals, Sightseeing, and Transit</p>
+                </div>
+              </div>
+
+              {/* Package Options Grid */}
+              <div className="packages-selection-grid">
+                {packageOptions.map((pkg) => {
+                  const isSelected = selectedPackage === pkg.id;
+                  return (
+                    <div 
+                      key={pkg.id} 
+                      onClick={() => setSelectedPackage(pkg.id)}
+                      className={`package-card-option ${isSelected ? "selected" : ""}`}
+                    >
+                      <div className="pkg-card-top">
+                        <span className={`pkg-badge ${pkg.tagClass}`}>{pkg.tag}</span>
+                        <div className={`pkg-radio-indicator ${isSelected ? "active" : ""}`}>
+                          {isSelected && <Check size={14} color="#FFF" />}
+                        </div>
+                      </div>
+
+                      <h4 className="pkg-name">{pkg.name}</h4>
+                      <p className="pkg-subtitle">{pkg.subtitle}</p>
+
+                      <div className="pkg-price-row">
+                        <span className="pkg-price-currency">₹</span>
+                        <span className="pkg-price-amount">{pkg.pricePerPerson.toLocaleString()}</span>
+                        <span className="pkg-price-unit">/ person</span>
+                      </div>
+
+                      <div className="pkg-inclusions-list">
+                        {pkg.inclusions.map((inc, i) => (
+                          <div key={i} className="pkg-inc-item">
+                            <CheckCircle2 size={14} className="inc-icon text-green" />
+                            <span>{inc}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pkg-select-footer">
+                        <button 
+                          type="button" 
+                          className={`btn btn-sm w-100 ${isSelected ? "btn-primary" : "btn-outline"}`}
+                        >
+                          {isSelected ? "Selected Package ✓" : "Choose This Package"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step 4: Personalized Day-by-Day Itinerary Schedule */}
+            <div className="planner-card daily-itinerary-step">
+              <div className="card-section-title">
+                <span className="step-num">4</span>
+                <div>
+                  <h3>Personalized Daily Itinerary Schedule</h3>
+                  <p>Calculated dynamically based on your chosen destination ({primaryDest?.name}) and {activePackage.name}</p>
+                </div>
+              </div>
+
+              <div className="itinerary-timeline-wrap">
+                {dailyItinerary.map((dItem, idx) => (
+                  <div key={idx} className="itinerary-day-card">
+                    <div className="day-badge-column">
+                      <div className="day-pill">{dItem.day}</div>
+                      <div className="day-line"></div>
+                    </div>
+                    <div className="day-content-column">
+                      <h4 className="day-title">{dItem.title}</h4>
+                      <div className="day-events-list">
+                        {dItem.schedule.map((ev, sIdx) => (
+                          <div key={sIdx} className="day-event-row">
+                            <span className="event-time-badge">{ev.time}</span>
+                            <span className="event-desc">{ev.activity}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Step 5: Travel Notes & Preferences */}
+            <div className="planner-card">
+              <div className="card-section-title">
+                <span className="step-num">5</span>
+                <div>
+                  <h3>Special Preferences & Travel Notes</h3>
+                  <p>Fine-tune preferences like vegetarian meals, high-floor rooms, or guide assistance</p>
                 </div>
               </div>
 
               <div className="form-stack">
                 <div className="form-group">
-                  <div className="flex-between mb-2">
-                    <label>Approximate Budget per Traveler</label>
-                    <span className="budget-val">₹{budgetPerPerson.toLocaleString()}</span>
-                  </div>
-                  <input 
-                    type="range" 
-                    min="8000" 
-                    max="80000" 
-                    step="1000" 
-                    value={budgetPerPerson} 
-                    onChange={(e) => setBudgetPerPerson(Number(e.target.value))}
-                    className="range-slider" 
-                  />
-                  <div className="range-bounds">
-                    <span>₹8,000 (Budget)</span>
-                    <span>₹40,000 (Comfort)</span>
-                    <span>₹80,000+ (Luxury)</span>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Travel Notes / Specific Interests</label>
+                  <label>Travel Notes / Specific Inquiries</label>
                   <textarea 
                     rows={3} 
                     value={tripNotes} 
                     onChange={(e) => setTripNotes(e.target.value)}
                     className="roavio-textarea"
-                    placeholder="Enter preferences like vegetarian meals, sunrise photography, cultural guides..."
+                    placeholder="Enter preferences (e.g. Jain / Vegetarian food, early morning sunrise photography, wheelchair accessibility)..."
                   />
                 </div>
               </div>
@@ -769,24 +1140,38 @@ export default function PlanJourney() {
                 ))}
               </div>
 
+              {/* Selected Package Summary Badge */}
+              <div className="selected-pkg-summary-pill mb-3 p-3 rounded-3" style={{ background: '#F0FDF4', border: '1.5px solid #BBF7D0' }}>
+                <span className="text-muted small d-block mb-1 font-weight-bold">SELECTED PLAN PACKAGE:</span>
+                <strong className="text-green d-block" style={{ fontSize: '1.05rem' }}>{activePackage.name}</strong>
+                <span className="small text-muted">{activePackage.subtitle}</span>
+              </div>
+
               {/* Expense Estimation Breakdown */}
               <div className="expense-breakdown-box">
-                <h4 className="expense-title">Estimated Expense Breakdown</h4>
+                <h4 className="expense-title">Calculated Package Breakdown</h4>
                 <div className="expense-row">
                   <span>Transit & Travel:</span>
-                  <strong>₹{Math.round(budgetPerPerson * travelersCount * 0.45).toLocaleString()}</strong>
+                  <strong>{activePackage.breakdown.transit > 0 ? `₹${(activePackage.breakdown.transit * travelersCount).toLocaleString()}` : "Self-Arranged (₹0)"}</strong>
                 </div>
                 <div className="expense-row">
-                  <span>Stay & Hotels:</span>
-                  <strong>₹{Math.round(budgetPerPerson * travelersCount * 0.35).toLocaleString()}</strong>
+                  <span>Stay & Hotel:</span>
+                  <strong>{activePackage.breakdown.stay > 0 ? `₹${(activePackage.breakdown.stay * travelersCount).toLocaleString()}` : "Self-Arranged (₹0)"}</strong>
                 </div>
                 <div className="expense-row">
-                  <span>Passes, Food & Sightseeing:</span>
-                  <strong>₹{Math.round(budgetPerPerson * travelersCount * 0.20).toLocaleString()}</strong>
+                  <span>Meals & Dining:</span>
+                  <strong>{activePackage.breakdown.meals > 0 ? `₹${(activePackage.breakdown.meals * travelersCount).toLocaleString()}` : "Self-Arranged (₹0)"}</strong>
+                </div>
+                <div className="expense-row">
+                  <span>Passes & Sightseeing:</span>
+                  <strong>₹{(activePackage.breakdown.passes * travelersCount).toLocaleString()}</strong>
                 </div>
                 <div className="expense-total-row">
-                  <span>Total Planned Budget:</span>
-                  <span className="total-amount">₹{(budgetPerPerson * travelersCount).toLocaleString()}</span>
+                  <div>
+                    <span className="d-block font-weight-bold text-navy">Total Package Budget:</span>
+                    <span className="text-muted small">({travelersCount} Traveler{travelersCount > 1 ? "s" : ""} x ₹{activePackage.pricePerPerson.toLocaleString()})</span>
+                  </div>
+                  <span className="total-amount">₹{calculatedTotalBudget.toLocaleString()}</span>
                 </div>
               </div>
 
@@ -1057,7 +1442,7 @@ export default function PlanJourney() {
                     </div>
                     <div>
                       <span className="pg-k">Total Paid</span>
-                      <strong className="pg-v text-green">₹{(budgetPerPerson * travelersCount).toLocaleString()}</strong>
+                      <strong className="pg-v text-green">₹{calculatedTotalBudget.toLocaleString()}</strong>
                     </div>
                   </div>
 
@@ -1362,8 +1747,8 @@ export default function PlanJourney() {
                     {/* Section C: Live Transparent Fare Summary */}
                     <div className="checkout-fare-summary mt-4">
                       <div className="fare-line">
-                        <span>Custom Itinerary Package ({travelersCount} travelers x ₹{budgetPerPerson.toLocaleString()}):</span>
-                        <strong>₹{(budgetPerPerson * travelersCount).toLocaleString()}</strong>
+                        <span>{activePackage.name} ({travelersCount} travelers x ₹{activePackage.pricePerPerson.toLocaleString()}):</span>
+                        <strong>₹{calculatedTotalBudget.toLocaleString()}</strong>
                       </div>
                       <div className="fare-line">
                         <span>Monument Passes & Certified Guided Tours:</span>
@@ -1378,7 +1763,7 @@ export default function PlanJourney() {
                           <span className="total-title">Total Payable Amount</span>
                           <span className="total-sub">All taxes and certified monument access included</span>
                         </div>
-                        <span className="total-num">₹{(budgetPerPerson * travelersCount).toLocaleString()}</span>
+                        <span className="total-num">₹{calculatedTotalBudget.toLocaleString()}</span>
                       </div>
                     </div>
                   </>
@@ -1413,7 +1798,7 @@ export default function PlanJourney() {
                       className="btn btn-primary btn-pay-confirm"
                     >
                       <Lock size={16} />
-                      <span>Pay ₹{(budgetPerPerson * travelersCount).toLocaleString()} & Confirm Trip Tickets</span>
+                      <span>Pay ₹{calculatedTotalBudget.toLocaleString()} & Confirm Trip Tickets</span>
                     </button>
                   )}
                 </div>
@@ -1424,6 +1809,320 @@ export default function PlanJourney() {
       )}
 
       <style>{`
+        /* Destination Spotlight Card */
+        .dest-spotlight-card {
+          background: #FFFFFF;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 18px;
+          padding: 1.5rem;
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        }
+
+        .spotlight-title {
+          font-size: 1.6rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin-bottom: 0.3rem;
+        }
+
+        .spotlight-loc-row {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.88rem;
+          color: #64748B;
+          font-weight: 600;
+        }
+
+        .btn-toggle-spotlight {
+          background: #EFF6FF;
+          color: #1D4ED8;
+          border: 1px solid #BFDBFE;
+          border-radius: 8px;
+          padding: 0.35rem 0.8rem;
+          font-size: 0.8rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .spotlight-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.3fr;
+          gap: 1.5rem;
+        }
+
+        .spotlight-main-img {
+          width: 100%;
+          height: 220px;
+          object-fit: cover;
+          border-radius: 12px;
+        }
+
+        .spotlight-thumbs {
+          display: flex;
+          gap: 0.5rem;
+          margin-top: 0.5rem;
+        }
+
+        .spotlight-thumb {
+          width: 60px;
+          height: 48px;
+          object-fit: cover;
+          border-radius: 6px;
+        }
+
+        .spotlight-desc {
+          color: #475569;
+          font-size: 0.9rem;
+          line-height: 1.6;
+        }
+
+        .spotlight-highlights-list {
+          list-style: none;
+          padding: 0;
+          margin: 0.4rem 0 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+          font-size: 0.85rem;
+          color: #334155;
+        }
+
+        .act-pill {
+          display: inline-block;
+          background: #F1F5F9;
+          color: #475569;
+          padding: 0.25rem 0.65rem;
+          border-radius: 999px;
+          font-size: 0.78rem;
+          font-weight: 600;
+          margin-right: 0.4rem;
+          margin-bottom: 0.4rem;
+        }
+
+        .spotlight-actions-row {
+          display: flex;
+          gap: 0.6rem;
+        }
+
+        /* Package Selection Cards Grid */
+        .packages-selection-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.2rem;
+          margin-top: 1rem;
+        }
+
+        .package-card-option {
+          background: #FFFFFF;
+          border: 2px solid #E2E8F0;
+          border-radius: 16px;
+          padding: 1.4rem;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+        }
+
+        .package-card-option:hover {
+          border-color: #94A3B8;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .package-card-option.selected {
+          border-color: var(--color-green);
+          background: #FAFDFB;
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.15), 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .pkg-card-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.8rem;
+        }
+
+        .pkg-badge {
+          font-size: 0.7rem;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          padding: 0.2rem 0.6rem;
+          border-radius: 999px;
+        }
+
+        .pkg-badge.badge-green { background: #DCFCE7; color: #166534; }
+        .pkg-badge.badge-blue { background: #DBEAFE; color: #1E40AF; }
+        .pkg-badge.badge-purple { background: #F3E8FF; color: #6B21A8; }
+        .pkg-badge.badge-orange { background: #FFEDD5; color: #9A3412; }
+
+        .pkg-radio-indicator {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          border: 2px solid #CBD5E1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .pkg-radio-indicator.active {
+          background: var(--color-green);
+          border-color: var(--color-green);
+        }
+
+        .pkg-name {
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin-bottom: 0.2rem;
+        }
+
+        .pkg-subtitle {
+          font-size: 0.82rem;
+          color: #64748B;
+          margin-bottom: 0.8rem;
+        }
+
+        .pkg-price-row {
+          display: flex;
+          align-items: baseline;
+          gap: 0.2rem;
+          margin-bottom: 1rem;
+          padding-bottom: 0.8rem;
+          border-bottom: 1px solid #F1F5F9;
+        }
+
+        .pkg-price-currency {
+          font-size: 1.1rem;
+          font-weight: 800;
+          color: var(--color-green);
+        }
+
+        .pkg-price-amount {
+          font-size: 1.6rem;
+          font-weight: 900;
+          color: var(--color-navy);
+        }
+
+        .pkg-price-unit {
+          font-size: 0.8rem;
+          color: #64748B;
+          margin-left: 0.2rem;
+        }
+
+        .pkg-inclusions-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          font-size: 0.84rem;
+          color: #334155;
+          margin-bottom: 1.2rem;
+          flex-grow: 1;
+        }
+
+        .pkg-inc-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.45rem;
+        }
+
+        .inc-icon {
+          flex-shrink: 0;
+          margin-top: 0.15rem;
+        }
+
+        /* Daily Itinerary Timeline */
+        .itinerary-timeline-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 1.2rem;
+          margin-top: 1rem;
+        }
+
+        .itinerary-day-card {
+          display: flex;
+          gap: 1.2rem;
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 14px;
+          padding: 1.2rem;
+        }
+
+        .day-badge-column {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          flex-shrink: 0;
+        }
+
+        .day-pill {
+          background: var(--color-navy);
+          color: white;
+          padding: 0.35rem 0.75rem;
+          border-radius: 8px;
+          font-size: 0.8rem;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+
+        .day-line {
+          width: 2px;
+          flex-grow: 1;
+          background: #CBD5E1;
+          margin-top: 0.5rem;
+        }
+
+        .day-content-column {
+          flex-grow: 1;
+        }
+
+        .day-title {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin-bottom: 0.8rem;
+        }
+
+        .day-events-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+        }
+
+        .day-event-row {
+          display: flex;
+          align-items: baseline;
+          gap: 0.8rem;
+          font-size: 0.86rem;
+        }
+
+        .event-time-badge {
+          background: #FFFFFF;
+          border: 1px solid #CBD5E1;
+          color: #475569;
+          font-weight: 700;
+          font-size: 0.72rem;
+          padding: 0.15rem 0.45rem;
+          border-radius: 6px;
+          white-space: nowrap;
+        }
+
+        .event-desc {
+          color: #334155;
+          line-height: 1.45;
+        }
+
+        @media (max-width: 900px) {
+          .packages-selection-grid {
+            grid-template-columns: 1fr;
+          }
+          .spotlight-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
         .plan-journey-page {
           background-color: var(--color-bg);
           min-height: 100vh;
