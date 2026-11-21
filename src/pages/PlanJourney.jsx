@@ -37,9 +37,19 @@ import {
   Phone,
   Mail,
   User,
-  Star
+  Star,
+  Coffee,
+  Utensils,
+  Bed,
+  Hotel,
+  Layers,
+  Luggage,
+  Sliders,
+  CheckSquare
 } from "lucide-react";
 import { DESTINATIONS, calculateDistanceKm, getDestinationById } from "../data/destinations";
+import { getHotelsForDestination } from "../data/hotels";
+import { getTransportOptions } from "../data/transportOptions";
 import { useTrips } from "../context/TripsContext";
 import { useAuth } from "../context/AuthContext";
 
@@ -89,26 +99,18 @@ export default function PlanJourney() {
 
   // Planning Form State - dynamically centered around the user's chosen destination
   const [tripType, setTripType] = useState("direct"); // "direct" (Go only to selected place) | "circuit" (Multi-Stop Tour)
-  const [selectedPackage, setSelectedPackage] = useState("all_inclusive"); // "all_inclusive" | "hotel_food" | "hotel_only" | "travel_only"
   const [showDestDetails, setShowDestDetails] = useState(true);
   const [tripTitle, setTripTitle] = useState(
     matchedInitial ? `Trip to ${matchedInitial.name}` : "Trip to Ooty, Tamil Nadu"
   );
   const [sourceCity, setSourceCity] = useState(searchParams.get("from") || "Coimbatore");
   const [startDate, setStartDate] = useState(searchParams.get("date") || "2026-12-15");
-  const [endDate, setEndDate] = useState("2026-12-20");
+  const [endDate, setEndDate] = useState("2026-12-17");
   const [travelersCount, setTravelersCount] = useState(
     parseInt(searchParams.get("travelers")) || 2
   );
-  const [budgetPerPerson, setBudgetPerPerson] = useState(
-    matchedInitial?.tourPackagePrice ? matchedInitial.tourPackagePrice : 14500
-  );
-  const [preferredTransport, setPreferredTransport] = useState("Flight & High-Speed Train");
-  const [tripNotes, setTripNotes] = useState(
-    matchedInitial 
-      ? `Direct journey to ${matchedInitial.name} in ${matchedInitial.city}, ${matchedInitial.state}. Best season: ${matchedInitial.bestTime}.`
-      : "Direct trip focusing on local sights, nature, and peaceful relaxation."
-  );
+  const [tripDurationDays, setTripDurationDays] = useState(2);
+  const [nightsCount, setNightsCount] = useState(1);
 
   // Selected Destinations List - ONLY the clicked place by default (no unwanted round-trips or extra cities)
   const [selectedDestIds, setSelectedDestIds] = useState(() => {
@@ -117,6 +119,34 @@ export default function PlanJourney() {
     }
     return ["ooty"];
   });
+
+  // =========================================================================
+  // TWO-CHOICE ARCHITECTURE STATE
+  // Mode: "custom" (Choice 1: Custom Build) vs "fixed" (Choice 2: Roavio Fixed Budget Package)
+  // =========================================================================
+  const [planMode, setPlanMode] = useState("custom"); // "custom" | "fixed"
+
+  // CHOICE 1 (CUSTOM BUILD) STATE:
+  // 1. Transport Ticket Selection:
+  const [transportModeFilter, setTransportModeFilter] = useState("all"); // "all" | "flights" | "trains" | "buses" | "cabs"
+  const [selectedTransportTicketId, setSelectedTransportTicketId] = useState("tr-1");
+
+  // 2. Hotel Selection by Budget:
+  const [hotelTierFilter, setHotelTierFilter] = useState("all"); // "all" | "budget" | "comfort" | "luxury"
+  const [selectedHotelId, setSelectedHotelId] = useState("hotel-ooty-2");
+
+  // 3. Meals & Sightseeing Inclusions:
+  const [mealPlan, setMealPlan] = useState("all_meals"); // "all_meals" (₹750/day) | "breakfast_only" (₹250/day) | "no_meals" (₹0)
+  const [includeSightseeingPasses, setIncludeSightseeingPasses] = useState(true);
+
+  // CHOICE 2 (ROAVIO FIXED BUDGET PACKAGES) STATE:
+  const [selectedFixedPackageId, setSelectedFixedPackageId] = useState("fixed_2day");
+
+  const [tripNotes, setTripNotes] = useState(
+    matchedInitial 
+      ? `Direct journey to ${matchedInitial.name} in ${matchedInitial.city}, ${matchedInitial.state}. Best season: ${matchedInitial.bestTime}.`
+      : "Direct trip focusing on local sights, nature, and peaceful relaxation."
+  );
 
   // Automatically update the itinerary when user navigates or clicks "Plan" on another place
   useEffect(() => {
@@ -128,9 +158,6 @@ export default function PlanJourney() {
         setSelectedDestIds([target.id]);
         setTripTitle(`Trip to ${target.name}`);
         setTripNotes(`Direct journey to ${target.name} in ${target.city}, ${target.state}. Best season: ${target.bestTime}.`);
-        if (target.tourPackagePrice) {
-          setBudgetPerPerson(target.tourPackagePrice);
-        }
       }
     }
     const fromParam = searchParams.get("from");
@@ -139,7 +166,7 @@ export default function PlanJourney() {
     if (dateParam) {
       setStartDate(dateParam);
       const d = new Date(dateParam);
-      d.setDate(d.getDate() + 5);
+      d.setDate(d.getDate() + 2);
       setEndDate(d.toISOString().split("T")[0]);
     }
     const travParam = searchParams.get("travelers");
@@ -171,6 +198,9 @@ export default function PlanJourney() {
       .filter(Boolean);
   }, [selectedDestIds]);
 
+  // Primary Destination Spotlight
+  const primaryDest = selectedDestinations[0] || DESTINATIONS.find(d => d.id === "ooty") || DESTINATIONS[0];
+
   // Total estimated distance between successive stops or direct point-to-point
   const totalDistanceKm = useMemo(() => {
     if (selectedDestinations.length === 0) return 0;
@@ -191,120 +221,189 @@ export default function PlanJourney() {
     return dist;
   }, [selectedDestinations, userLocation]);
 
-  // Calculate days
-  const tripDurationDays = useMemo(() => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return isNaN(diffDays) || diffDays <= 0 ? 7 : diffDays + 1;
+  // Handle duration changes from buttons or date inputs
+  const handleSelectDurationDays = (days) => {
+    setTripDurationDays(days);
+    const nights = Math.max(1, days - 1);
+    setNightsCount(nights);
+    if (startDate) {
+      const start = new Date(startDate);
+      const end = new Date(start);
+      end.setDate(start.getDate() + nights);
+      setEndDate(end.toISOString().split("T")[0]);
+    }
+  };
+
+  // Recalculate duration when date inputs change
+  useEffect(() => {
+    if (startDate && endDate) {
+      const s = new Date(startDate);
+      const e = new Date(endDate);
+      const diffMs = e - s;
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) {
+        setNightsCount(diffDays);
+        setTripDurationDays(diffDays + 1);
+      }
+    }
   }, [startDate, endDate]);
 
-  // Primary Destination Spotlight
-  const primaryDest = selectedDestinations[0] || DESTINATIONS.find(d => d.id === "ooty") || DESTINATIONS[0];
+  // Available Hotels for the chosen destination
+  const availableHotels = useMemo(() => {
+    const list = getHotelsForDestination(primaryDest?.id, primaryDest?.city);
+    return list;
+  }, [primaryDest]);
 
-  // Dynamic Package Options Calculation based on Destination
-  const packageOptions = useMemo(() => {
+  // Filtered hotels based on budget tier
+  const filteredHotels = useMemo(() => {
+    if (hotelTierFilter === "all") return availableHotels;
+    return availableHotels.filter(h => h.tier === hotelTierFilter);
+  }, [availableHotels, hotelTierFilter]);
+
+  // Active selected hotel
+  const selectedHotel = useMemo(() => {
+    return availableHotels.find(h => h.id === selectedHotelId) || availableHotels[0] || {
+      id: "hotel-fallback",
+      name: `${primaryDest?.city || "Ooty"} Scenic Pine Valley Resort`,
+      tier: "comfort",
+      tierName: "Comfort 3★ Resort",
+      rating: 4.6,
+      reviewsCount: 1450,
+      pricePerNight: 2850,
+      roomType: "Superior Deluxe Mountain Room",
+      amenities: ["Free Wi-Fi", "Hot Water 24/7", "Breakfast Included", "Scenic Balcony"],
+      mealsIncluded: "Complimentary Daily Breakfast Buffet"
+    };
+  }, [availableHotels, selectedHotelId, primaryDest]);
+
+  // Available Transport Options for the route (Source ➔ Destination)
+  const rawTransport = useMemo(() => {
+    return getTransportOptions(sourceCity, primaryDest?.city || primaryDest?.name || "Ooty");
+  }, [sourceCity, primaryDest]);
+
+  // Flattened and filtered transport tickets list
+  const transportTicketsList = useMemo(() => {
+    const all = [
+      ...rawTransport.flights,
+      ...rawTransport.trains,
+      ...rawTransport.buses,
+      ...rawTransport.cabs
+    ];
+    if (transportModeFilter === "all") return all;
+    if (transportModeFilter === "flights") return rawTransport.flights;
+    if (transportModeFilter === "trains") return rawTransport.trains;
+    if (transportModeFilter === "buses") return rawTransport.buses;
+    if (transportModeFilter === "cabs") return rawTransport.cabs;
+    return all;
+  }, [rawTransport, transportModeFilter]);
+
+  // Active selected transport ticket
+  const selectedTransportTicket = useMemo(() => {
+    const all = [
+      ...rawTransport.flights,
+      ...rawTransport.trains,
+      ...rawTransport.buses,
+      ...rawTransport.cabs
+    ];
+    return all.find(t => t.id === selectedTransportTicketId) || all[0];
+  }, [rawTransport, selectedTransportTicketId]);
+
+  // =========================================================================
+  // CHOICE 1: DYNAMIC COST CALCULATION
+  // Formula: ((Transport * 2 return) + (Hotel * Nights * Rooms) + (Food * Days) + Passes) * Travelers
+  // =========================================================================
+  const roomsCount = Math.ceil(travelersCount / 2);
+  const returnTransportPerPerson = (selectedTransportTicket?.price || 1250) * 2;
+  const totalTransportCost = returnTransportPerPerson * travelersCount;
+
+  const totalHotelCost = (selectedHotel?.pricePerNight || 2850) * nightsCount * roomsCount;
+  const hotelPerPerson = Math.round(totalHotelCost / travelersCount);
+
+  const mealDailyRate = mealPlan === "all_meals" ? 750 : (mealPlan === "breakfast_only" ? 250 : 0);
+  const totalFoodCost = mealDailyRate * tripDurationDays * travelersCount;
+  const foodPerPerson = mealDailyRate * tripDurationDays;
+
+  const passesCostPerPerson = includeSightseeingPasses ? 450 : 0;
+  const totalPassesCost = passesCostPerPerson * travelersCount;
+
+  const customTotalCost = totalTransportCost + totalHotelCost + totalFoodCost + totalPassesCost;
+  const customPerPerson = Math.round(customTotalCost / travelersCount);
+
+  // =========================================================================
+  // CHOICE 2: ROAVIO FIXED BUDGET PACKAGES
+  // E.g., ₹9,999 2-Day Ooty Plan, ₹14,999 3-Day Plan, ₹21,999 4-Day Plan
+  // Where Roavio arranges return tickets, hotel stay, food, and sightseeing within that fixed budget!
+  // =========================================================================
+  const fixedPackages = useMemo(() => {
     const destName = primaryDest?.name || "Ooty";
     const destCity = primaryDest?.city || "Ooty";
-    const baseTour = primaryDest?.tourPackagePrice ? (primaryDest.tourPackagePrice * 5.2) : 12900;
-
-    const allInclusiveRate = Math.max(9800, Math.round(baseTour * 1.0));
-    const hotelFoodRate = Math.max(6900, Math.round(baseTour * 0.65));
-    const hotelOnlyRate = Math.max(4400, Math.round(baseTour * 0.42));
-    const travelOnlyRate = Math.max(2900, Math.round(baseTour * 0.30));
 
     return [
       {
-        id: "all_inclusive",
-        name: "Travelling + Hotel + Food",
-        subtitle: "Complete All-Inclusive Holiday",
-        tag: "ALL-INCLUSIVE RECOMMENDED",
+        id: "fixed_2day",
+        name: `₹9,999 All-Inclusive 2-Day ${destName} Plan`,
+        duration: "2 Days / 1 Night",
+        durationDays: 2,
+        pricePerPerson: 9999,
+        tag: "MOST POPULAR FIXED PLAN",
         tagClass: "badge-green",
-        pricePerPerson: allInclusiveRate,
-        breakdown: {
-          transit: Math.round(allInclusiveRate * 0.38),
-          stay: Math.round(allInclusiveRate * 0.36),
-          meals: Math.round(allInclusiveRate * 0.20),
-          passes: Math.round(allInclusiveRate * 0.06)
-        },
-        inclusions: [
-          `Round-Trip Confirmed Travel (${preferredTransport})`,
-          `Verified 3★/4★ Resort Stay in ${destCity}`,
-          "All Daily Meals (Buffet Breakfast, Lunch & Dinner)",
-          `Dedicated Sightseeing Cab & Monument Passes for ${destName}`,
-          "24/7 Dedicated Concierge & On-trip Assistance"
+        highlights: "Roavio arranges confirmed return travel tickets, hotel stay, all meals & sightseeing under fixed ₹9,999",
+        facilities: [
+          `Confirmed Return Travel Tickets (${sourceCity} ⇄ ${destCity})`,
+          `1 Night Stay at Verified Mountain Pine Resort in ${destCity}`,
+          "All Daily Meals (Welcome Drink, Lunch, Buffet Dinner & Breakfast)",
+          `Dedicated Sightseeing Cab + Toy Train / Monument Entry Pass`,
+          "Zero Hidden Charges - All inclusive fixed rate"
         ]
       },
       {
-        id: "hotel_food",
-        name: "Hotel + Food Package",
-        subtitle: "Resort Stay & Authentic Dining",
-        tag: "POPULAR FOR ROAD TRIPS",
+        id: "fixed_3day",
+        name: `₹14,999 Complete 3-Day ${destName} Vacation`,
+        duration: "3 Days / 2 Nights",
+        durationDays: 3,
+        pricePerPerson: 14999,
+        tag: "FAMILY & COUPLE FAVORITE",
         tagClass: "badge-blue",
-        pricePerPerson: hotelFoodRate,
-        breakdown: {
-          transit: 0,
-          stay: Math.round(hotelFoodRate * 0.60),
-          meals: Math.round(hotelFoodRate * 0.34),
-          passes: Math.round(hotelFoodRate * 0.06)
-        },
-        inclusions: [
-          `Verified Resort / Hotel Stay in ${destCity}`,
-          "Daily Complimentary Buffet Breakfast & Authentic Dinner",
-          `Fast-Track Sightseeing Passes for ${destName}`,
-          "Welcome Drink, Evening Tea & High-Speed Wi-Fi",
-          "Self-arranged or personal vehicle transit (No transit fare charged)"
+        highlights: "3 Days / 2 Nights complete holiday with 3★ resort, full sightseeing chauffeur, and daily gourmet meals",
+        facilities: [
+          `Confirmed Return Vande Bharat / Superfast Express / Air Tickets`,
+          `2 Nights Stay at Premium 3★ Valley Resort in ${destCity}`,
+          "Daily Buffet Breakfast & Specialty Chef Dinners Included",
+          `Full-Day Sightseeing with Private Dedicated Chauffeur`,
+          `Fast-Track Entry to all ${destName} attractions & Lake Boating`
         ]
       },
       {
-        id: "hotel_only",
-        name: "Hotel Only Package",
-        subtitle: "Comfort Accommodation Only",
-        tag: "FLEXIBLE DINE-AROUND",
+        id: "fixed_4day",
+        name: `₹21,999 Royal 4-Day ${destName} Luxury Tour`,
+        duration: "4 Days / 3 Nights",
+        durationDays: 4,
+        pricePerPerson: 21999,
+        tag: "VIP LUXURY HOLIDAY",
         tagClass: "badge-purple",
-        pricePerPerson: hotelOnlyRate,
-        breakdown: {
-          transit: 0,
-          stay: Math.round(hotelOnlyRate * 0.88),
-          meals: 0,
-          passes: Math.round(hotelOnlyRate * 0.12)
-        },
-        inclusions: [
-          `Verified 3★ Hotel / Scenic Resort Room in ${destCity}`,
-          "Complimentary Morning Tea/Coffee & Room Amenities",
-          `Official Monument / Attraction Pass to ${destName}`,
-          "Freedom to sample local cafes, bakeries & street food",
-          "Self-arranged transit and meals (Pay dining as you go)"
-        ]
-      },
-      {
-        id: "travel_only",
-        name: "Travelling Only Package",
-        subtitle: "Transit & Monument Pass",
-        tag: "INDEPENDENT TRAVELERS",
-        tagClass: "badge-orange",
-        pricePerPerson: travelOnlyRate,
-        breakdown: {
-          transit: Math.round(travelOnlyRate * 0.85),
-          stay: 0,
-          meals: 0,
-          passes: Math.round(travelOnlyRate * 0.15)
-        },
-        inclusions: [
-          `Confirmed Travel Booking (${preferredTransport})`,
-          `Official Entry Pass & Guided Walk for ${destName}`,
-          "Real-time Geodesic Transit Map & Directions Guide",
-          "Self-arranged hotel stay and meals"
+        highlights: "Flight tickets, 4★/5★ luxury resort stay, private SUV cab throughout, and VIP experiences",
+        facilities: [
+          `Confirmed Flight / Premier Travel with Airport Pickup & Drop`,
+          `3 Nights at Sterling / Oberoi 4★/5★ Luxury Hill Resort`,
+          "All Gourmet Meals + Evening High Tea & Bonfire Experience",
+          `Dedicated Private SUV Cab (Innova Crysta) throughout the 4 days`,
+          "VIP Passes, Priority Monument Access & Dedicated Concierge"
         ]
       }
     ];
-  }, [primaryDest, preferredTransport]);
+  }, [primaryDest, sourceCity]);
 
-  const activePackage = packageOptions.find((p) => p.id === selectedPackage) || packageOptions[0];
-  const calculatedTotalBudget = activePackage.pricePerPerson * travelersCount;
+  const selectedFixedPackage = useMemo(() => {
+    return fixedPackages.find(p => p.id === selectedFixedPackageId) || fixedPackages[0];
+  }, [fixedPackages, selectedFixedPackageId]);
 
-  // Day-by-Day Itinerary dynamically reflecting the chosen package inclusions
+  const fixedTotalCost = selectedFixedPackage.pricePerPerson * travelersCount;
+
+  // Active total payable amount depending on user's mode choice
+  const activePayableTotal = planMode === "custom" ? customTotalCost : fixedTotalCost;
+  const activePerPersonRate = planMode === "custom" ? customPerPerson : selectedFixedPackage.pricePerPerson;
+
+  // Day-by-Day Itinerary dynamically reflecting the chosen plan
   const dailyItinerary = useMemo(() => {
     const dest = primaryDest;
     const destName = dest?.name || "Ooty";
@@ -315,99 +414,87 @@ export default function PlanJourney() {
       "Trekking & Nature Trails"
     ];
 
-    const hasTransit = activePackage.breakdown.transit > 0;
-    const hasHotel = activePackage.breakdown.stay > 0;
-    const hasMeals = activePackage.breakdown.meals > 0;
+    const daysToRender = planMode === "custom" ? tripDurationDays : selectedFixedPackage.durationDays;
 
-    return [
-      {
-        day: "Day 1",
-        title: `Departure & Arrival in ${destCity}`,
-        schedule: [
-          {
-            time: "08:30 AM",
-            activity: hasTransit 
-              ? `Depart from ${sourceCity} via ${preferredTransport}. Scenic panoramic travel.` 
-              : `Arrive in ${destCity} via personal vehicle/self-arranged transit. Roavio assistance active.`
-          },
-          {
-            time: "01:00 PM",
-            activity: hasHotel 
-              ? `Check-in at verified partner resort in ${destCity}. Refresh in your reserved room.` 
-              : `Arrival in ${destCity} central district and baggage drop.`
-          },
-          {
-            time: "02:30 PM",
-            activity: hasMeals 
-              ? `Welcome buffet lunch & specialty tea included in your ${activePackage.name}.` 
-              : `Leisure time to explore authentic local food spots and town cafes.`
-          },
-          {
-            time: "05:00 PM",
-            activity: `Sunset visit to ${dest.nearbyAttractions?.[0] || 'local lake & botanical promenade'}.`
-          },
-          {
-            time: "08:00 PM",
-            activity: hasMeals 
-              ? "Buffet dinner at resort dining hall (Included in your package)." 
-              : "Dinner at local dining establishments of your choice."
-          }
-        ]
-      },
-      {
-        day: "Day 2",
-        title: `Full-Day ${destName} Experience`,
-        schedule: [
-          {
-            time: "08:00 AM",
-            activity: hasMeals 
-              ? "Morning continental & South Indian breakfast at hotel (Included)." 
-              : "Morning breakfast and energizing beverage."
-          },
-          {
-            time: "09:30 AM",
-            activity: `Prime guided visit to ${destName} with fast-track entry passes.`
-          },
-          {
-            time: "01:00 PM",
-            activity: `Experience: ${activities[0] || 'Scenic Viewpoints & Nature Trail'}.`
-          },
-          {
-            time: "04:30 PM",
-            activity: `Local artisan crafts, tea plantations, and cultural spots in ${destCity}.`
-          },
-          {
-            time: "08:00 PM",
-            activity: hasMeals 
-              ? "Specialty chef dinner with regional dishes (Included in your package)." 
-              : "Evening stroll and dinner at local artisan cafes."
-          }
-        ]
-      },
-      {
-        day: "Day 3",
-        title: `Morning Panoramas & Return Journey`,
-        schedule: [
-          {
-            time: "08:00 AM",
-            activity: hasMeals 
-              ? "Sunrise breakfast with scenic valley views." 
-              : "Morning checkout preparation and breakfast."
-          },
-          {
-            time: "09:30 AM",
-            activity: `Final sightseeing at ${dest.nearbyAttractions?.[1] || 'local gardens & heritage viewpoints'}. Photography and souvenir shopping.`
-          },
-          {
-            time: "01:00 PM",
-            activity: hasTransit 
-              ? `Board return transit to ${sourceCity} with unforgettable memories of ${destName}.` 
-              : `Departure from ${destCity} at your own convenience.`
-          }
-        ]
+    const days = [];
+    for (let i = 1; i <= Math.min(daysToRender, 5); i++) {
+      if (i === 1) {
+        days.push({
+          day: "Day 1",
+          title: `Departure & Arrival in ${destCity}`,
+          schedule: [
+            {
+              time: "08:00 AM",
+              activity: planMode === "custom"
+                ? `Board confirmed ${selectedTransportTicket.modeName} (${selectedTransportTicket.operator}) from ${sourceCity}.`
+                : `Board Roavio arranged confirmed transit from ${sourceCity} to ${destCity}.`
+            },
+            {
+              time: "01:30 PM",
+              activity: planMode === "custom"
+                ? `Check-in at ${selectedHotel.name} (${selectedHotel.roomType}). Refresh and relax.`
+                : `Arrival and VIP check-in at Roavio verified partner resort in ${destCity}.`
+            },
+            {
+              time: "03:30 PM",
+              activity: `Visit ${dest.nearbyAttractions?.[0] || 'Botanical Gardens & Lake Promenade'} with entry pass.`
+            },
+            {
+              time: "08:00 PM",
+              activity: mealPlan !== "no_meals" || planMode === "fixed"
+                ? "Complimentary dinner buffet at resort restaurant."
+                : "Dinner at local cafes of your choice."
+            }
+          ]
+        });
+      } else if (i === daysToRender) {
+        days.push({
+          day: `Day ${i}`,
+          title: `Morning Sightseeing & Return Journey`,
+          schedule: [
+            {
+              time: "08:00 AM",
+              activity: "Scenic breakfast with valley views and morning photography."
+            },
+            {
+              time: "10:30 AM",
+              activity: `Souvenir shopping, local tea & chocolate tasting in ${destCity}. Hotel checkout.`
+            },
+            {
+              time: "02:00 PM",
+              activity: planMode === "custom"
+                ? `Board return ${selectedTransportTicket.modeName} back to ${sourceCity} with verified tickets.`
+                : `Board Roavio arranged return transport back to ${sourceCity}. Trip successfully concluded!`
+            }
+          ]
+        });
+      } else {
+        days.push({
+          day: `Day ${i}`,
+          title: `Full-Day ${destName} Sightseeing & Experiences`,
+          schedule: [
+            {
+              time: "08:30 AM",
+              activity: "Wholesome morning buffet breakfast."
+            },
+            {
+              time: "10:00 AM",
+              activity: `Guided visit to ${destName} viewpoint & ${dest.nearbyAttractions?.[1] || 'Tea Factory'}.`
+            },
+            {
+              time: "02:30 PM",
+              activity: `Experience: ${activities[(i - 2) % activities.length] || 'Panoramic viewpoints & nature trail'}.`
+            },
+            {
+              time: "07:30 PM",
+              activity: "Campfire, evening music & dinner at resort."
+            }
+          ]
+        });
       }
-    ];
-  }, [primaryDest, sourceCity, preferredTransport, activePackage]);
+    }
+    return days;
+  }, [primaryDest, sourceCity, planMode, selectedTransportTicket, selectedHotel, mealPlan, tripDurationDays, selectedFixedPackage]);
 
   // Reorder stops
   const moveStop = (index, direction) => {
@@ -437,10 +524,12 @@ export default function PlanJourney() {
       dates: `${startDate} to ${endDate}`,
       startDate,
       endDate,
-      duration: `${tripDurationDays} Days / ${tripDurationDays - 1} Nights`,
+      duration: `${planMode === "custom" ? tripDurationDays : selectedFixedPackage.durationDays} Days / ${nightsCount} Nights`,
       travelers: travelersCount,
-      transport: preferredTransport,
-      estimatedBudget: budgetPerPerson * travelersCount,
+      transport: planMode === "custom" ? `${selectedTransportTicket.operator} (${selectedTransportTicket.classType})` : "Roavio Arranged Return Travel",
+      hotel: planMode === "custom" ? selectedHotel.name : "Roavio Arranged Resort",
+      planChoice: planMode === "custom" ? "Custom Built Plan" : selectedFixedPackage.name,
+      estimatedBudget: activePayableTotal,
       stops: selectedDestinations.map((d) => ({
         id: d.id,
         name: d.name,
@@ -472,22 +561,26 @@ export default function PlanJourney() {
     }
 
     setIsProcessingPayment(true);
-    const totalPackagePrice = budgetPerPerson * travelersCount;
     const destSummary = selectedDestinations.map((d) => d.name).join(" ➔ ");
+    const bookingTitle = planMode === "custom" 
+      ? `${tripTitle} (Custom: ${selectedHotel.name} + ${selectedTransportTicket.operator})`
+      : `${tripTitle} (${selectedFixedPackage.name})`;
+
     const bookingPayload = {
       category: "itinerary",
-      title: tripTitle || "Incredible India Custom Tour",
+      title: bookingTitle,
       providerName: "Roavio Certified Tour Partner",
       sourceLocation: sourceCity,
       destination: selectedDestinations.map((d) => d.name).join(", "),
       travelDate: startDate,
-      travelTime: "08:30 AM",
+      travelTime: "08:00 AM",
       passengers: travelersCount,
       leadPassenger: leadName,
       mobileNumber: leadPhone,
       email: leadEmail,
-      seatClass: preferredTransport,
-      amount: totalPackagePrice,
+      seatClass: planMode === "custom" ? selectedTransportTicket.classType : "All-Inclusive Fixed Package",
+      hotelName: planMode === "custom" ? selectedHotel.name : "Roavio Verified Partner Resort",
+      amount: activePayableTotal,
       paymentStatus: `Verified (${paymentMethod.toUpperCase()})`,
       bookingStatus: "Confirmed"
     };
@@ -515,8 +608,8 @@ export default function PlanJourney() {
         route: `${sourceCity} ➔ ${selectedDestinations[selectedDestinations.length - 1]?.city || selectedDestinations[0]?.city || "India"}`,
         date: startDate,
         passengers: travelersCount,
-        fare: totalPackagePrice,
-        seat: `All-Inclusive Pass (${preferredTransport})`,
+        fare: activePayableTotal,
+        seat: planMode === "custom" ? `${selectedTransportTicket.operator} + ${selectedHotel.name}` : selectedFixedPackage.name,
         operator: "Roavio Certified Tour Partner",
         leadPassenger: leadName,
         mobileNumber: leadPhone,
@@ -526,16 +619,17 @@ export default function PlanJourney() {
       });
 
       addPlannedTrip({
-        title: tripTitle || `${selectedDestinations[0]?.name || "India"} Journey`,
+        title: bookingTitle,
         sourceCity,
         destinationSummary: destSummary,
         dates: `${startDate} to ${endDate}`,
         startDate,
         endDate,
-        duration: `${tripDurationDays} Days / ${tripDurationDays - 1} Nights`,
+        duration: `${planMode === "custom" ? tripDurationDays : selectedFixedPackage.durationDays} Days / ${nightsCount} Nights`,
         travelers: travelersCount,
-        transport: preferredTransport,
-        estimatedBudget: totalPackagePrice,
+        transport: planMode === "custom" ? selectedTransportTicket.operator : "Roavio Arranged Travel",
+        hotel: planMode === "custom" ? selectedHotel.name : "Roavio Verified Resort",
+        estimatedBudget: activePayableTotal,
         stops: selectedDestinations.map((d) => ({
           id: d.id,
           name: d.name,
@@ -555,12 +649,12 @@ export default function PlanJourney() {
       const fallbackBooking = addBooking({
         type: "itinerary",
         category: "Tour Package Booking",
-        title: tripTitle,
+        title: bookingTitle,
         route: `${sourceCity} ➔ ${selectedDestinations[0]?.city || "India"}`,
         date: startDate,
         passengers: travelersCount,
-        fare: totalPackagePrice,
-        seat: `All-Inclusive Pass (${preferredTransport})`,
+        fare: activePayableTotal,
+        seat: planMode === "custom" ? `${selectedTransportTicket.operator} + ${selectedHotel.name}` : selectedFixedPackage.name,
         operator: "Roavio Certified Tour Partner",
         leadPassenger: leadName,
         mobileNumber: leadPhone,
@@ -588,13 +682,72 @@ export default function PlanJourney() {
             </div>
             <h1>Plan Your Personalized India Journey</h1>
             <p>
-              Custom build multi-destination itineraries across 28 states & 8 UTs with realistic distance calculations, route optimization, and budget forecasting.
+              Custom choose hotels by budget, pick flight, train, or bus travel tickets, decide trip duration, and auto-calculate costs — or pick all-inclusive fixed budget packages arranged by Roavio!
             </p>
           </div>
         </div>
       </section>
 
-      <div className="container py-12">
+      <div className="container py-8">
+        {/* =========================================================================
+            TOP ARCHITECTURE: TWO-CHOICE PLANNING MODE SWITCHER
+        ========================================================================= */}
+        <div className="choice-mode-card mb-4">
+          <div className="choice-mode-header">
+            <span className="choice-kicker">TWO WAYS TO PLAN YOUR HOLIDAY</span>
+            <h3>Select How You Would Like to Plan Your Trip</h3>
+            <p className="choice-subtitle">
+              Choose between full customization with live dynamic cost calculation, or our hassle-free Roavio fixed budget packages where we arrange everything.
+            </p>
+          </div>
+
+          <div className="choice-tabs-grid">
+            {/* Choice 1 Tab */}
+            <div 
+              onClick={() => setPlanMode("custom")}
+              className={`choice-tab-card ${planMode === "custom" ? "active" : ""}`}
+            >
+              <div className="choice-tab-top">
+                <span className="choice-badge badge-custom">CHOICE 1: CUSTOM BUILD</span>
+                <div className={`choice-radio ${planMode === "custom" ? "active" : ""}`}>
+                  {planMode === "custom" && <Check size={14} color="#FFF" />}
+                </div>
+              </div>
+              <h4>Custom Build Your Trip</h4>
+              <p>
+                1. Pick your hotel by budget · 2. Select flight/train/bus travel tickets · 3. Decide trip duration (days) · 4. Auto-calculate total cost.
+              </p>
+              <div className="choice-features">
+                <span>✓ Selectable Hotels by Budget</span>
+                <span>✓ Flight, Train or Bus Tickets</span>
+                <span>✓ Dynamic Cost Calculation</span>
+              </div>
+            </div>
+
+            {/* Choice 2 Tab */}
+            <div 
+              onClick={() => setPlanMode("fixed")}
+              className={`choice-tab-card ${planMode === "fixed" ? "active" : ""}`}
+            >
+              <div className="choice-tab-top">
+                <span className="choice-badge badge-fixed">CHOICE 2: FIXED BUDGET PACKAGES</span>
+                <div className={`choice-radio ${planMode === "fixed" ? "active" : ""}`}>
+                  {planMode === "fixed" && <Check size={14} color="#FFF" />}
+                </div>
+              </div>
+              <h4>Roavio Fixed Budget Packages</h4>
+              <p>
+                Pay a single fixed price (e.g. ₹9,999 2-Day Ooty Tour) and Roavio arranges your return tickets, hotel stay, all meals & sightseeing!
+              </p>
+              <div className="choice-features">
+                <span>✓ All Facilities Arranged by Roavio</span>
+                <span>✓ Return Tickets & Stay Included</span>
+                <span>✓ Zero Hidden Charges</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="planner-grid">
           {/* Left Column: Form & Add Stops */}
           <div className="planner-form-col">
@@ -604,7 +757,7 @@ export default function PlanJourney() {
                 <span className="step-num">1</span>
                 <div>
                   <h3>Trip Essentials</h3>
-                  <p>Name your itinerary and choose origin & dates</p>
+                  <p>Trip origin, dates, and journey mode</p>
                 </div>
               </div>
 
@@ -616,7 +769,7 @@ export default function PlanJourney() {
                     value={tripTitle} 
                     onChange={(e) => setTripTitle(e.target.value)}
                     className="roavio-input" 
-                    placeholder="e.g. Royal Rajasthan Golden Triangle"
+                    placeholder="e.g. Ooty Nilgiri Mountain Vacation"
                   />
                 </div>
 
@@ -661,7 +814,7 @@ export default function PlanJourney() {
                         value={sourceCity} 
                         onChange={(e) => setSourceCity(e.target.value)}
                         className="roavio-input" 
-                        placeholder="e.g. New Delhi, Mumbai, Bengaluru"
+                        placeholder="e.g. Coimbatore, Bengaluru, Chennai"
                       />
                       <button 
                         type="button" 
@@ -676,52 +829,17 @@ export default function PlanJourney() {
                   </div>
 
                   <div className="form-group">
-                    <label>Preferred Primary Transport</label>
-                    <select 
-                      value={preferredTransport} 
-                      onChange={(e) => setPreferredTransport(e.target.value)}
-                      className="roavio-select"
-                    >
-                      <option value="Flight & High-Speed Train">Flight & High-Speed Train</option>
-                      <option value="Vande Bharat Express (Rail)">Vande Bharat Express (Rail)</option>
-                      <option value="Chauffeur Luxury Cab">Chauffeur Luxury Cab</option>
-                      <option value="AC Sleeper Coach">AC Sleeper Coach</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-row-3">
-                  <div className="form-group">
-                    <label>Start Date</label>
-                    <input 
-                      type="date" 
-                      value={startDate} 
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="roavio-input" 
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>End Date</label>
-                    <input 
-                      type="date" 
-                      value={endDate} 
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="roavio-input" 
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Travelers</label>
+                    <label>Travelers Count</label>
                     <select 
                       value={travelersCount} 
                       onChange={(e) => setTravelersCount(Number(e.target.value))}
                       className="roavio-select"
                     >
-                      <option value={1}>1 Solo Explorer</option>
-                      <option value={2}>2 Travelers (Couple)</option>
-                      <option value={4}>4 Travelers (Family / Friends)</option>
-                      <option value={6}>6+ Group Adventure</option>
+                      <option value={1}>1 Solo Explorer (1 Room)</option>
+                      <option value={2}>2 Travelers / Couple (1 Room)</option>
+                      <option value={3}>3 Travelers (2 Rooms)</option>
+                      <option value={4}>4 Travelers (2 Rooms)</option>
+                      <option value={6}>6+ Group Adventure (3 Rooms)</option>
                     </select>
                   </div>
                 </div>
@@ -733,23 +851,23 @@ export default function PlanJourney() {
               <div className="card-section-title">
                 <span className="step-num">2</span>
                 <div>
-                  <h3>Select & Order Tourist Attractions</h3>
-                  <p>Choose from India's 175+ destinations and reorder your route</p>
+                  <h3>Attraction & Destination Selected</h3>
+                  <p>Focused destination for this journey</p>
                 </div>
               </div>
 
-              {/* Destination Search Box */}
               {selectedDestinations.length === 1 && (
                 <div className="single-dest-focus-banner p-3 rounded-3 mb-3 d-flex align-items-center justify-content-between" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534' }}>
                   <div className="d-flex align-items-center gap-2">
                     <CheckCircle2 size={18} />
                     <span className="small fw-bold">
-                      Direct Trip: Traveling exclusively to {selectedDestinations[0].name} ({selectedDestinations[0].city}, {selectedDestinations[0].state}). No round-trip circuits or extra cities.
+                      Direct Trip: Traveling exclusively to {selectedDestinations[0].name} ({selectedDestinations[0].city}, {selectedDestinations[0].state}).
                     </span>
                   </div>
                 </div>
               )}
 
+              {/* Destination Search Box */}
               <div className="search-stops-box">
                 <div className="search-input-wrap">
                   <MapPin size={18} className="search-icon" />
@@ -757,7 +875,7 @@ export default function PlanJourney() {
                     type="text" 
                     value={searchToAdd} 
                     onChange={(e) => setSearchToAdd(e.target.value)}
-                    placeholder="Search attraction to add (e.g. Hampi, Munnar, Varanasi, Kaziranga)..."
+                    placeholder="Search attraction to add or switch (e.g. Ooty, Munnar, Goa, Jaipur)..."
                     className="stops-search-input" 
                   />
                   {searchToAdd && (
@@ -970,72 +1088,483 @@ export default function PlanJourney() {
               </div>
             )}
 
-            {/* Step 3: Choose Travel Package (With Hotel + Food, With Hotel Only, Travelling + Hotel + Food, Travelling Only) */}
-            <div className="planner-card package-selection-step">
-              <div className="card-section-title">
-                <span className="step-num">3</span>
-                <div>
-                  <h3>Choose Your Travel Package & Inclusions</h3>
-                  <p>Select what to include: Accommodation, Meals, Sightseeing, and Transit</p>
-                </div>
-              </div>
+            {/* =========================================================================
+                CHOICE 1: CUSTOM BUILD YOUR TRIP SECTION
+                Visible when planMode === "custom"
+                1. Decide Days
+                2. Travel Tickets List (Flight, Train, Bus, Cab)
+                3. Hotels List by Budget
+                4. Food & Sightseeing Options
+                5. Auto Calculate Cost
+            ========================================================================= */}
+            {planMode === "custom" && (
+              <div className="custom-plan-container">
+                {/* 1. DECIDE TRIP DURATION (HOW MANY DAYS) */}
+                <div className="planner-card">
+                  <div className="card-section-title">
+                    <span className="step-num">3</span>
+                    <div>
+                      <h3>Step 1: Decide Trip Duration (How Many Days?)</h3>
+                      <p>Select your planned stay duration or customize dates</p>
+                    </div>
+                  </div>
 
-              {/* Package Options Grid */}
-              <div className="packages-selection-grid">
-                {packageOptions.map((pkg) => {
-                  const isSelected = selectedPackage === pkg.id;
-                  return (
-                    <div 
-                      key={pkg.id} 
-                      onClick={() => setSelectedPackage(pkg.id)}
-                      className={`package-card-option ${isSelected ? "selected" : ""}`}
-                    >
-                      <div className="pkg-card-top">
-                        <span className={`pkg-badge ${pkg.tagClass}`}>{pkg.tag}</span>
-                        <div className={`pkg-radio-indicator ${isSelected ? "active" : ""}`}>
-                          {isSelected && <Check size={14} color="#FFF" />}
-                        </div>
+                  <div className="duration-picker-wrap">
+                    <label className="duration-label mb-2 d-block">Quick Duration Presets:</label>
+                    <div className="duration-presets-grid">
+                      {[
+                        { days: 2, label: "2 Days / 1 Night", badge: "Weekend Getaway" },
+                        { days: 3, label: "3 Days / 2 Nights", badge: "Short Holiday" },
+                        { days: 4, label: "4 Days / 3 Nights", badge: "Most Popular" },
+                        { days: 5, label: "5 Days / 4 Nights", badge: "Relaxed Tour" },
+                        { days: 7, label: "7 Days / 6 Nights", badge: "Full Vacation" }
+                      ].map((preset) => {
+                        const isSelected = tripDurationDays === preset.days;
+                        return (
+                          <button
+                            key={preset.days}
+                            type="button"
+                            onClick={() => handleSelectDurationDays(preset.days)}
+                            className={`duration-preset-btn ${isSelected ? "active" : ""}`}
+                          >
+                            <div className="preset-top">
+                              <span className="preset-days">{preset.days} Days</span>
+                              <span className="preset-badge">{preset.badge}</span>
+                            </div>
+                            <span className="preset-sub">{preset.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="form-row-2 mt-3 pt-3 border-top">
+                      <div className="form-group">
+                        <label>Start Date</label>
+                        <input 
+                          type="date" 
+                          value={startDate} 
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="roavio-input" 
+                        />
                       </div>
-
-                      <h4 className="pkg-name">{pkg.name}</h4>
-                      <p className="pkg-subtitle">{pkg.subtitle}</p>
-
-                      <div className="pkg-price-row">
-                        <span className="pkg-price-currency">₹</span>
-                        <span className="pkg-price-amount">{pkg.pricePerPerson.toLocaleString()}</span>
-                        <span className="pkg-price-unit">/ person</span>
-                      </div>
-
-                      <div className="pkg-inclusions-list">
-                        {pkg.inclusions.map((inc, i) => (
-                          <div key={i} className="pkg-inc-item">
-                            <CheckCircle2 size={14} className="inc-icon text-green" />
-                            <span>{inc}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="pkg-select-footer">
-                        <button 
-                          type="button" 
-                          className={`btn btn-sm w-100 ${isSelected ? "btn-primary" : "btn-outline"}`}
-                        >
-                          {isSelected ? "Selected Package ✓" : "Choose This Package"}
-                        </button>
+                      <div className="form-group">
+                        <label>End Date</label>
+                        <input 
+                          type="date" 
+                          value={endDate} 
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="roavio-input" 
+                        />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Step 4: Personalized Day-by-Day Itinerary Schedule */}
+                    <div className="duration-selected-alert mt-2">
+                      <Calendar size={16} className="text-green" />
+                      <span>
+                        Selected: <strong>{tripDurationDays} Days / {nightsCount} Nights</strong> ({startDate} to {endDate})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. CHOOSE TRAVEL TICKETS (FLIGHT, TRAIN, BUS, CAB) */}
+                <div className="planner-card">
+                  <div className="card-section-title">
+                    <span className="step-num">4</span>
+                    <div>
+                      <h3>Step 2: Choose Travel Tickets ({sourceCity} ➔ {primaryDest?.city || "Destination"})</h3>
+                      <p>Select your preferred flight, train, or bus travel tickets with confirmed pricing</p>
+                    </div>
+                  </div>
+
+                  {/* Mode filter tabs */}
+                  <div className="transport-mode-tabs mb-3">
+                    {[
+                      { id: "all", label: "All Travel Modes", icon: <Sliders size={14} /> },
+                      { id: "flights", label: "✈️ Flights", icon: <Plane size={14} /> },
+                      { id: "trains", label: "🚆 Trains / Rail", icon: <Train size={14} /> },
+                      { id: "buses", label: "🚌 AC Buses", icon: <Bus size={14} /> },
+                      { id: "cabs", label: "🚗 Private Cabs", icon: <Car size={14} /> }
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setTransportModeFilter(tab.id)}
+                        className={`transport-tab-btn ${transportModeFilter === tab.id ? "active" : ""}`}
+                      >
+                        {tab.icon}
+                        <span>{tab.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Transport tickets list */}
+                  <div className="transport-tickets-stack">
+                    {transportTicketsList.map((ticket) => {
+                      const isSelected = selectedTransportTicketId === ticket.id;
+                      return (
+                        <div 
+                          key={ticket.id}
+                          onClick={() => setSelectedTransportTicketId(ticket.id)}
+                          className={`transport-ticket-card ${isSelected ? "selected" : ""}`}
+                        >
+                          <div className="ticket-card-header">
+                            <div className="d-flex align-items-center gap-2">
+                              <span className="carrier-logo-badge">{ticket.logo}</span>
+                              <div>
+                                <h4 className="carrier-name">{ticket.operator}</h4>
+                                <span className="carrier-code">{ticket.flightNumber || ticket.trainNumber || ticket.busType || ticket.carModel} · {ticket.classType}</span>
+                              </div>
+                            </div>
+                            <span className="ticket-badge">{ticket.badge}</span>
+                          </div>
+
+                          <div className="ticket-timeline-row">
+                            <div className="t-time-point">
+                              <span className="t-time">{ticket.depTime}</span>
+                              <span className="t-city">{ticket.from}</span>
+                            </div>
+                            <div className="t-duration-mid">
+                              <span className="t-dur-val">{ticket.duration}</span>
+                              <div className="t-line-track"></div>
+                              <span className="t-stop-label">{ticket.stopType}</span>
+                            </div>
+                            <div className="t-time-point text-end">
+                              <span className="t-time">{ticket.arrTime}</span>
+                              <span className="t-city">{ticket.to}</span>
+                            </div>
+                          </div>
+
+                          <div className="ticket-inclusions-chips">
+                            {ticket.inclusions.map((inc, i) => (
+                              <span key={i} className="inc-chip">✓ {inc}</span>
+                            ))}
+                          </div>
+
+                          <div className="ticket-footer-row">
+                            <div className="ticket-price-info">
+                              <div className="d-flex align-items-baseline gap-1">
+                                <span className="t-price-currency">₹</span>
+                                <span className="t-price-num">{ticket.price.toLocaleString()}</span>
+                                <span className="t-price-unit">/ person (One-Way)</span>
+                              </div>
+                              <span className="t-return-note">Round-trip (Return) Calculated: <strong>₹{(ticket.price * 2).toLocaleString()} / person</strong></span>
+                            </div>
+
+                            <button 
+                              type="button" 
+                              className={`btn btn-sm ${isSelected ? "btn-primary" : "btn-outline"}`}
+                            >
+                              {isSelected ? "Selected Ticket ✓" : "Select Ticket"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 3. CHOOSE HOTEL BY BUDGET */}
+                <div className="planner-card">
+                  <div className="card-section-title">
+                    <span className="step-num">5</span>
+                    <div>
+                      <h3>Step 3: Choose Hotel by Considering Your Budget</h3>
+                      <p>Verified partner hotels & resorts in {primaryDest?.city || "destination"} across budget tiers</p>
+                    </div>
+                  </div>
+
+                  {/* Hotel budget tier filter pills */}
+                  <div className="hotel-tier-pills mb-3">
+                    {[
+                      { id: "all", label: "All Stays" },
+                      { id: "budget", label: "Budget Homestay (₹1,000 - ₹2,000 / night)" },
+                      { id: "comfort", label: "Comfort 3★ Hotel / Resort (₹2,500 - ₹3,500 / night)" },
+                      { id: "luxury", label: "Luxury 4★/5★ Resort (₹5,000+ / night)" }
+                    ].map((pill) => (
+                      <button
+                        key={pill.id}
+                        type="button"
+                        onClick={() => setHotelTierFilter(pill.id)}
+                        className={`hotel-tier-btn ${hotelTierFilter === pill.id ? "active" : ""}`}
+                      >
+                        {pill.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Hotels list */}
+                  <div className="hotels-selection-stack">
+                    {filteredHotels.map((hotel) => {
+                      const isSelected = selectedHotelId === hotel.id;
+                      const roomStayTotal = hotel.pricePerNight * nightsCount * roomsCount;
+                      return (
+                        <div 
+                          key={hotel.id}
+                          onClick={() => setSelectedHotelId(hotel.id)}
+                          className={`hotel-select-card ${isSelected ? "selected" : ""}`}
+                        >
+                          <div className="hotel-card-left">
+                            <img src={hotel.image} alt={hotel.name} className="hotel-card-img" />
+                            <span className="hotel-rating-chip">★ {hotel.rating} ({hotel.reviewsCount})</span>
+                          </div>
+
+                          <div className="hotel-card-center">
+                            <div className="d-flex align-items-center gap-2 mb-1">
+                              <span className={`hotel-tier-badge tier-${hotel.tier}`}>{hotel.tierName}</span>
+                              <span className="hotel-loc-text"><MapPin size={12} /> {hotel.location}</span>
+                            </div>
+
+                            <h4 className="hotel-title">{hotel.name}</h4>
+                            <p className="hotel-room-type"><strong>Room:</strong> {hotel.roomType}</p>
+                            <p className="hotel-meals-tag"><Utensils size={13} /> {hotel.mealsIncluded}</p>
+
+                            <div className="hotel-amenities-row">
+                              {hotel.amenities.slice(0, 4).map((am, i) => (
+                                <span key={i} className="am-chip">• {am}</span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="hotel-card-right">
+                            <div className="hotel-price-block">
+                              <span className="h-price-label">Per Night Rate</span>
+                              <div className="d-flex align-items-baseline gap-1">
+                                <span className="h-curr">₹</span>
+                                <span className="h-val">{hotel.pricePerNight.toLocaleString()}</span>
+                                <span className="h-night">/ night</span>
+                              </div>
+                              <span className="h-total-stay">
+                                {nightsCount} Night{nightsCount > 1 ? "s" : ""} x {roomsCount} Room{roomsCount > 1 ? "s" : ""}: <strong>₹{roomStayTotal.toLocaleString()}</strong>
+                              </span>
+                            </div>
+
+                            <button 
+                              type="button" 
+                              className={`btn btn-sm ${isSelected ? "btn-primary" : "btn-outline"}`}
+                            >
+                              {isSelected ? "Selected Stay ✓" : "Select Hotel"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 4. CHOOSE FOOD & SIGHTSEEING OPTIONS */}
+                <div className="planner-card">
+                  <div className="card-section-title">
+                    <span className="step-num">6</span>
+                    <div>
+                      <h3>Step 4: Meal Plan & Sightseeing Inclusions</h3>
+                      <p>Tailor dining preferences and attraction tickets</p>
+                    </div>
+                  </div>
+
+                  <label className="mb-2 d-block fw-bold small text-navy">Choose Meal Plan:</label>
+                  <div className="meals-selection-grid mb-3">
+                    {[
+                      {
+                        id: "all_meals",
+                        name: "All Meals Included",
+                        desc: "Buffet Breakfast, Lunch & Dinner",
+                        rate: 750,
+                        tag: "RECOMMENDED"
+                      },
+                      {
+                        id: "breakfast_only",
+                        name: "Breakfast Only Included",
+                        desc: "Morning Buffet Breakfast at Hotel",
+                        rate: 250,
+                        tag: "FLEXIBLE DINE"
+                      },
+                      {
+                        id: "no_meals",
+                        name: "Self-Arranged Dining",
+                        desc: "Pay as you eat at local cafes",
+                        rate: 0,
+                        tag: "ROOM ONLY"
+                      }
+                    ].map((m) => {
+                      const isSel = mealPlan === m.id;
+                      return (
+                        <div
+                          key={m.id}
+                          onClick={() => setMealPlan(m.id)}
+                          className={`meal-plan-card ${isSel ? "active" : ""}`}
+                        >
+                          <div className="d-flex justify-content-between align-items-center mb-1">
+                            <span className="meal-tag">{m.tag}</span>
+                            <div className={`meal-radio ${isSel ? "checked" : ""}`}>
+                              {isSel && <Check size={12} color="#FFF" />}
+                            </div>
+                          </div>
+                          <h5>{m.name}</h5>
+                          <p>{m.desc}</p>
+                          <span className="meal-rate-badge">
+                            {m.rate === 0 ? "₹0 (Self-Arranged)" : `₹${m.rate} / person / day`}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="sightseeing-toggle-box p-3 rounded-3" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                    <label className="d-flex align-items-center gap-2 cursor-pointer m-0">
+                      <input 
+                        type="checkbox" 
+                        checked={includeSightseeingPasses} 
+                        onChange={(e) => setIncludeSightseeingPasses(e.target.checked)}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                      <div>
+                        <strong className="d-block text-navy">Include Verified Monument Passes & Sightseeing Entry (₹450 / person)</strong>
+                        <span className="text-muted small">Fast-track access to botanical gardens, viewpoints, toy train reservation, and local museum access.</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 5. AT LAST CALCULATE THE COST */}
+                <div className="planner-card dynamic-calculation-card">
+                  <div className="card-section-title">
+                    <span className="step-num">7</span>
+                    <div>
+                      <h3>Step 5: Dynamic Cost Calculation (Itemized Bill)</h3>
+                      <p>Calculated live based on your exact chosen hotel, travel tickets, duration & meal plan</p>
+                    </div>
+                  </div>
+
+                  <div className="calculation-breakdown-table">
+                    <div className="calc-row">
+                      <div className="calc-item-desc">
+                        <strong>1. Return Travel Tickets ({selectedTransportTicket.operator})</strong>
+                        <span>Round-trip {sourceCity} ⇄ {primaryDest?.city || "Ooty"} (₹{selectedTransportTicket.price.toLocaleString()} x 2 return x {travelersCount} travelers)</span>
+                      </div>
+                      <span className="calc-item-cost">₹{totalTransportCost.toLocaleString()}</span>
+                    </div>
+
+                    <div className="calc-row">
+                      <div className="calc-item-desc">
+                        <strong>2. Hotel Stay ({selectedHotel.name})</strong>
+                        <span>{nightsCount} Night{nightsCount > 1 ? "s" : ""} x {roomsCount} Room{roomsCount > 1 ? "s" : ""} @ ₹{selectedHotel.pricePerNight.toLocaleString()}/night</span>
+                      </div>
+                      <span className="calc-item-cost">₹{totalHotelCost.toLocaleString()}</span>
+                    </div>
+
+                    <div className="calc-row">
+                      <div className="calc-item-desc">
+                        <strong>3. Dining & Meals ({mealPlan === "all_meals" ? "All Daily Meals" : mealPlan === "breakfast_only" ? "Breakfast Only" : "Self-Dining"})</strong>
+                        <span>₹{mealDailyRate} x {tripDurationDays} days x {travelersCount} travelers</span>
+                      </div>
+                      <span className="calc-item-cost">{totalFoodCost > 0 ? `₹${totalFoodCost.toLocaleString()}` : "Self-Arranged (₹0)"}</span>
+                    </div>
+
+                    <div className="calc-row">
+                      <div className="calc-item-desc">
+                        <strong>4. Sightseeing & Monument Passes</strong>
+                        <span>{includeSightseeingPasses ? `Official Passes for ${primaryDest?.name} (₹450 x ${travelersCount} travelers)` : "Self-Purchased"}</span>
+                      </div>
+                      <span className="calc-item-cost">{totalPassesCost > 0 ? `₹${totalPassesCost.toLocaleString()}` : "Excluded (₹0)"}</span>
+                    </div>
+
+                    <div className="calc-total-banner">
+                      <div>
+                        <span className="c-tot-label">TOTAL CALCULATED TRIP COST</span>
+                        <span className="c-tot-sub">All taxes, return tickets, hotel nights & inclusions verified</span>
+                      </div>
+                      <div className="text-end">
+                        <div className="c-tot-amount">₹{customTotalCost.toLocaleString()}</div>
+                        <span className="c-tot-pp">₹{customPerPerson.toLocaleString()} / person</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* =========================================================================
+                CHOICE 2: ROAVIO ALL-INCLUSIVE FIXED BUDGET PACKAGES
+                Visible when planMode === "fixed"
+                E.g. ₹9,999 2-Day Ooty Plan where Roavio arranges return tickets, hotel stay, food, etc.
+            ========================================================================= */}
+            {planMode === "fixed" && (
+              <div className="fixed-packages-container">
+                <div className="planner-card">
+                  <div className="card-section-title">
+                    <span className="step-num">3</span>
+                    <div>
+                      <h3>Choose Your Roavio All-Inclusive Fixed Package</h3>
+                      <p>Pay only for your chosen package — Roavio arranges return tickets, hotel stay, all meals & sightseeing!</p>
+                    </div>
+                  </div>
+
+                  <div className="fixed-packages-grid">
+                    {fixedPackages.map((pkg) => {
+                      const isSelected = selectedFixedPackageId === pkg.id;
+                      const pkgTotal = pkg.pricePerPerson * travelersCount;
+                      return (
+                        <div
+                          key={pkg.id}
+                          onClick={() => setSelectedFixedPackageId(pkg.id)}
+                          className={`fixed-pkg-card ${isSelected ? "selected" : ""}`}
+                        >
+                          <div className="fixed-card-top">
+                            <span className={`pkg-badge ${pkg.tagClass}`}>{pkg.tag}</span>
+                            <div className={`pkg-radio-indicator ${isSelected ? "active" : ""}`}>
+                              {isSelected && <Check size={14} color="#FFF" />}
+                            </div>
+                          </div>
+
+                          <h4 className="pkg-name">{pkg.name}</h4>
+                          <span className="pkg-duration-badge"><Clock size={13} /> {pkg.duration}</span>
+                          <p className="pkg-highlights-text">{pkg.highlights}</p>
+
+                          <div className="pkg-price-row">
+                            <span className="pkg-price-currency">₹</span>
+                            <span className="pkg-price-amount">{pkg.pricePerPerson.toLocaleString()}</span>
+                            <span className="pkg-price-unit">/ person (All-Inclusive)</span>
+                          </div>
+
+                          <div className="pkg-facilities-list">
+                            <span className="fac-title">All Facilities Arranged by Roavio:</span>
+                            {pkg.facilities.map((fac, i) => (
+                              <div key={i} className="fac-item">
+                                <CheckCircle2 size={15} className="text-green flex-shrink-0" />
+                                <span>{fac}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="pkg-select-footer mt-3">
+                            <button 
+                              type="button" 
+                              className={`btn btn-sm w-100 ${isSelected ? "btn-primary" : "btn-outline"}`}
+                            >
+                              {isSelected ? "Selected Fixed Package ✓" : "Choose This Fixed Package"}
+                            </button>
+                            <span className="d-block text-center text-muted small mt-1">
+                              Total for {travelersCount} Traveler{travelersCount > 1 ? "s" : ""}: <strong>₹{pkgTotal.toLocaleString()}</strong>
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Daily Itinerary Timeline */}
             <div className="planner-card daily-itinerary-step">
               <div className="card-section-title">
-                <span className="step-num">4</span>
+                <span className="step-num">{planMode === "custom" ? "8" : "4"}</span>
                 <div>
                   <h3>Personalized Daily Itinerary Schedule</h3>
-                  <p>Calculated dynamically based on your chosen destination ({primaryDest?.name}) and {activePackage.name}</p>
+                  <p>
+                    Calculated dynamically based on your chosen {planMode === "custom" ? "custom selections" : selectedFixedPackage.name} for {primaryDest?.name}
+                  </p>
                 </div>
               </div>
 
@@ -1065,7 +1594,7 @@ export default function PlanJourney() {
             {/* Step 5: Travel Notes & Preferences */}
             <div className="planner-card">
               <div className="card-section-title">
-                <span className="step-num">5</span>
+                <span className="step-num">{planMode === "custom" ? "9" : "5"}</span>
                 <div>
                   <h3>Special Preferences & Travel Notes</h3>
                   <p>Fine-tune preferences like vegetarian meals, high-floor rooms, or guide assistance</p>
@@ -1099,7 +1628,7 @@ export default function PlanJourney() {
               <div className="summary-stats-grid">
                 <div className="stat-pill">
                   <span className="stat-label">Total Duration</span>
-                  <span className="stat-value">{tripDurationDays} Days</span>
+                  <span className="stat-value">{planMode === "custom" ? tripDurationDays : selectedFixedPackage.durationDays} Days</span>
                 </div>
                 <div className="stat-pill">
                   <span className="stat-label">Attractions</span>
@@ -1140,38 +1669,71 @@ export default function PlanJourney() {
                 ))}
               </div>
 
-              {/* Selected Package Summary Badge */}
+              {/* Selected Plan Mode Pill */}
               <div className="selected-pkg-summary-pill mb-3 p-3 rounded-3" style={{ background: '#F0FDF4', border: '1.5px solid #BBF7D0' }}>
-                <span className="text-muted small d-block mb-1 font-weight-bold">SELECTED PLAN PACKAGE:</span>
-                <strong className="text-green d-block" style={{ fontSize: '1.05rem' }}>{activePackage.name}</strong>
-                <span className="small text-muted">{activePackage.subtitle}</span>
+                <span className="text-muted small d-block mb-1 font-weight-bold">
+                  {planMode === "custom" ? "CHOICE 1: CUSTOM BUILD" : "CHOICE 2: ROAVIO FIXED PACKAGE"}
+                </span>
+                <strong className="text-green d-block" style={{ fontSize: '1.05rem' }}>
+                  {planMode === "custom" ? `Custom Plan: ${selectedHotel.name}` : selectedFixedPackage.name}
+                </strong>
+                <span className="small text-muted">
+                  {planMode === "custom" 
+                    ? `Transit: ${selectedTransportTicket.operator} | Stay: ${nightsCount} Nights`
+                    : "Roavio arranges return tickets, hotel stay, all meals & sightseeing"}
+                </span>
               </div>
 
               {/* Expense Estimation Breakdown */}
               <div className="expense-breakdown-box">
-                <h4 className="expense-title">Calculated Package Breakdown</h4>
-                <div className="expense-row">
-                  <span>Transit & Travel:</span>
-                  <strong>{activePackage.breakdown.transit > 0 ? `₹${(activePackage.breakdown.transit * travelersCount).toLocaleString()}` : "Self-Arranged (₹0)"}</strong>
-                </div>
-                <div className="expense-row">
-                  <span>Stay & Hotel:</span>
-                  <strong>{activePackage.breakdown.stay > 0 ? `₹${(activePackage.breakdown.stay * travelersCount).toLocaleString()}` : "Self-Arranged (₹0)"}</strong>
-                </div>
-                <div className="expense-row">
-                  <span>Meals & Dining:</span>
-                  <strong>{activePackage.breakdown.meals > 0 ? `₹${(activePackage.breakdown.meals * travelersCount).toLocaleString()}` : "Self-Arranged (₹0)"}</strong>
-                </div>
-                <div className="expense-row">
-                  <span>Passes & Sightseeing:</span>
-                  <strong>₹{(activePackage.breakdown.passes * travelersCount).toLocaleString()}</strong>
-                </div>
+                <h4 className="expense-title">Calculated Price Breakdown</h4>
+                
+                {planMode === "custom" ? (
+                  <>
+                    <div className="expense-row">
+                      <span>Return Travel Tickets:</span>
+                      <strong>₹{totalTransportCost.toLocaleString()}</strong>
+                    </div>
+                    <div className="expense-row">
+                      <span>Hotel Stay ({nightsCount}N, {roomsCount}R):</span>
+                      <strong>₹{totalHotelCost.toLocaleString()}</strong>
+                    </div>
+                    <div className="expense-row">
+                      <span>Meals & Dining:</span>
+                      <strong>{totalFoodCost > 0 ? `₹${totalFoodCost.toLocaleString()}` : "Self-Arranged (₹0)"}</strong>
+                    </div>
+                    <div className="expense-row">
+                      <span>Monument & Entry Passes:</span>
+                      <strong>{totalPassesCost > 0 ? `₹${totalPassesCost.toLocaleString()}` : "Excluded (₹0)"}</strong>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="expense-row">
+                      <span>Fixed Package Rate:</span>
+                      <strong>₹{selectedFixedPackage.pricePerPerson.toLocaleString()} / person</strong>
+                    </div>
+                    <div className="expense-row">
+                      <span>Return Tickets:</span>
+                      <strong className="text-green">Roavio Arranged ✓</strong>
+                    </div>
+                    <div className="expense-row">
+                      <span>Hotel Stay:</span>
+                      <strong className="text-green">Roavio Arranged ✓</strong>
+                    </div>
+                    <div className="expense-row">
+                      <span>All Meals & Sightseeing:</span>
+                      <strong className="text-green">Roavio Arranged ✓</strong>
+                    </div>
+                  </>
+                )}
+
                 <div className="expense-total-row">
                   <div>
-                    <span className="d-block font-weight-bold text-navy">Total Package Budget:</span>
-                    <span className="text-muted small">({travelersCount} Traveler{travelersCount > 1 ? "s" : ""} x ₹{activePackage.pricePerPerson.toLocaleString()})</span>
+                    <span className="d-block font-weight-bold text-navy">Total Calculated Cost:</span>
+                    <span className="text-muted small">({travelersCount} Traveler{travelersCount > 1 ? "s" : ""} x ₹{activePerPersonRate.toLocaleString()})</span>
                   </div>
-                  <span className="total-amount">₹{calculatedTotalBudget.toLocaleString()}</span>
+                  <span className="total-amount">₹{activePayableTotal.toLocaleString()}</span>
                 </div>
               </div>
 
@@ -1216,7 +1778,6 @@ export default function PlanJourney() {
 
       {/* =========================================================================
           1. DESTINATION QUICK EXPLORE MODAL
-          Allows user to view detailed attraction info without losing trip plan
       ========================================================================= */}
       {quickExploreDest && (
         <div className="plan-modal-overlay" onClick={() => setQuickExploreDest(null)}>
@@ -1364,7 +1925,6 @@ export default function PlanJourney() {
 
       {/* =========================================================================
           2. TRIP REGISTRATION & PAYMENT CHECKOUT MODAL
-          User registers for the trip, selects payment method, pays and confirms tickets
       ========================================================================= */}
       {tripRegisterModalOpen && (
         <div className="plan-modal-overlay" onClick={() => !isProcessingPayment && setTripRegisterModalOpen(false)}>
@@ -1373,7 +1933,7 @@ export default function PlanJourney() {
               <div className="d-flex align-items-center gap-2">
                 <CreditCard size={22} className="text-green" />
                 <div>
-                  <h3 className="modal-title">Register & Book Your Custom Journey</h3>
+                  <h3 className="modal-title">Register & Book Your Journey</h3>
                   <span className="modal-subtitle">Secure Online Reservation & Instant Ticket Generation</span>
                 </div>
               </div>
@@ -1433,8 +1993,8 @@ export default function PlanJourney() {
                       <strong className="pg-v">{startDate} to {endDate}</strong>
                     </div>
                     <div>
-                      <span className="pg-k">Primary Transport</span>
-                      <strong className="pg-v">{preferredTransport}</strong>
+                      <span className="pg-k">Plan Choice</span>
+                      <strong className="pg-v">{planMode === "custom" ? "Custom Selected Stay & Transit" : selectedFixedPackage.name}</strong>
                     </div>
                     <div>
                       <span className="pg-k">Route</span>
@@ -1442,7 +2002,7 @@ export default function PlanJourney() {
                     </div>
                     <div>
                       <span className="pg-k">Total Paid</span>
-                      <strong className="pg-v text-green">₹{calculatedTotalBudget.toLocaleString()}</strong>
+                      <strong className="pg-v text-green">₹{activePayableTotal.toLocaleString()}</strong>
                     </div>
                   </div>
 
@@ -1479,15 +2039,15 @@ export default function PlanJourney() {
                 <div className="checkout-trip-strip">
                   <div className="strip-info">
                     <span className="strip-badge">
-                      {selectedDestinations.length === 1 ? "DIRECT DESTINATION TRIP" : "ROAVIO ITINERARY"}
+                      {planMode === "custom" ? "CUSTOM BUILT ITINERARY" : "ROAVIO FIXED BUDGET PACKAGE"}
                     </span>
                     <h4>{tripTitle}</h4>
                     <p>{sourceCity} ➔ {selectedDestinations.map(d => d.name).join(" ➔ ")}</p>
                   </div>
                   <div className="strip-stats">
-                    <span>{tripDurationDays} Days</span>
-                    <span>{selectedDestinations.length} Attractions</span>
-                    <span>{preferredTransport}</span>
+                    <span>{planMode === "custom" ? tripDurationDays : selectedFixedPackage.durationDays} Days</span>
+                    <span>{travelersCount} Travelers</span>
+                    <span>{planMode === "custom" ? selectedHotel.name : selectedFixedPackage.duration}</span>
                   </div>
                 </div>
 
@@ -1747,8 +2307,10 @@ export default function PlanJourney() {
                     {/* Section C: Live Transparent Fare Summary */}
                     <div className="checkout-fare-summary mt-4">
                       <div className="fare-line">
-                        <span>{activePackage.name} ({travelersCount} travelers x ₹{activePackage.pricePerPerson.toLocaleString()}):</span>
-                        <strong>₹{calculatedTotalBudget.toLocaleString()}</strong>
+                        <span>
+                          {planMode === "custom" ? "Custom Journey Package:" : selectedFixedPackage.name} ({travelersCount} travelers x ₹{activePerPersonRate.toLocaleString()}):
+                        </span>
+                        <strong>₹{activePayableTotal.toLocaleString()}</strong>
                       </div>
                       <div className="fare-line">
                         <span>Monument Passes & Certified Guided Tours:</span>
@@ -1761,9 +2323,9 @@ export default function PlanJourney() {
                       <div className="fare-line-total">
                         <div>
                           <span className="total-title">Total Payable Amount</span>
-                          <span className="total-sub">All taxes and certified monument access included</span>
+                          <span className="total-sub">All taxes and certified access included</span>
                         </div>
-                        <span className="total-num">₹{calculatedTotalBudget.toLocaleString()}</span>
+                        <span className="total-num">₹{activePayableTotal.toLocaleString()}</span>
                       </div>
                     </div>
                   </>
@@ -1798,7 +2360,7 @@ export default function PlanJourney() {
                       className="btn btn-primary btn-pay-confirm"
                     >
                       <Lock size={16} />
-                      <span>Pay ₹{calculatedTotalBudget.toLocaleString()} & Confirm Trip Tickets</span>
+                      <span>Pay ₹{activePayableTotal.toLocaleString()} & Confirm Trip Tickets</span>
                     </button>
                   )}
                 </div>
@@ -1808,8 +2370,746 @@ export default function PlanJourney() {
         </div>
       )}
 
+      {/* STYLES */}
       <style>{`
-        /* Destination Spotlight Card */
+        /* Choice Mode Selector Banner */
+        .choice-mode-card {
+          background: #FFFFFF;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 18px;
+          padding: 1.5rem;
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        }
+
+        .choice-kicker {
+          font-size: 0.72rem;
+          font-weight: 800;
+          letter-spacing: 0.8px;
+          color: var(--color-green);
+          text-transform: uppercase;
+        }
+
+        .choice-mode-header h3 {
+          font-size: 1.35rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin: 0.2rem 0;
+        }
+
+        .choice-subtitle {
+          color: #64748B;
+          font-size: 0.88rem;
+          margin-bottom: 1.2rem;
+        }
+
+        .choice-tabs-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.2rem;
+        }
+
+        .choice-tab-card {
+          border: 2px solid #E2E8F0;
+          border-radius: 14px;
+          padding: 1.2rem;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          background: #FAFDFB;
+        }
+
+        .choice-tab-card:hover {
+          border-color: #94A3B8;
+          transform: translateY(-2px);
+        }
+
+        .choice-tab-card.active {
+          border-color: var(--color-green);
+          background: #FFFFFF;
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.15), 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .choice-tab-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.6rem;
+        }
+
+        .choice-badge {
+          font-size: 0.68rem;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          padding: 0.2rem 0.6rem;
+          border-radius: 999px;
+        }
+
+        .choice-badge.badge-custom { background: #DCFCE7; color: #166534; }
+        .choice-badge.badge-fixed { background: #DBEAFE; color: #1E40AF; }
+
+        .choice-radio {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          border: 2px solid #CBD5E1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .choice-radio.active {
+          background: var(--color-green);
+          border-color: var(--color-green);
+        }
+
+        .choice-tab-card h4 {
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin-bottom: 0.35rem;
+        }
+
+        .choice-tab-card p {
+          font-size: 0.82rem;
+          color: #475569;
+          line-height: 1.5;
+          margin-bottom: 0.8rem;
+        }
+
+        .choice-features {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          font-size: 0.74rem;
+          font-weight: 700;
+          color: #0F766E;
+        }
+
+        .choice-features span {
+          background: #F0FDF4;
+          padding: 0.2rem 0.5rem;
+          border-radius: 6px;
+          border: 1px solid #BBF7D0;
+        }
+
+        /* Duration Presets */
+        .duration-presets-grid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 0.6rem;
+        }
+
+        .duration-preset-btn {
+          border: 1.5px solid #E2E8F0;
+          background: #F8FAFC;
+          border-radius: 10px;
+          padding: 0.7rem 0.5rem;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .duration-preset-btn:hover {
+          border-color: #94A3B8;
+        }
+
+        .duration-preset-btn.active {
+          border-color: var(--color-green);
+          background: #F0FDF4;
+          box-shadow: 0 0 0 2px rgba(21, 155, 117, 0.2);
+        }
+
+        .preset-top {
+          display: flex;
+          flex-direction: column;
+          gap: 0.2rem;
+          margin-bottom: 0.2rem;
+        }
+
+        .preset-days {
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: var(--color-navy);
+        }
+
+        .preset-badge {
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: #059669;
+        }
+
+        .preset-sub {
+          font-size: 0.72rem;
+          color: #64748B;
+        }
+
+        .duration-selected-alert {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.85rem;
+          color: #166534;
+          background: #F0FDF4;
+          padding: 0.5rem 0.8rem;
+          border-radius: 8px;
+          border: 1px solid #BBF7D0;
+        }
+
+        /* Transport Tabs & Tickets */
+        .transport-mode-tabs {
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+
+        .transport-tab-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          padding: 0.45rem 0.8rem;
+          border-radius: 8px;
+          border: 1px solid #CBD5E1;
+          background: #F8FAFC;
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: #475569;
+          cursor: pointer;
+        }
+
+        .transport-tab-btn.active {
+          background: var(--color-navy);
+          color: white;
+          border-color: var(--color-navy);
+        }
+
+        .transport-tickets-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 0.9rem;
+        }
+
+        .transport-ticket-card {
+          border: 1.5px solid #E2E8F0;
+          background: #FFFFFF;
+          border-radius: 12px;
+          padding: 1.1rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .transport-ticket-card:hover {
+          border-color: #94A3B8;
+        }
+
+        .transport-ticket-card.selected {
+          border-color: var(--color-green);
+          background: #FAFDFB;
+          box-shadow: 0 0 0 2.5px rgba(21, 155, 117, 0.2);
+        }
+
+        .ticket-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 0.8rem;
+        }
+
+        .carrier-logo-badge {
+          font-size: 1.4rem;
+        }
+
+        .carrier-name {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin: 0;
+        }
+
+        .carrier-code {
+          font-size: 0.78rem;
+          color: #64748B;
+        }
+
+        .ticket-badge {
+          font-size: 0.68rem;
+          font-weight: 800;
+          background: #EFF6FF;
+          color: #1D4ED8;
+          padding: 0.2rem 0.5rem;
+          border-radius: 6px;
+        }
+
+        .ticket-timeline-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          align-items: center;
+          margin-bottom: 0.8rem;
+          padding: 0.6rem 0;
+          border-top: 1px dashed #E2E8F0;
+          border-bottom: 1px dashed #E2E8F0;
+        }
+
+        .t-time-point .t-time {
+          display: block;
+          font-size: 1rem;
+          font-weight: 800;
+          color: var(--color-navy);
+        }
+
+        .t-time-point .t-city {
+          font-size: 0.75rem;
+          color: #64748B;
+        }
+
+        .t-duration-mid {
+          text-align: center;
+        }
+
+        .t-dur-val {
+          font-size: 0.76rem;
+          font-weight: 700;
+          color: #475569;
+        }
+
+        .t-line-track {
+          height: 2px;
+          background: #CBD5E1;
+          margin: 0.2rem 1rem;
+          position: relative;
+        }
+
+        .t-stop-label {
+          font-size: 0.68rem;
+          color: #059669;
+          font-weight: 700;
+        }
+
+        .ticket-inclusions-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+          margin-bottom: 0.8rem;
+        }
+
+        .inc-chip {
+          background: #F1F5F9;
+          font-size: 0.72rem;
+          color: #475569;
+          padding: 0.15rem 0.45rem;
+          border-radius: 4px;
+        }
+
+        .ticket-footer-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .t-price-currency {
+          font-size: 1rem;
+          font-weight: 800;
+          color: var(--color-green);
+        }
+
+        .t-price-num {
+          font-size: 1.35rem;
+          font-weight: 900;
+          color: var(--color-navy);
+        }
+
+        .t-price-unit {
+          font-size: 0.75rem;
+          color: #64748B;
+        }
+
+        .t-return-note {
+          display: block;
+          font-size: 0.72rem;
+          color: #64748B;
+        }
+
+        /* Hotel Budget Tiers & Hotel Cards */
+        .hotel-tier-pills {
+          display: flex;
+          gap: 0.4rem;
+          flex-wrap: wrap;
+        }
+
+        .hotel-tier-btn {
+          border: 1px solid #CBD5E1;
+          background: #F8FAFC;
+          border-radius: 999px;
+          padding: 0.35rem 0.75rem;
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #475569;
+          cursor: pointer;
+        }
+
+        .hotel-tier-btn.active {
+          background: var(--color-navy);
+          color: white;
+          border-color: var(--color-navy);
+        }
+
+        .hotels-selection-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .hotel-select-card {
+          display: grid;
+          grid-template-columns: 160px 1fr 180px;
+          gap: 1rem;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 14px;
+          padding: 1rem;
+          background: #FFFFFF;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .hotel-select-card:hover {
+          border-color: #94A3B8;
+        }
+
+        .hotel-select-card.selected {
+          border-color: var(--color-green);
+          background: #FAFDFB;
+          box-shadow: 0 0 0 2.5px rgba(21, 155, 117, 0.2);
+        }
+
+        .hotel-card-left {
+          position: relative;
+        }
+
+        .hotel-card-img {
+          width: 100%;
+          height: 120px;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+
+        .hotel-rating-chip {
+          position: absolute;
+          bottom: 8px;
+          left: 8px;
+          background: rgba(15, 23, 42, 0.85);
+          color: #FBBF24;
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 0.15rem 0.45rem;
+          border-radius: 6px;
+        }
+
+        .hotel-tier-badge {
+          font-size: 0.68rem;
+          font-weight: 800;
+          padding: 0.15rem 0.5rem;
+          border-radius: 999px;
+        }
+
+        .hotel-tier-badge.tier-budget { background: #DCFCE7; color: #166534; }
+        .hotel-tier-badge.tier-comfort { background: #DBEAFE; color: #1E40AF; }
+        .hotel-tier-badge.tier-luxury { background: #F3E8FF; color: #6B21A8; }
+
+        .hotel-loc-text {
+          font-size: 0.72rem;
+          color: #64748B;
+          display: flex;
+          align-items: center;
+          gap: 0.2rem;
+        }
+
+        .hotel-title {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin: 0.2rem 0;
+        }
+
+        .hotel-room-type {
+          font-size: 0.78rem;
+          color: #475569;
+          margin: 0 0 0.2rem;
+        }
+
+        .hotel-meals-tag {
+          font-size: 0.74rem;
+          color: #059669;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          margin: 0 0 0.4rem;
+        }
+
+        .hotel-amenities-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+        }
+
+        .am-chip {
+          font-size: 0.68rem;
+          color: #64748B;
+        }
+
+        .hotel-card-right {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          text-align: right;
+          border-left: 1px dashed #E2E8F0;
+          padding-left: 1rem;
+        }
+
+        .h-price-label {
+          font-size: 0.7rem;
+          color: #64748B;
+          display: block;
+        }
+
+        .h-curr {
+          font-size: 1rem;
+          font-weight: 800;
+          color: var(--color-green);
+        }
+
+        .h-val {
+          font-size: 1.4rem;
+          font-weight: 900;
+          color: var(--color-navy);
+        }
+
+        .h-night {
+          font-size: 0.75rem;
+          color: #64748B;
+        }
+
+        .h-total-stay {
+          display: block;
+          font-size: 0.74rem;
+          color: #475569;
+          margin-top: 0.2rem;
+        }
+
+        /* Meal Plans Grid */
+        .meals-selection-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.8rem;
+        }
+
+        .meal-plan-card {
+          border: 1.5px solid #E2E8F0;
+          background: #FFFFFF;
+          border-radius: 12px;
+          padding: 0.9rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .meal-plan-card.active {
+          border-color: var(--color-green);
+          background: #F0FDF4;
+          box-shadow: 0 0 0 2px rgba(21, 155, 117, 0.2);
+        }
+
+        .meal-tag {
+          font-size: 0.65rem;
+          font-weight: 800;
+          color: #059669;
+          background: #DCFCE7;
+          padding: 0.15rem 0.4rem;
+          border-radius: 4px;
+        }
+
+        .meal-radio {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          border: 1.5px solid #CBD5E1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .meal-radio.checked {
+          background: var(--color-green);
+          border-color: var(--color-green);
+        }
+
+        .meal-plan-card h5 {
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          margin: 0.3rem 0 0.15rem;
+        }
+
+        .meal-plan-card p {
+          font-size: 0.76rem;
+          color: #64748B;
+          margin: 0 0 0.5rem;
+        }
+
+        .meal-rate-badge {
+          display: inline-block;
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #0F766E;
+        }
+
+        /* Dynamic Calculation Table */
+        .calculation-breakdown-table {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 14px;
+          padding: 1.2rem;
+        }
+
+        .calc-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.7rem 0;
+          border-bottom: 1px dashed #E2E8F0;
+        }
+
+        .calc-item-desc strong {
+          display: block;
+          font-size: 0.88rem;
+          color: var(--color-navy);
+        }
+
+        .calc-item-desc span {
+          font-size: 0.74rem;
+          color: #64748B;
+        }
+
+        .calc-item-cost {
+          font-size: 1rem;
+          font-weight: 800;
+          color: var(--color-navy);
+        }
+
+        .calc-total-banner {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 2px solid #CBD5E1;
+        }
+
+        .c-tot-label {
+          display: block;
+          font-size: 0.85rem;
+          font-weight: 800;
+          color: var(--color-navy);
+          letter-spacing: 0.5px;
+        }
+
+        .c-tot-sub {
+          font-size: 0.72rem;
+          color: #64748B;
+        }
+
+        .c-tot-amount {
+          font-size: 1.8rem;
+          font-weight: 900;
+          color: var(--color-green);
+        }
+
+        .c-tot-pp {
+          font-size: 0.78rem;
+          color: #64748B;
+          font-weight: 700;
+        }
+
+        /* Fixed Packages Grid */
+        .fixed-packages-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.2rem;
+        }
+
+        .fixed-pkg-card {
+          border: 2px solid #E2E8F0;
+          background: #FFFFFF;
+          border-radius: 16px;
+          padding: 1.4rem;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .fixed-pkg-card:hover {
+          border-color: #94A3B8;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .fixed-pkg-card.selected {
+          border-color: var(--color-green);
+          background: #FAFDFB;
+          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.15), 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .fixed-card-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.8rem;
+        }
+
+        .pkg-duration-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #1D4ED8;
+          background: #EFF6FF;
+          padding: 0.2rem 0.5rem;
+          border-radius: 6px;
+          margin-bottom: 0.6rem;
+          width: fit-content;
+        }
+
+        .pkg-highlights-text {
+          font-size: 0.82rem;
+          color: #475569;
+          line-height: 1.5;
+          margin-bottom: 0.9rem;
+        }
+
+        .pkg-facilities-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          font-size: 0.82rem;
+          color: #334155;
+          margin-bottom: 1.2rem;
+          flex-grow: 1;
+        }
+
+        .fac-title {
+          font-size: 0.72rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          color: #64748B;
+          margin-bottom: 0.2rem;
+        }
+
+        .fac-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.45rem;
+        }
+
+        /* Existing Spotlight & Timeline Styles */
         .dest-spotlight-card {
           background: #FFFFFF;
           border: 1.5px solid #E2E8F0;
@@ -1905,134 +3205,6 @@ export default function PlanJourney() {
           gap: 0.6rem;
         }
 
-        /* Package Selection Cards Grid */
-        .packages-selection-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1.2rem;
-          margin-top: 1rem;
-        }
-
-        .package-card-option {
-          background: #FFFFFF;
-          border: 2px solid #E2E8F0;
-          border-radius: 16px;
-          padding: 1.4rem;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          display: flex;
-          flex-direction: column;
-          position: relative;
-        }
-
-        .package-card-option:hover {
-          border-color: #94A3B8;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-        }
-
-        .package-card-option.selected {
-          border-color: var(--color-green);
-          background: #FAFDFB;
-          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.15), 0 8px 24px rgba(0, 0, 0, 0.06);
-        }
-
-        .pkg-card-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.8rem;
-        }
-
-        .pkg-badge {
-          font-size: 0.7rem;
-          font-weight: 800;
-          letter-spacing: 0.5px;
-          padding: 0.2rem 0.6rem;
-          border-radius: 999px;
-        }
-
-        .pkg-badge.badge-green { background: #DCFCE7; color: #166534; }
-        .pkg-badge.badge-blue { background: #DBEAFE; color: #1E40AF; }
-        .pkg-badge.badge-purple { background: #F3E8FF; color: #6B21A8; }
-        .pkg-badge.badge-orange { background: #FFEDD5; color: #9A3412; }
-
-        .pkg-radio-indicator {
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          border: 2px solid #CBD5E1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .pkg-radio-indicator.active {
-          background: var(--color-green);
-          border-color: var(--color-green);
-        }
-
-        .pkg-name {
-          font-size: 1.15rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin-bottom: 0.2rem;
-        }
-
-        .pkg-subtitle {
-          font-size: 0.82rem;
-          color: #64748B;
-          margin-bottom: 0.8rem;
-        }
-
-        .pkg-price-row {
-          display: flex;
-          align-items: baseline;
-          gap: 0.2rem;
-          margin-bottom: 1rem;
-          padding-bottom: 0.8rem;
-          border-bottom: 1px solid #F1F5F9;
-        }
-
-        .pkg-price-currency {
-          font-size: 1.1rem;
-          font-weight: 800;
-          color: var(--color-green);
-        }
-
-        .pkg-price-amount {
-          font-size: 1.6rem;
-          font-weight: 900;
-          color: var(--color-navy);
-        }
-
-        .pkg-price-unit {
-          font-size: 0.8rem;
-          color: #64748B;
-          margin-left: 0.2rem;
-        }
-
-        .pkg-inclusions-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          font-size: 0.84rem;
-          color: #334155;
-          margin-bottom: 1.2rem;
-          flex-grow: 1;
-        }
-
-        .pkg-inc-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.45rem;
-        }
-
-        .inc-icon {
-          flex-shrink: 0;
-          margin-top: 0.15rem;
-        }
-
         /* Daily Itinerary Timeline */
         .itinerary-timeline-wrap {
           display: flex;
@@ -2099,14 +3271,13 @@ export default function PlanJourney() {
         }
 
         .event-time-badge {
-          background: #FFFFFF;
-          border: 1px solid #CBD5E1;
-          color: #475569;
+          background: #E2E8F0;
+          color: #1E293B;
+          font-size: 0.74rem;
           font-weight: 700;
-          font-size: 0.72rem;
-          padding: 0.15rem 0.45rem;
+          padding: 0.2rem 0.5rem;
           border-radius: 6px;
-          white-space: nowrap;
+          flex-shrink: 0;
         }
 
         .event-desc {
@@ -2114,780 +3285,111 @@ export default function PlanJourney() {
           line-height: 1.45;
         }
 
-        @media (max-width: 900px) {
-          .packages-selection-grid {
-            grid-template-columns: 1fr;
-          }
-          .spotlight-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .plan-journey-page {
-          background-color: var(--color-bg);
-          min-height: 100vh;
-        }
-
-        .plan-hero {
-          background: linear-gradient(135deg, var(--color-navy) 0%, #1A365D 100%);
-          color: white;
-          padding: 3.5rem 0 3rem;
-          border-bottom: 4px solid var(--color-green);
-        }
-
-        .plan-hero-inner {
-          max-width: 760px;
-          margin: 0 auto;
-          text-align: center;
-        }
-
-        .badge-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: rgba(21, 155, 117, 0.2);
-          color: #4ADE80;
-          border: 1px solid rgba(21, 155, 117, 0.4);
-          padding: 0.35rem 0.9rem;
-          border-radius: 999px;
-          font-size: 0.78rem;
-          font-weight: 700;
-          margin-bottom: 0.8rem;
-        }
-
-        .plan-hero-inner h1 {
-          color: white;
-          font-size: 2.3rem;
-          font-weight: 800;
-          margin-bottom: 0.8rem;
-        }
-
-        .plan-hero-inner p {
-          color: rgba(255, 255, 255, 0.85);
-          font-size: 1.05rem;
-          line-height: 1.6;
-        }
-
-        .planner-grid {
-          display: grid;
-          grid-template-columns: 1fr 380px;
-          gap: 2rem;
-          align-items: start;
-        }
-
-        .planner-card {
-          background: white;
-          border-radius: 18px;
-          padding: 1.8rem;
-          border: 1px solid #E2E8F0;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-          margin-bottom: 1.8rem;
-        }
-
-        .card-section-title {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid #F1F5F9;
-        }
-
-        .step-num {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background: var(--color-green);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 800;
-          font-size: 1.1rem;
-          flex-shrink: 0;
-        }
-
-        .card-section-title h3 {
-          font-size: 1.2rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin: 0 0 0.2rem;
-        }
-
-        .card-section-title p {
-          font-size: 0.85rem;
-          color: #64748B;
-          margin: 0;
-        }
-
-        .form-stack {
-          display: flex;
-          flex-direction: column;
-          gap: 1.2rem;
-        }
-
-        .form-row-2 {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1.2rem;
-        }
-
-        .form-row-3 {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 1rem;
-        }
-
-        .form-group label {
-          display: block;
-          font-size: 0.82rem;
-          font-weight: 700;
-          color: var(--color-navy);
-          margin-bottom: 0.5rem;
-        }
-
-        .roavio-input, .roavio-select, .roavio-textarea {
-          width: 100%;
-          border: 1.5px solid #CBD5E1;
-          border-radius: 10px;
-          padding: 0.65rem 0.9rem;
-          font-size: 0.92rem;
-          color: var(--color-navy);
-          background: #F8FAFC;
-          outline: none;
-          transition: border-color 0.2s;
-        }
-
-        .roavio-input:focus, .roavio-select:focus, .roavio-textarea:focus {
-          border-color: var(--color-green);
-          background: white;
-        }
-
-        .input-group-gps {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .gps-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          background: #EFF6FF;
-          border: 1.5px solid #BFDBFE;
-          color: #1D4ED8;
-          border-radius: 10px;
-          padding: 0 0.8rem;
-          font-size: 0.82rem;
-          font-weight: 700;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-
-        .gps-btn:hover {
-          background: #DBEAFE;
-        }
-
-        .search-stops-box {
-          position: relative;
-          margin-bottom: 1.5rem;
-        }
-
-        .search-input-wrap {
-          display: flex;
-          align-items: center;
-          background: #F8FAFC;
-          border: 1.5px solid #CBD5E1;
-          border-radius: 12px;
-          padding: 0.6rem 0.9rem;
-        }
-
-        .search-icon {
-          color: #94A3B8;
-          margin-right: 0.6rem;
-        }
-
-        .stops-search-input {
-          flex-grow: 1;
-          border: none;
-          background: transparent;
-          font-size: 0.95rem;
-          outline: none;
-          color: var(--color-navy);
-        }
-
-        .clear-search-btn {
-          background: none;
-          border: none;
-          font-size: 1.2rem;
-          color: #94A3B8;
-          cursor: pointer;
-        }
-
-        .stops-results-dropdown {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background: white;
-          border-radius: 12px;
-          border: 1px solid #CBD5E1;
-          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
-          z-index: 50;
-          margin-top: 0.4rem;
-          max-height: 320px;
-          overflow-y: auto;
-        }
-
-        .stop-suggestion-row {
-          display: flex;
-          align-items: center;
-          padding: 0.8rem 1rem;
-          border-bottom: 1px solid #F1F5F9;
-          gap: 0.9rem;
-        }
-
-        .sugg-thumb {
-          width: 48px;
-          height: 48px;
-          border-radius: 8px;
-          object-fit: cover;
-        }
-
-        .sugg-info {
-          flex-grow: 1;
-        }
-
-        .sugg-name {
-          display: block;
-          font-weight: 700;
-          color: var(--color-navy);
-          font-size: 0.92rem;
-        }
-
-        .sugg-state {
-          font-size: 0.8rem;
-          color: #64748B;
-        }
-
-        .selected-stops-list {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .selected-stop-card {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          background: #F8FAFC;
-          border: 1.5px solid #E2E8F0;
-          border-radius: 14px;
-          padding: 0.9rem 1.1rem;
-        }
-
-        .stop-index-pill {
-          background: var(--color-navy);
-          color: white;
-          font-size: 0.72rem;
-          font-weight: 800;
-          padding: 0.25rem 0.6rem;
-          border-radius: 6px;
-          white-space: nowrap;
-        }
-
-        .stop-img {
-          width: 60px;
-          height: 60px;
-          border-radius: 10px;
-          object-fit: cover;
-        }
-
-        .stop-details {
-          flex-grow: 1;
-        }
-
-        .stop-details h4 {
-          font-size: 0.98rem;
-          font-weight: 700;
-          color: var(--color-navy);
-          margin: 0 0 0.2rem;
-        }
-
-        .stop-state {
-          font-size: 0.8rem;
-          color: #64748B;
-          display: block;
-        }
-
-        .stop-meta {
-          display: flex;
-          gap: 0.8rem;
-          font-size: 0.76rem;
-          color: #0F766E;
-          font-weight: 600;
-          margin-top: 0.3rem;
-        }
-
-        .stop-actions {
-          display: flex;
-          align-items: center;
-          gap: 0.4rem;
-        }
-
-        .reorder-btn, .delete-stop-btn {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          border: 1px solid #CBD5E1;
-          background: white;
-          color: var(--color-navy);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-        }
-
-        .reorder-btn:disabled {
-          opacity: 0.35;
-          cursor: not-allowed;
-        }
-
-        .delete-stop-btn {
-          color: #DC2626;
-          border-color: #FECACA;
-        }
-
-        .delete-stop-btn:hover {
-          background: #FEF2F2;
-        }
-
-        .budget-val {
-          font-weight: 800;
-          color: var(--color-green);
-          font-size: 1.05rem;
-        }
-
-        .range-slider {
-          width: 100%;
-          accent-color: var(--color-green);
-        }
-
-        .range-bounds {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.75rem;
-          color: #94A3B8;
-          margin-top: 0.3rem;
-        }
-
-        /* Summary Column */
-        .summary-card {
-          background: white;
-          border-radius: 18px;
-          padding: 1.6rem;
-          border: 1px solid #E2E8F0;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-          position: sticky;
-          top: 90px;
-        }
-
-        .summary-header {
-          display: flex;
-          align-items: center;
-          gap: 0.6rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid #E2E8F0;
-          margin-bottom: 1.2rem;
-        }
-
-        .summary-header h3 {
-          font-size: 1.15rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin: 0;
-        }
-
-        .summary-stats-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 0.8rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .stat-pill {
-          background: #F8FAFC;
-          border-radius: 10px;
-          padding: 0.75rem;
-          border: 1px solid #E2E8F0;
-        }
-
-        .stat-label {
-          display: block;
-          font-size: 0.72rem;
-          color: #64748B;
-          text-transform: uppercase;
-          font-weight: 700;
-        }
-
-        .stat-value {
-          display: block;
-          font-size: 1.05rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin-top: 0.2rem;
-        }
-
-        .summary-route-track {
-          margin-bottom: 1.5rem;
-          padding-left: 0.5rem;
-        }
-
-        .track-point {
-          position: relative;
-          padding-left: 1.5rem;
-          padding-bottom: 1rem;
-        }
-
-        .point-dot {
-          position: absolute;
-          left: 0;
-          top: 4px;
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          background: var(--color-green);
-          border: 2px solid white;
-          box-shadow: 0 0 0 2px var(--color-green);
-        }
-
-        .origin-dot {
-          background: var(--color-navy);
-          box-shadow: 0 0 0 2px var(--color-navy);
-        }
-
-        .point-line {
-          position: absolute;
-          left: 5px;
-          top: -16px;
-          bottom: 12px;
-          width: 2px;
-          background: #CBD5E1;
-        }
-
-        .point-role {
-          display: block;
-          font-size: 0.72rem;
-          color: #94A3B8;
-          text-transform: uppercase;
-          font-weight: 700;
-        }
-
-        .point-info strong {
-          color: var(--color-navy);
-          font-size: 0.9rem;
-        }
-
-        .point-sub {
-          display: block;
-          font-size: 0.76rem;
-          color: #64748B;
-        }
-
-        .expense-breakdown-box {
-          background: #F8FAFC;
-          border-radius: 12px;
-          padding: 1rem;
-          margin-bottom: 1.5rem;
-          border: 1px solid #E2E8F0;
-        }
-
-        .expense-title {
-          font-size: 0.85rem;
-          font-weight: 700;
-          color: var(--color-navy);
-          margin: 0 0 0.8rem;
-        }
-
-        .expense-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.82rem;
-          color: #475569;
-          margin-bottom: 0.4rem;
-        }
-
-        .expense-total-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-top: 0.6rem;
-          border-top: 1px solid #CBD5E1;
-          margin-top: 0.6rem;
-          font-weight: 800;
-          color: var(--color-navy);
-        }
-
-        .total-amount {
-          color: var(--color-green);
-          font-size: 1.1rem;
-        }
-
-        .register-trip-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.6rem;
-          font-size: 0.95rem;
-          font-weight: 700;
-          padding: 0.9rem;
-          background: var(--color-green);
-          color: white;
-          border-radius: 12px;
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 4px 12px rgba(21, 155, 117, 0.25);
-        }
-
-        .register-trip-btn:hover {
-          background: #0f7a5b;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(21, 155, 117, 0.35);
-        }
-
-        .save-itinerary-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          font-size: 0.95rem;
-          padding: 0.85rem;
-        }
-
-        /* Explore buttons in stops */
-        .stop-title-flex {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 0.6rem;
-        }
-
-        .explore-btn-group {
-          display: flex;
-          align-items: center;
-          gap: 0.4rem;
-        }
-
-        .explore-pill-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          background: #EFF6FF;
-          border: 1px solid #BFDBFE;
-          color: #1D4ED8;
-          border-radius: 6px;
-          padding: 0.2rem 0.55rem;
-          font-size: 0.72rem;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .explore-pill-btn:hover {
-          background: #DBEAFE;
-        }
-
-        .explore-ext-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 22px;
-          height: 22px;
-          border-radius: 6px;
-          color: #64748B;
-          border: 1px solid #E2E8F0;
-          background: white;
-        }
-
-        .explore-ext-btn:hover {
-          color: var(--color-navy);
-          background: #F1F5F9;
-        }
-
-        .btn-quick-explore {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          background: white;
-          border: 1px solid #CBD5E1;
-          color: var(--color-navy);
-          border-radius: 6px;
-          padding: 0.35rem 0.6rem;
-          font-size: 0.78rem;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        .btn-quick-explore:hover {
-          background: #F8FAFC;
-          border-color: var(--color-green);
-        }
-
-        /* Modal Overlays & Boxes */
+        /* Modals, Checkout & Responsive */
         .plan-modal-overlay {
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(15, 23, 42, 0.75);
+          background: rgba(15, 23, 42, 0.7);
           backdrop-filter: blur(4px);
+          z-index: 9999;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 1.5rem;
-          z-index: 1050;
-          overflow-y: auto;
         }
 
         .plan-modal-box {
-          background: white;
+          background: #FFFFFF;
           border-radius: 20px;
           width: 100%;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-          overflow: hidden;
+          max-width: 850px;
           max-height: 90vh;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .explore-modal-box {
-          max-width: 680px;
-        }
-
-        .checkout-modal-box {
-          max-width: 760px;
+          overflow-y: auto;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          position: relative;
         }
 
         .plan-modal-header {
           display: flex;
-          align-items: center;
           justify-content: space-between;
-          padding: 1.2rem 1.6rem;
+          align-items: center;
+          padding: 1.2rem 1.5rem;
           border-bottom: 1px solid #E2E8F0;
-          background: #F8FAFC;
         }
 
         .modal-title {
-          font-size: 1.15rem;
+          font-size: 1.25rem;
           font-weight: 800;
           color: var(--color-navy);
           margin: 0;
         }
 
         .modal-subtitle {
-          font-size: 0.78rem;
+          font-size: 0.8rem;
           color: #64748B;
         }
 
         .modal-close-x {
-          background: transparent;
+          background: none;
           border: none;
           color: #64748B;
           cursor: pointer;
-          padding: 0.2rem;
         }
 
         .plan-modal-body {
-          padding: 1.5rem 1.6rem;
-          overflow-y: auto;
-        }
-
-        .plan-modal-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1rem 1.6rem;
-          border-top: 1px solid #E2E8F0;
-          background: #F8FAFC;
-        }
-
-        /* Explore Modal Inner */
-        .explore-showcase-wrap {
-          border-radius: 14px;
-          overflow: hidden;
+          padding: 1.5rem;
         }
 
         .explore-main-img {
           width: 100%;
-          height: 260px;
+          height: 320px;
           object-fit: cover;
-          border-radius: 12px;
+          border-radius: 14px;
         }
 
         .explore-thumbs-row {
           display: flex;
-          gap: 0.5rem;
+          gap: 0.6rem;
           margin-top: 0.6rem;
         }
 
         .explore-thumb {
-          width: 60px;
-          height: 45px;
+          width: 80px;
+          height: 60px;
           object-fit: cover;
-          border-radius: 6px;
+          border-radius: 8px;
           cursor: pointer;
+          opacity: 0.6;
           border: 2px solid transparent;
         }
 
         .explore-thumb.active {
+          opacity: 1;
           border-color: var(--color-green);
-        }
-
-        .explore-dest-title {
-          font-size: 1.45rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin: 0.3rem 0;
-        }
-
-        .explore-location-bar {
-          display: flex;
-          align-items: center;
-          gap: 0.4rem;
-          color: #64748B;
-          font-size: 0.88rem;
-          font-weight: 600;
-        }
-
-        .explore-desc-text {
-          color: #334155;
-          line-height: 1.6;
-          font-size: 0.92rem;
         }
 
         .explore-specs-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(4, 1fr);
           gap: 0.8rem;
+          background: #F8FAFC;
+          padding: 1rem;
+          border-radius: 12px;
         }
 
         .spec-tile {
           display: flex;
           align-items: center;
-          gap: 0.8rem;
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
-          padding: 0.7rem 0.9rem;
-          border-radius: 10px;
+          gap: 0.6rem;
         }
 
         .spec-k {
           display: block;
           font-size: 0.72rem;
           color: #64748B;
-          text-transform: uppercase;
-          font-weight: 700;
         }
 
         .spec-v {
@@ -2895,62 +3397,44 @@ export default function PlanJourney() {
           color: var(--color-navy);
         }
 
-        .explore-highlights-box {
-          background: #F0FDF4;
-          border: 1px solid #BBF7D0;
-          border-radius: 10px;
-          padding: 0.9rem;
-        }
-
-        .box-title {
-          font-size: 0.82rem;
-          font-weight: 700;
-          color: #166534;
-          margin: 0 0 0.5rem;
-        }
-
-        .highlights-pills-wrap {
+        .plan-modal-footer {
           display: flex;
-          flex-wrap: wrap;
-          gap: 0.4rem;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.2rem 1.5rem;
+          border-top: 1px solid #E2E8F0;
         }
 
-        /* Checkout Modal Inner */
-        .checkout-form-body {
-          padding: 1.5rem 1.6rem;
-          overflow-y: auto;
-        }
-
+        /* Checkout Styles */
         .checkout-trip-strip {
           display: flex;
           justify-content: space-between;
           align-items: center;
           background: #F8FAFC;
           border: 1px solid #E2E8F0;
-          padding: 1rem 1.2rem;
           border-radius: 12px;
+          padding: 1rem;
           margin-bottom: 1.2rem;
         }
 
         .strip-badge {
-          display: inline-block;
           font-size: 0.68rem;
           font-weight: 800;
-          color: var(--color-green);
+          color: #059669;
           letter-spacing: 0.5px;
-          margin-bottom: 0.2rem;
         }
 
         .strip-info h4 {
-          margin: 0 0 0.2rem;
-          font-size: 1.05rem;
+          font-size: 1.1rem;
+          font-weight: 800;
           color: var(--color-navy);
+          margin: 0.1rem 0;
         }
 
         .strip-info p {
-          margin: 0;
           font-size: 0.82rem;
           color: #64748B;
+          margin: 0;
         }
 
         .strip-stats {
@@ -2963,42 +3447,9 @@ export default function PlanJourney() {
           color: var(--color-navy);
         }
 
-        .section-title-wrap {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          margin-bottom: 0.9rem;
-        }
-
-        .section-title-wrap h4 {
-          font-size: 1rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin: 0;
-        }
-
-        .phone-prefix-wrap {
-          position: relative;
-        }
-
-        .phone-prefix {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          font-size: 0.9rem;
-          font-weight: 700;
-          color: #64748B;
-        }
-
-        .roavio-input.ps-prefix {
-          padding-left: 48px;
-        }
-
-        /* Payment Tabs */
         .pay-methods-tabs {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
+          grid-template-columns: repeat(3, 1fr);
           gap: 0.6rem;
           margin-bottom: 1rem;
         }
@@ -3016,7 +3467,6 @@ export default function PlanJourney() {
           font-weight: 700;
           color: #475569;
           cursor: pointer;
-          transition: all 0.2s;
         }
 
         .pay-tab-btn.active {
@@ -3027,15 +3477,15 @@ export default function PlanJourney() {
 
         .upi-apps-row {
           display: flex;
-          gap: 0.6rem;
-          margin-bottom: 0.6rem;
+          gap: 0.5rem;
         }
 
         .app-chip {
-          padding: 0.4rem 0.8rem;
+          flex: 1;
+          padding: 0.5rem;
           border-radius: 8px;
           border: 1px solid #CBD5E1;
-          background: white;
+          background: #FFFFFF;
           font-size: 0.8rem;
           font-weight: 700;
           cursor: pointer;
@@ -3044,153 +3494,93 @@ export default function PlanJourney() {
         .app-chip.selected {
           border-color: var(--color-green);
           background: #F0FDF4;
-          color: var(--color-green);
-        }
-
-        .input-with-btn, .input-with-card-brand {
-          position: relative;
-        }
-
-        .verified-pill, .card-brand-badge {
-          position: absolute;
-          right: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: var(--color-green);
+          color: #166534;
         }
 
         .banks-radio-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+          grid-template-columns: repeat(3, 1fr);
           gap: 0.6rem;
         }
 
         .bank-tile {
           display: flex;
-          flex-direction: column;
           align-items: center;
-          gap: 0.4rem;
-          padding: 0.8rem 0.5rem;
-          border: 1.5px solid #E2E8F0;
-          border-radius: 10px;
-          background: #F8FAFC;
+          gap: 0.5rem;
+          padding: 0.6rem;
+          border: 1px solid #CBD5E1;
+          border-radius: 8px;
+          font-size: 0.82rem;
           cursor: pointer;
-          font-size: 0.75rem;
-          font-weight: 700;
-          text-align: center;
         }
 
         .bank-tile.active {
           border-color: var(--color-green);
           background: #F0FDF4;
-          color: var(--color-green);
+          color: #166534;
+          font-weight: 700;
         }
 
         .checkout-fare-summary {
           background: #F8FAFC;
           border: 1px solid #E2E8F0;
           border-radius: 12px;
-          padding: 1.1rem;
+          padding: 1rem;
         }
 
         .fare-line {
           display: flex;
           justify-content: space-between;
-          font-size: 0.85rem;
-          color: #475569;
+          font-size: 0.84rem;
           margin-bottom: 0.4rem;
+          color: #475569;
         }
 
         .fare-line-total {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 1px solid #CBD5E1;
           padding-top: 0.8rem;
-          margin-top: 0.6rem;
+          margin-top: 0.8rem;
+          border-top: 2px solid #CBD5E1;
         }
 
         .total-title {
           display: block;
+          font-size: 0.95rem;
           font-weight: 800;
           color: var(--color-navy);
-          font-size: 1rem;
         }
 
         .total-sub {
-          display: block;
-          font-size: 0.74rem;
+          font-size: 0.72rem;
           color: #64748B;
         }
 
         .total-num {
-          font-size: 1.35rem;
+          font-size: 1.6rem;
           font-weight: 900;
           color: var(--color-green);
         }
 
         .checkout-footer-bar {
           display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-top: 1rem;
-          border-top: 1px solid #E2E8F0;
+          justify-content: flex-end;
+          gap: 0.8rem;
         }
 
-        .btn-pay-confirm {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.95rem;
-          font-weight: 800;
-          padding: 0.8rem 1.4rem;
-        }
-
-        /* Payment Splash & Confirmation */
-        .payment-processing-splash {
-          padding: 4rem 2rem;
-          text-align: center;
-        }
-
-        .pulse-spinner {
-          width: 55px;
-          height: 55px;
-          border: 4px solid #E2E8F0;
-          border-top-color: var(--color-green);
-          border-radius: 50%;
-          margin: 0 auto 1.5rem;
-          animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .secure-badge-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          margin-top: 1rem;
-          font-size: 0.78rem;
-          color: #64748B;
-          background: #F1F5F9;
-          padding: 0.35rem 0.8rem;
-          border-radius: 999px;
-        }
-
+        /* Confirmed Ticket Pass */
         .booking-confirmed-splash {
-          padding: 2.5rem 2rem;
+          padding: 2rem 1.5rem;
           text-align: center;
         }
 
         .success-icon-badge {
-          width: 65px;
-          height: 65px;
+          width: 64px;
+          height: 64px;
           border-radius: 50%;
           background: #DCFCE7;
-          color: #16A34A;
+          color: #166534;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -3198,35 +3588,28 @@ export default function PlanJourney() {
         }
 
         .confirmed-ticket-pass {
-          background: #F8FAFC;
+          background: #FFFFFF;
           border: 2px dashed #CBD5E1;
-          border-radius: 16px;
-          padding: 1.4rem;
-          margin: 1.5rem auto 0;
-          max-width: 580px;
+          border-radius: 14px;
+          padding: 1.2rem;
+          margin-top: 1.2rem;
           text-align: left;
         }
 
         .pass-header {
           display: flex;
           justify-content: space-between;
-          align-items: flex-start;
+          align-items: center;
           border-bottom: 1px solid #E2E8F0;
           padding-bottom: 0.8rem;
-          margin-bottom: 1rem;
+          margin-bottom: 0.8rem;
         }
 
         .pass-label {
           font-size: 0.7rem;
           font-weight: 800;
-          color: var(--color-green);
+          color: #059669;
           letter-spacing: 0.5px;
-        }
-
-        .pass-header h4 {
-          margin: 0.2rem 0 0;
-          font-size: 1.05rem;
-          color: var(--color-navy);
         }
 
         .pass-pnr-box {
@@ -3240,16 +3623,16 @@ export default function PlanJourney() {
         }
 
         .pnr-v {
-          font-size: 1.05rem;
-          color: var(--color-navy);
+          font-size: 1rem;
           font-weight: 800;
+          color: var(--color-navy);
         }
 
         .pass-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(3, 1fr);
           gap: 0.8rem;
-          margin-bottom: 1rem;
+          margin-bottom: 0.8rem;
         }
 
         .pg-k {
@@ -3282,6 +3665,30 @@ export default function PlanJourney() {
         }
 
         @media (max-width: 992px) {
+          .choice-tabs-grid, .fixed-packages-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .hotel-select-card {
+            grid-template-columns: 1fr;
+          }
+
+          .hotel-card-right {
+            border-left: none;
+            border-top: 1px dashed #E2E8F0;
+            padding-left: 0;
+            padding-top: 0.8rem;
+            text-align: left;
+          }
+
+          .duration-presets-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .meals-selection-grid {
+            grid-template-columns: 1fr;
+          }
+
           .planner-grid {
             grid-template-columns: 1fr;
           }
