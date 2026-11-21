@@ -2086,21 +2086,28 @@ export default function PlanJourney() {
       )}
 
       {/* =========================================================================
-          2. TRIP REGISTRATION & PAYMENT CHECKOUT MODAL
+          2. TRIP REGISTRATION & PAYMENT CHECKOUT MODAL (LUXURY MODERN REDESIGN)
       ========================================================================= */}
       {tripRegisterModalOpen && (
         <div className="plan-modal-overlay" onClick={() => !isProcessingPayment && setTripRegisterModalOpen(false)}>
           <div className="plan-modal-box checkout-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="plan-modal-header">
-              <div className="d-flex align-items-center gap-2">
-                <CreditCard size={22} className="text-green" />
+            {/* Modal Header */}
+            <div className="checkout-modal-hdr">
+              <div className="d-flex align-items-center gap-3">
+                <div className="modal-hdr-icon-box">
+                  <Ticket size={24} />
+                </div>
                 <div>
-                  <h3 className="modal-title">Register & Book Your Journey</h3>
-                  <span className="modal-subtitle">Secure Online Reservation & Instant Ticket Generation</span>
+                  <h3 className="modal-title">Complete Your Trip Registration</h3>
+                  <span className="modal-subtitle">Instant E-Ticket Dispatch • Official IRCTC & Partner Verified</span>
                 </div>
               </div>
               {!isProcessingPayment && (
-                <button onClick={() => setTripRegisterModalOpen(false)} className="modal-close-x">
+                <button 
+                  onClick={() => setTripRegisterModalOpen(false)} 
+                  className="modal-close-x"
+                  aria-label="Close modal"
+                >
                   <X size={20} />
                 </button>
               )}
@@ -2109,9 +2116,16 @@ export default function PlanJourney() {
             {/* PROCESSING STATE SPINNER */}
             {isProcessingPayment && (
               <div className="payment-processing-splash">
-                <div className="pulse-spinner"></div>
-                <h3>Authorizing Secure Payment</h3>
-                <p>Verifying with Bank & NPCI Payment Gateway... Generating your cryptographically verified Roavio E-Tickets.</p>
+                <div className="pulse-spinner-glow">
+                  <div className="inner-spin"></div>
+                </div>
+                <h3 className="process-title">Authorizing Secure Payment</h3>
+                <p className="process-desc">
+                  Connecting to NPCI & Bank Payment Gateway... Generating cryptographically verified Roavio E-Tickets with QR codes.
+                </p>
+                <div className="processing-progress-bar">
+                  <div className="progress-bar-fill"></div>
+                </div>
                 <div className="secure-badge-pill">
                   <Lock size={14} /> 256-Bit SSL Encrypted Banking Channel
                 </div>
@@ -2120,57 +2134,87 @@ export default function PlanJourney() {
 
             {/* CONFIRMED BOOKING SUCCESS SCREEN */}
             {!isProcessingPayment && confirmedBookingData && (
-              <div className="booking-confirmed-splash">
-                <div className="success-icon-badge">
-                  <Check size={36} />
+              <div className="booking-confirmed-wrapper">
+                <div className="booking-success-header">
+                  <div className="success-pulse-circle">
+                    <Check size={36} className="text-white" />
+                  </div>
+                  <h2 className="success-title">Custom Trip Confirmed & Booked!</h2>
+                  <p className="success-desc">
+                    Your reservation has been confirmed. Official verified E-Tickets with QR codes and boarding vouchers have been generated.
+                  </p>
                 </div>
-                <h2>Custom Trip Confirmed & Booked!</h2>
-                <p className="lead-text">
-                  Your reservation is confirmed. Official verified E-Tickets with QR codes have been generated and dispatched.
-                </p>
 
-                <div className="confirmed-ticket-pass">
-                  <div className="pass-header">
-                    <div>
-                      <span className="pass-label">CONFIRMED ROAVIO PASS</span>
-                      <h4>{confirmedBookingData.title}</h4>
+                <div className="luxury-boarding-stub">
+                  <div className="stub-top-bar">
+                    <div className="d-flex align-items-center gap-2">
+                      <Sparkles size={16} className="text-emerald" />
+                      <span className="stub-brand-title">CONFIRMED ROAVIO PASS</span>
                     </div>
-                    <div className="pass-pnr-box">
-                      <span className="pnr-k">PNR / PASS ID</span>
-                      <strong className="pnr-v">{confirmedBookingData.providerReference || `ROA-PASS-${Math.floor(1000 + Math.random() * 9000)}`}</strong>
+                    <div className="pnr-badge-box">
+                      <span className="pnr-title">PNR / PASS ID</span>
+                      <strong className="pnr-code">{confirmedBookingData.providerReference || `ROA-PASS-${Math.floor(1000 + Math.random() * 9000)}`}</strong>
                     </div>
                   </div>
 
-                  <div className="pass-grid">
+                  <div className="stub-route-row">
                     <div>
-                      <span className="pg-k">Lead Traveler</span>
-                      <strong className="pg-v">{leadName}</strong>
+                      <span className="stub-sub-lbl">FROM</span>
+                      <h4 className="stub-station-name">{sourceCity}</h4>
                     </div>
-                    <div>
-                      <span className="pg-k">Travelers</span>
-                      <strong className="pg-v">{travelersCount} Person{travelersCount > 1 ? "s" : ""}</strong>
+                    <div className="stub-route-arrow">
+                      <div className="transit-icon-badge">
+                        {selectedTransportTicket.mode === "flight" ? <Plane size={18} /> : 
+                         selectedTransportTicket.mode === "train" ? <Train size={18} /> : 
+                         selectedTransportTicket.mode === "bus" ? <Bus size={18} /> : <Car size={18} />}
+                      </div>
+                      <span className="route-arrow-txt">➔</span>
                     </div>
-                    <div>
-                      <span className="pg-k">Dates</span>
-                      <strong className="pg-v">{startDate} to {endDate}</strong>
-                    </div>
-                    <div>
-                      <span className="pg-k">Plan Choice</span>
-                      <strong className="pg-v">{planMode === "custom" ? "Custom Selected Stay & Transit" : selectedFixedPackage.name}</strong>
-                    </div>
-                    <div>
-                      <span className="pg-k">Route</span>
-                      <strong className="pg-v">{sourceCity} ➔ {selectedDestinations[0]?.city || "India"}</strong>
-                    </div>
-                    <div>
-                      <span className="pg-k">Total Paid</span>
-                      <strong className="pg-v text-green">₹{activePayableTotal.toLocaleString()}</strong>
+                    <div className="text-end">
+                      <span className="stub-sub-lbl">TO DESTINATION</span>
+                      <h4 className="stub-station-name">{selectedDestinations[0]?.city || selectedDestinations[0]?.name || "India"}</h4>
                     </div>
                   </div>
 
-                  <div className="pass-dispatch-alert">
-                    <CheckCircle2 size={16} className="text-green flex-shrink-0" />
-                    <span>Confirmation & Live Pass dispatched to <strong>+91 {leadPhone}</strong> and <strong>{leadEmail}</strong></span>
+                  <div className="stub-details-matrix">
+                    <div className="stub-col">
+                      <span className="stub-k">Lead Traveler</span>
+                      <strong className="stub-v">{leadName}</strong>
+                    </div>
+                    <div className="stub-col">
+                      <span className="stub-k">Travelers</span>
+                      <strong className="stub-v">{travelersCount} Person{travelersCount > 1 ? "s" : ""}</strong>
+                    </div>
+                    <div className="stub-col">
+                      <span className="stub-k">Dates</span>
+                      <strong className="stub-v">{startDate} to {endDate}</strong>
+                    </div>
+                    <div className="stub-col">
+                      <span className="stub-k">Plan Choice</span>
+                      <strong className="stub-v">{planMode === "custom" ? "Custom Selected Stay & Transit" : selectedFixedPackage.name}</strong>
+                    </div>
+                    <div className="stub-col">
+                      <span className="stub-k">Total Paid</span>
+                      <strong className="stub-v text-emerald">₹{activePayableTotal.toLocaleString()}</strong>
+                    </div>
+                    <div className="stub-col">
+                      <span className="stub-k">Booking Reference</span>
+                      <strong className="stub-v">{confirmedBookingData.bookingId || `BK-${Math.floor(10000 + Math.random() * 90000)}`}</strong>
+                    </div>
+                  </div>
+
+                  <div className="stub-dispatch-footer">
+                    <div className="qr-box-simulated">
+                      <QrCode size={40} className="text-navy" />
+                    </div>
+                    <div className="dispatch-text-col">
+                      <div className="d-flex align-items-center gap-1 text-emerald fw-bold mb-1">
+                        <CheckCircle2 size={16} /> Live E-Pass Dispatched Successfully
+                      </div>
+                      <p className="small text-muted mb-0">
+                        Confirmation & Pass dispatched via SMS & WhatsApp to <strong>+91 {leadPhone}</strong> and email to <strong>{leadEmail}</strong>
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -2180,15 +2224,15 @@ export default function PlanJourney() {
                       setTripRegisterModalOpen(false);
                       navigate("/my-trips");
                     }}
-                    className="btn btn-primary"
+                    className="btn btn-primary d-flex align-items-center justify-content-center gap-2 py-3 px-4"
                   >
                     <Ticket size={18} /> View Tickets in My Trips Dashboard
                   </button>
                   <button 
                     onClick={() => setTripRegisterModalOpen(false)}
-                    className="btn btn-outline"
+                    className="btn btn-outline py-3 px-4"
                   >
-                    Close & Keep Planning
+                    Done / Return to Planner
                   </button>
                 </div>
               </div>
@@ -2197,31 +2241,87 @@ export default function PlanJourney() {
             {/* STEP 1: REGISTRATION & PAYMENT FORM */}
             {!isProcessingPayment && !confirmedBookingData && (
               <form onSubmit={handlePayAndConfirmTrip} className="checkout-form-body">
-                {/* Trip Overview Strip */}
-                <div className="checkout-trip-strip">
-                  <div className="strip-info">
-                    <span className="strip-badge">
-                      {planMode === "custom" ? "CUSTOM BUILT ITINERARY" : "ROAVIO FIXED BUDGET PACKAGE"}
-                    </span>
-                    <h4>{tripTitle}</h4>
-                    <p>{sourceCity} ➔ {selectedDestinations.map(d => d.name).join(" ➔ ")}</p>
+                {/* Boarding Pass Hero Summary */}
+                <div className="checkout-ticket-card">
+                  <div className="ticket-top-ribbon">
+                    <div className="ticket-badge-pill">
+                      <Sparkles size={13} className="text-emerald" />
+                      <span>{planMode === "custom" ? "CUSTOM BUILT ITINERARY" : "ROAVIO FIXED BUDGET PACKAGE"}</span>
+                    </div>
+                    <div className="ticket-class-pill">
+                      <ShieldCheck size={13} className="text-emerald" />
+                      <span>Instant Verified Booking</span>
+                    </div>
                   </div>
-                  <div className="strip-stats">
-                    <span>{planMode === "custom" ? tripDurationDays : selectedFixedPackage.durationDays} Days</span>
-                    <span>{travelersCount} Travelers</span>
-                    <span>{planMode === "custom" ? selectedHotel.name : selectedFixedPackage.duration}</span>
+
+                  <div className="ticket-main-route">
+                    <div className="route-stop">
+                      <span className="route-type-label">ORIGIN</span>
+                      <h4 className="route-city-name">{sourceCity}</h4>
+                    </div>
+
+                    <div className="route-transit-divider">
+                      <div className="transit-icon-circle">
+                        {selectedTransportTicket.mode === "flight" ? <Plane size={18} /> : 
+                         selectedTransportTicket.mode === "train" ? <Train size={18} /> : 
+                         selectedTransportTicket.mode === "bus" ? <Bus size={18} /> : <Car size={18} />}
+                      </div>
+                      <div className="transit-line-dashed"></div>
+                      <span className="transit-operator-badge">
+                        {planMode === "custom" ? selectedTransportTicket.operator : selectedFixedPackage.name}
+                      </span>
+                    </div>
+
+                    <div className="route-stop text-end">
+                      <span className="route-type-label">DESTINATION</span>
+                      <h4 className="route-city-name">{selectedDestinations.map(d => d.name).join(" ➔ ")}</h4>
+                    </div>
+                  </div>
+
+                  <div className="ticket-perks-grid">
+                    <div className="ticket-perk-item">
+                      <Calendar size={15} className="text-emerald flex-shrink-0" />
+                      <div>
+                        <span className="t-lbl">Trip Duration & Dates</span>
+                        <strong className="t-val">{startDate} to {endDate} ({planMode === "custom" ? tripDurationDays : selectedFixedPackage.durationDays} Days)</strong>
+                      </div>
+                    </div>
+
+                    <div className="ticket-perk-item">
+                      <Users size={15} className="text-emerald flex-shrink-0" />
+                      <div>
+                        <span className="t-lbl">Travel Party</span>
+                        <strong className="t-val">{travelersCount} Adult Traveler{travelersCount > 1 ? "s" : ""}</strong>
+                      </div>
+                    </div>
+
+                    <div className="ticket-perk-item">
+                      <Hotel size={15} className="text-emerald flex-shrink-0" />
+                      <div>
+                        <span className="t-lbl">Hotel & Accommodation</span>
+                        <strong className="t-val">{planMode === "custom" ? selectedHotel.name : "Roavio Luxury Partner Resort"}</strong>
+                      </div>
+                    </div>
+
+                    <div className="ticket-perk-item">
+                      <Award size={15} className="text-emerald flex-shrink-0" />
+                      <div>
+                        <span className="t-lbl">Verified Inclusions</span>
+                        <strong className="t-val">Monument Pass & Certified Guide Included</strong>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {/* LOGIN REQUIRED GATE IF USER NOT LOGGED IN */}
                 {!user ? (
-                  <div className="checkout-login-gate p-4 text-center bg-light rounded-3 my-3">
-                    <div className="gate-icon-circle mx-auto mb-3" style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Lock size={28} />
+                  <div className="checkout-login-gate p-4 text-center rounded-3 my-3">
+                    <div className="gate-icon-circle mx-auto mb-3">
+                      <Lock size={26} />
                     </div>
-                    <h4 className="text-navy mb-2">Login Required to Complete Payment</h4>
-                    <p className="text-muted small mb-4" style={{ maxWidth: '460px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
-                      To securely authorize your payment and link confirmed Roavio E-Tickets to your traveler dashboard, please sign in to your account.
+                    <h4 className="text-navy mb-2">Login Required to Complete Reservation</h4>
+                    <p className="text-muted small mb-4" style={{ maxWidth: '480px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                      To securely authorize your payment and link your cryptographically verified Roavio E-Tickets to your traveler account, please sign in.
                     </p>
 
                     <div className="d-flex flex-column gap-2" style={{ maxWidth: '360px', margin: '0 auto' }}>
@@ -2254,191 +2354,261 @@ export default function PlanJourney() {
                   </div>
                 ) : (
                   <>
-                    <div className="logged-in-user-strip d-flex align-items-center justify-content-between p-2 px-3 rounded-3 mb-3 small" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534' }}>
-                      <div className="d-flex align-items-center gap-2">
-                        <CheckCircle2 size={16} className="flex-shrink-0" />
-                        <span>Signed in as <strong>{user.name}</strong> ({user.email})</span>
+                    {/* Signed-in Traveler Identity Banner */}
+                    <div className="traveler-account-card">
+                      <div className="account-avatar-circle">
+                        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                       </div>
-                      <span className="badge bg-success text-white">Verified Account</span>
+                      <div className="account-details-col">
+                        <div className="d-flex align-items-center gap-2 flex-wrap">
+                          <strong className="account-user-name">{user.name}</strong>
+                          <span className="account-verified-tag">
+                            <CheckCircle2 size={13} /> Verified Traveler
+                          </span>
+                        </div>
+                        <span className="account-user-email">{user.email} • E-Tickets will automatically sync to your dashboard</span>
+                      </div>
                     </div>
 
-                    {/* Section A: Traveler Registration Details */}
-                    <div className="checkout-section">
-                      <div className="section-title-wrap">
-                        <User size={18} className="text-green" />
-                        <h4>1. Traveler Registration Details</h4>
+                    {/* Section 1: Traveler Registration Details */}
+                    <div className="checkout-step-container">
+                      <div className="checkout-step-hdr">
+                        <div className="step-num-pill">1</div>
+                        <div>
+                          <h4 className="step-title">Primary Traveler & E-Ticket Delivery Details</h4>
+                          <p className="step-desc">Boarding pass, booking voucher and live driver/conductor tracking will be sent here.</p>
+                        </div>
                       </div>
 
-                      <div className="form-row-2">
-                        <div className="form-group">
-                          <label>Lead Passenger Full Name *</label>
-                          <input 
-                            type="text" 
-                            required
-                            value={leadName} 
-                            onChange={(e) => setLeadName(e.target.value)}
-                            className="roavio-input" 
-                            placeholder="e.g. Rahul Sharma"
-                          />
+                      <div className="checkout-form-grid">
+                        <div className="field-block">
+                          <label className="checkout-field-label">
+                            Lead Passenger Full Name <span className="req-star">*</span>
+                          </label>
+                          <div className="checkout-input-wrap">
+                            <User size={17} className="input-field-icon" />
+                            <input 
+                              type="text" 
+                              required
+                              value={leadName} 
+                              onChange={(e) => setLeadName(e.target.value)}
+                              className="checkout-text-input has-icon" 
+                              placeholder="e.g. Rahul Sharma"
+                            />
+                          </div>
+                          <span className="field-hint">Must match government photo ID (Aadhaar / Passport)</span>
                         </div>
 
-                        <div className="form-group">
-                          <label>Mobile Number (for SMS & WhatsApp E-Ticket) *</label>
-                          <div className="phone-prefix-wrap">
-                            <span className="phone-prefix">+91</span>
+                        <div className="field-block">
+                          <label className="checkout-field-label">
+                            Mobile Number (WhatsApp & SMS E-Ticket) <span className="req-star">*</span>
+                          </label>
+                          <div className="checkout-phone-input-group">
+                            <div className="phone-country-code">
+                              <span className="flag-icon">🇮🇳</span>
+                              <span className="code-text">+91</span>
+                            </div>
                             <input 
                               type="tel" 
                               required
                               maxLength={10}
                               value={leadPhone} 
                               onChange={(e) => setLeadPhone(e.target.value.replace(/\D/g, ''))}
-                              className="roavio-input ps-prefix" 
-                              placeholder="10-digit number"
+                              className="checkout-phone-input" 
+                              placeholder="10-digit mobile number"
                             />
                           </div>
-                        </div>
-                      </div>
-
-                      <div className="form-row-2 mt-2">
-                        <div className="form-group">
-                          <label>Email Address (for Official PDF Pass) *</label>
-                          <input 
-                            type="email" 
-                            required
-                            value={leadEmail} 
-                            onChange={(e) => setLeadEmail(e.target.value)}
-                            className="roavio-input" 
-                            placeholder="rahul.sharma@example.com"
-                          />
+                          <span className="field-hint">Instant SMS ticket & WhatsApp QR code will be dispatched here</span>
                         </div>
 
-                        <div className="form-group">
-                          <label>Emergency Contact Phone</label>
-                          <input 
-                            type="tel" 
-                            value={emergencyPhone} 
-                            onChange={(e) => setEmergencyPhone(e.target.value)}
-                            className="roavio-input" 
-                            placeholder="Family / Emergency contact"
-                          />
+                        <div className="field-block">
+                          <label className="checkout-field-label">
+                            Email Address (Official PDF Ticket & Invoice) <span className="req-star">*</span>
+                          </label>
+                          <div className="checkout-input-wrap">
+                            <Mail size={17} className="input-field-icon" />
+                            <input 
+                              type="email" 
+                              required
+                              value={leadEmail} 
+                              onChange={(e) => setLeadEmail(e.target.value)}
+                              className="checkout-text-input has-icon" 
+                              placeholder="e.g. rahul.sharma@example.com"
+                            />
+                          </div>
+                          <span className="field-hint">Tax invoice, GST receipt & PDF itinerary</span>
+                        </div>
+
+                        <div className="field-block">
+                          <label className="checkout-field-label">
+                            Emergency Contact Mobile <span className="opt-tag">(Optional)</span>
+                          </label>
+                          <div className="checkout-input-wrap">
+                            <Phone size={17} className="input-field-icon" />
+                            <input 
+                              type="tel" 
+                              value={emergencyPhone} 
+                              onChange={(e) => setEmergencyPhone(e.target.value)}
+                              className="checkout-text-input has-icon" 
+                              placeholder="Family / Co-traveler contact"
+                            />
+                          </div>
+                          <span className="field-hint">Used only during transit or medical emergency</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Section B: Choose Payment Method */}
-                    <div className="checkout-section mt-4">
-                      <div className="section-title-wrap">
-                        <ShieldCheck size={18} className="text-green" />
-                        <h4>2. Select Payment Method & Verify Tickets</h4>
+                    {/* Section 2: Choose Payment Method */}
+                    <div className="checkout-step-container mt-4">
+                      <div className="checkout-step-hdr">
+                        <div className="step-num-pill">2</div>
+                        <div>
+                          <h4 className="step-title">Select Secure Payment Gateway</h4>
+                          <p className="step-desc">Zero platform convenience fee • 256-Bit SSL Bank Encrypted</p>
+                        </div>
                       </div>
 
                       {/* Payment Method Tabs */}
-                      <div className="pay-methods-tabs">
+                      <div className="pay-methods-grid">
                         <button
                           type="button"
                           onClick={() => setPaymentMethod("upi")}
-                          className={`pay-tab-btn ${paymentMethod === "upi" ? "active" : ""}`}
+                          className={`pay-option-card ${paymentMethod === "upi" ? "active" : ""}`}
                         >
-                          <Smartphone size={16} />
-                          <span>UPI Instant (GPay / PhonePe)</span>
+                          <div className="option-radio-indicator">
+                            <div className="radio-inner-dot"></div>
+                          </div>
+                          <div className="option-icon-box">
+                            <Smartphone size={18} />
+                          </div>
+                          <div className="option-text-col">
+                            <div className="option-title">UPI Instant</div>
+                            <div className="option-sub">GPay, PhonePe, Paytm, BHIM</div>
+                          </div>
+                          <span className="popular-badge">⚡ Fastest</span>
                         </button>
+
                         <button
                           type="button"
                           onClick={() => setPaymentMethod("card")}
-                          className={`pay-tab-btn ${paymentMethod === "card" ? "active" : ""}`}
+                          className={`pay-option-card ${paymentMethod === "card" ? "active" : ""}`}
                         >
-                          <CreditCard size={16} />
-                          <span>Credit / Debit Card</span>
+                          <div className="option-radio-indicator">
+                            <div className="radio-inner-dot"></div>
+                          </div>
+                          <div className="option-icon-box">
+                            <CreditCard size={18} />
+                          </div>
+                          <div className="option-text-col">
+                            <div className="option-title">Credit / Debit Card</div>
+                            <div className="option-sub">Visa, Mastercard, RuPay</div>
+                          </div>
                         </button>
+
                         <button
                           type="button"
                           onClick={() => setPaymentMethod("netbanking")}
-                          className={`pay-tab-btn ${paymentMethod === "netbanking" ? "active" : ""}`}
+                          className={`pay-option-card ${paymentMethod === "netbanking" ? "active" : ""}`}
                         >
-                          <Building2 size={16} />
-                          <span>Net Banking</span>
+                          <div className="option-radio-indicator">
+                            <div className="radio-inner-dot"></div>
+                          </div>
+                          <div className="option-icon-box">
+                            <Building2 size={18} />
+                          </div>
+                          <div className="option-text-col">
+                            <div className="option-title">Net Banking</div>
+                            <div className="option-sub">All Major Indian Banks</div>
+                          </div>
                         </button>
                       </div>
 
                       {/* UPI Inputs */}
                       {paymentMethod === "upi" && (
-                        <div className="pay-tab-content">
-                          <div className="upi-apps-row">
-                            <button type="button" onClick={() => setUpiApp("gpay")} className={`app-chip ${upiApp === "gpay" ? "selected" : ""}`}>
+                        <div className="pay-subpanel">
+                          <label className="checkout-field-label mb-2 d-block">Quick Select UPI App:</label>
+                          <div className="upi-app-selectors">
+                            <button type="button" onClick={() => setUpiApp("gpay")} className={`upi-app-btn ${upiApp === "gpay" ? "active" : ""}`}>
                               Google Pay
                             </button>
-                            <button type="button" onClick={() => setUpiApp("phonepe")} className={`app-chip ${upiApp === "phonepe" ? "selected" : ""}`}>
+                            <button type="button" onClick={() => setUpiApp("phonepe")} className={`upi-app-btn ${upiApp === "phonepe" ? "active" : ""}`}>
                               PhonePe
                             </button>
-                            <button type="button" onClick={() => setUpiApp("paytm")} className={`app-chip ${upiApp === "paytm" ? "selected" : ""}`}>
+                            <button type="button" onClick={() => setUpiApp("paytm")} className={`upi-app-btn ${upiApp === "paytm" ? "active" : ""}`}>
                               Paytm
                             </button>
-                            <button type="button" onClick={() => setUpiApp("bhim")} className={`app-chip ${upiApp === "bhim" ? "selected" : ""}`}>
+                            <button type="button" onClick={() => setUpiApp("bhim")} className={`upi-app-btn ${upiApp === "bhim" ? "active" : ""}`}>
                               BHIM UPI
                             </button>
                           </div>
 
-                          <div className="form-group mt-3">
-                            <label>Virtual Payment Address (UPI ID)</label>
-                            <div className="input-with-btn">
+                          <div className="field-block mt-3">
+                            <label className="checkout-field-label">Virtual Payment Address (UPI VPA)</label>
+                            <div className="vpa-input-container">
                               <input 
                                 type="text" 
                                 value={upiId} 
                                 onChange={(e) => setUpiId(e.target.value)}
-                                className="roavio-input" 
+                                className="checkout-text-input" 
                                 placeholder="username@okhdfcbank"
                               />
-                              <span className="verified-pill">Verified ID ✓</span>
+                              <span className="vpa-verified-badge">
+                                <Check size={14} /> Verified VPA
+                              </span>
                             </div>
+                            <span className="field-hint">You will receive an approval notification in your UPI app upon submission.</span>
                           </div>
                         </div>
                       )}
 
                       {/* Card Inputs */}
                       {paymentMethod === "card" && (
-                        <div className="pay-tab-content">
-                          <div className="form-group">
-                            <label>Card Number</label>
-                            <div className="input-with-card-brand">
+                        <div className="pay-subpanel">
+                          <div className="field-block mb-3">
+                            <label className="checkout-field-label">Card Number</label>
+                            <div className="card-input-container">
                               <input 
                                 type="text" 
                                 value={cardNumber} 
                                 onChange={(e) => setCardNumber(e.target.value)}
-                                className="roavio-input" 
+                                className="checkout-text-input" 
                                 placeholder="4532 •••• •••• 8821"
                               />
-                              <span className="card-brand-badge">VISA / RuPay</span>
+                              <span className="card-brand-badge">
+                                <CreditCard size={14} /> VISA / RuPay
+                              </span>
                             </div>
                           </div>
 
-                          <div className="form-row-3 mt-2">
-                            <div className="form-group">
-                              <label>Cardholder Name</label>
+                          <div className="card-subgrid">
+                            <div className="field-block">
+                              <label className="checkout-field-label">Cardholder Name</label>
                               <input 
                                 type="text" 
                                 value={cardName} 
                                 onChange={(e) => setCardName(e.target.value)}
-                                className="roavio-input" 
+                                className="checkout-text-input" 
+                                placeholder="As on card"
                               />
                             </div>
-                            <div className="form-group">
-                              <label>Expiry Date</label>
+                            <div className="field-block">
+                              <label className="checkout-field-label">Expiry Date</label>
                               <input 
                                 type="text" 
                                 value={cardExpiry} 
                                 onChange={(e) => setCardExpiry(e.target.value)}
-                                className="roavio-input" 
-                                placeholder="MM/YY"
+                                className="checkout-text-input" 
+                                placeholder="MM / YY"
                               />
                             </div>
-                            <div className="form-group">
-                              <label>CVV / CVC</label>
+                            <div className="field-block">
+                              <label className="checkout-field-label">CVV / CVC</label>
                               <input 
                                 type="password" 
                                 maxLength={4}
                                 value={cardCvv} 
                                 onChange={(e) => setCardCvv(e.target.value)}
-                                className="roavio-input" 
+                                className="checkout-text-input" 
                                 placeholder="•••"
                               />
                             </div>
@@ -2448,83 +2618,128 @@ export default function PlanJourney() {
 
                       {/* Net Banking Inputs */}
                       {paymentMethod === "netbanking" && (
-                        <div className="pay-tab-content">
-                          <label className="mb-2 d-block small fw-bold">Select Bank:</label>
-                          <div className="banks-radio-grid">
-                            {["HDFC Bank", "State Bank of India", "ICICI Bank", "Axis Bank", "Kotak Mahindra"].map((bank) => (
-                              <div 
-                                key={bank} 
+                        <div className="pay-subpanel">
+                          <label className="checkout-field-label mb-2 d-block">Choose Your Primary Bank Account:</label>
+                          <div className="bank-select-grid">
+                            {["HDFC Bank", "State Bank of India", "ICICI Bank", "Axis Bank", "Kotak Mahindra Bank"].map((bank) => (
+                              <button
+                                key={bank}
+                                type="button"
                                 onClick={() => setSelectedBank(bank)}
-                                className={`bank-tile ${selectedBank === bank ? "active" : ""}`}
+                                className={`bank-option-card ${selectedBank === bank ? "active" : ""}`}
                               >
-                                <Building2 size={18} />
+                                <Building2 size={16} />
                                 <span>{bank}</span>
-                              </div>
+                                {selectedBank === bank && <Check size={14} className="bank-check-icon text-emerald" />}
+                              </button>
                             ))}
                           </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Section C: Live Transparent Fare Summary */}
-                    <div className="checkout-fare-summary mt-4">
-                      <div className="fare-line">
-                        <span>
-                          {planMode === "custom" ? "Custom Journey Package:" : selectedFixedPackage.name} ({travelersCount} travelers x ₹{activePerPersonRate.toLocaleString()}):
-                        </span>
-                        <strong>₹{activePayableTotal.toLocaleString()}</strong>
-                      </div>
-                      <div className="fare-line">
-                        <span>Monument Passes & Certified Guided Tours:</span>
-                        <strong className="text-green">Included ✓</strong>
-                      </div>
-                      <div className="fare-line">
-                        <span>Transit Booking & Convenience Fee:</span>
-                        <strong className="text-green">₹0 (Promo Waived)</strong>
-                      </div>
-                      <div className="fare-line-total">
-                        <div>
-                          <span className="total-title">Total Payable Amount</span>
-                          <span className="total-sub">All taxes and certified access included</span>
+                    {/* Section 3: Live Transparent Fare Summary */}
+                    <div className="checkout-fare-receipt mt-4">
+                      <div className="fare-receipt-hdr">
+                        <div className="d-flex align-items-center gap-2">
+                          <Ticket size={16} className="text-emerald" />
+                          <span className="receipt-title">Itemized Fare & Tax Summary</span>
                         </div>
-                        <span className="total-num">₹{activePayableTotal.toLocaleString()}</span>
+                        <span className="guarantee-badge">Zero Hidden Surcharges</span>
+                      </div>
+
+                      <div className="fare-receipt-body">
+                        <div className="fare-line-item">
+                          <span className="line-item-desc">
+                            {planMode === "custom" ? "Custom Itinerary Transit & Hotel Stay" : selectedFixedPackage.name} 
+                            <span className="sub-tag">({travelersCount} traveler{travelersCount > 1 ? "s" : ""} x ₹{activePerPersonRate.toLocaleString()})</span>
+                          </span>
+                          <span className="line-item-amt">₹{activePayableTotal.toLocaleString()}</span>
+                        </div>
+
+                        <div className="fare-line-item">
+                          <span className="line-item-desc">
+                            Monument Passes & Certified Guided Sightseeing
+                            <span className="sub-tag">(Complimentary Inclusion)</span>
+                          </span>
+                          <span className="line-item-amt text-emerald font-weight-700">₹0 Included</span>
+                        </div>
+
+                        <div className="fare-line-item">
+                          <span className="line-item-desc">
+                            IRCTC / Air Partner Convenience & Processing Fee
+                            <span className="sub-tag">(Roavio Special Waiver)</span>
+                          </span>
+                          <span className="line-item-amt text-emerald font-weight-700">
+                            <del className="text-muted me-1">₹350</del> ₹0 Promo
+                          </span>
+                        </div>
+
+                        <div className="fare-total-banner">
+                          <div className="total-label-col">
+                            <div className="total-main-text">Total Payable Amount</div>
+                            <div className="total-sub-text">Inclusive of all Goods & Services Taxes (GST)</div>
+                          </div>
+                          <div className="total-val-box">
+                            <div className="total-currency-sym">₹</div>
+                            <div className="total-numeric-amt">{activePayableTotal.toLocaleString()}</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </>
                 )}
 
-                <div className="checkout-footer-bar mt-4">
-                  <button 
-                    type="button" 
-                    onClick={() => setTripRegisterModalOpen(false)} 
-                    className="btn btn-outline"
-                  >
-                    Cancel
-                  </button>
-                  {!user ? (
+                {/* Checkout Sticky Action Bar */}
+                <div className="checkout-sticky-footer mt-4">
+                  <div className="trust-seals-row">
+                    <div className="trust-seal-item">
+                      <Lock size={13} className="text-emerald" />
+                      <span>256-Bit SSL Encrypted</span>
+                    </div>
+                    <div className="trust-seal-item">
+                      <CheckCircle2 size={13} className="text-emerald" />
+                      <span>Instant PNR Dispatch</span>
+                    </div>
+                    <div className="trust-seal-item">
+                      <ShieldCheck size={13} className="text-emerald" />
+                      <span>100% Verified Reservation</span>
+                    </div>
+                  </div>
+
+                  <div className="checkout-action-buttons">
                     <button 
                       type="button" 
-                      onClick={() => {
-                        login({
-                          email: "rahul.sharma@example.com",
-                          name: "Rahul Sharma",
-                          phone: "9876543210"
-                        });
-                      }}
-                      className="btn btn-primary btn-pay-confirm"
+                      onClick={() => setTripRegisterModalOpen(false)} 
+                      className="btn-checkout-cancel"
                     >
-                      <Lock size={16} />
-                      <span>Log In to Proceed to Payment</span>
+                      Cancel & Review
                     </button>
-                  ) : (
-                    <button 
-                      type="submit" 
-                      className="btn btn-primary btn-pay-confirm"
-                    >
-                      <Lock size={16} />
-                      <span>Pay ₹{activePayableTotal.toLocaleString()} & Confirm Trip Tickets</span>
-                    </button>
-                  )}
+                    {!user ? (
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          login({
+                            email: "rahul.sharma@example.com",
+                            name: "Rahul Sharma",
+                            phone: "9876543210"
+                          });
+                        }}
+                        className="btn-checkout-confirm"
+                      >
+                        <Lock size={18} />
+                        <span>Log In to Authorize & Book</span>
+                      </button>
+                    ) : (
+                      <button 
+                        type="submit" 
+                        className="btn-checkout-confirm"
+                      >
+                        <Lock size={18} />
+                        <span>Pay ₹{activePayableTotal.toLocaleString()} & Confirm E-Tickets</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </form>
             )}
@@ -4419,7 +4634,7 @@ export default function PlanJourney() {
           flex-shrink: 0;
         }
 
-        /* Modals & Checkout Styling */
+        /* Modals & Checkout Styling - Luxury Modern Upgrade */
         .plan-modal-overlay {
           position: fixed;
           top: 0;
@@ -4427,293 +4642,1110 @@ export default function PlanJourney() {
           right: 0;
           bottom: 0;
           background: rgba(15, 23, 42, 0.75);
-          backdrop-filter: blur(4px);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           z-index: 9999;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 1rem;
+          padding: 1.25rem;
           overflow-y: auto;
         }
 
-        .plan-modal-box {
-          background: white;
-          border-radius: 20px;
+        .checkout-modal-box {
+          background: #FFFFFF;
+          border-radius: 24px;
           width: 100%;
-          max-width: 680px;
-          max-height: 90vh;
+          max-width: 820px;
+          max-height: 92vh;
           overflow-y: auto;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);
+          border: 1px solid rgba(226, 232, 240, 0.9);
           box-sizing: border-box;
+          scrollbar-width: thin;
+          scrollbar-color: #CBD5E1 transparent;
         }
 
-        .plan-modal-header {
+        .checkout-modal-box::-webkit-scrollbar {
+          width: 6px;
+        }
+        .checkout-modal-box::-webkit-scrollbar-thumb {
+          background-color: #CBD5E1;
+          border-radius: 6px;
+        }
+
+        /* Modal Header */
+        .checkout-modal-hdr {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 1.2rem 1.5rem;
+          padding: 1.4rem 1.8rem;
           border-bottom: 1.5px solid #F1F5F9;
+          background: #FFFFFF;
+          position: sticky;
+          top: 0;
+          z-index: 10;
         }
 
-        .modal-title {
-          font-size: 1.25rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin: 0;
-        }
-
-        .modal-subtitle {
-          font-size: 0.78rem;
-          color: #64748B;
-        }
-
-        .modal-close-x {
-          background: none;
-          border: none;
-          color: #64748B;
-          cursor: pointer;
-        }
-
-        .plan-modal-body {
-          padding: 1.5rem;
-        }
-
-        .plan-modal-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1rem 1.5rem;
-          border-top: 1.5px solid #F1F5F9;
-          background: #F8FAFC;
-        }
-
-        .checkout-trip-strip {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+        .modal-hdr-icon-box {
+          width: 46px;
+          height: 46px;
           border-radius: 12px;
-          padding: 1rem;
-          margin-bottom: 1.2rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 0.8rem;
-        }
-
-        .strip-badge {
-          font-size: 0.68rem;
-          font-weight: 800;
-          color: #166534;
-          background: #DCFCE7;
-          padding: 0.2rem 0.5rem;
-          border-radius: 6px;
-        }
-
-        .checkout-trip-strip h4 {
-          font-size: 1.05rem;
-          font-weight: 800;
-          color: var(--color-navy);
-          margin: 0.2rem 0;
-        }
-
-        .checkout-trip-strip p {
-          font-size: 0.8rem;
-          color: #64748B;
-          margin: 0;
-        }
-
-        .strip-stats {
-          display: flex;
-          gap: 0.5rem;
-          flex-wrap: wrap;
-        }
-
-        .strip-stats span {
-          background: white;
-          border: 1px solid #CBD5E1;
-          font-size: 0.74rem;
-          font-weight: 700;
-          padding: 0.25rem 0.6rem;
-          border-radius: 6px;
-        }
-
-        .pay-methods-tabs {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.6rem;
-          margin-bottom: 1rem;
-        }
-
-        .pay-tab-btn {
+          background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+          color: #FFFFFF;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0.4rem;
-          padding: 0.7rem 0.5rem;
-          border-radius: 10px;
-          border: 1.5px solid #CBD5E1;
+          box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
+          flex-shrink: 0;
+        }
+
+        .checkout-modal-hdr .modal-title {
+          font-size: 1.3rem;
+          font-weight: 800;
+          color: #0F172A;
+          margin: 0;
+          letter-spacing: -0.01em;
+        }
+
+        .checkout-modal-hdr .modal-subtitle {
+          font-size: 0.8rem;
+          color: #64748B;
+          display: block;
+          margin-top: 2px;
+          font-weight: 500;
+        }
+
+        .modal-close-x {
+          background: #F1F5F9;
+          border: none;
+          color: #64748B;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .modal-close-x:hover {
+          background: #E2E8F0;
+          color: #0F172A;
+          transform: rotate(90deg);
+        }
+
+        /* Modal Form Body */
+        .checkout-form-body {
+          padding: 1.6rem 1.8rem 2rem;
+        }
+
+        /* Boarding Pass Hero Ticket Card */
+        .checkout-ticket-card {
+          background: linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%);
+          border: 1.5px solid #E2E8F0;
+          border-radius: 18px;
+          padding: 1.4rem;
+          margin-bottom: 1.5rem;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+          position: relative;
+        }
+
+        .ticket-top-ribbon {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        .ticket-badge-pill {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          background: #DCFCE7;
+          color: #166534;
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 0.3rem 0.7rem;
+          border-radius: 20px;
+          letter-spacing: 0.03em;
+          border: 1px solid #BBF7D0;
+        }
+
+        .ticket-class-pill {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          background: #EFF6FF;
+          color: #1D4ED8;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 0.3rem 0.65rem;
+          border-radius: 20px;
+          border: 1px solid #DBEAFE;
+        }
+
+        .ticket-main-route {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.8rem 0;
+          border-top: 1px dashed #CBD5E1;
+          border-bottom: 1px dashed #CBD5E1;
+          margin-bottom: 1rem;
+          gap: 1rem;
+        }
+
+        .route-stop {
+          flex: 1;
+        }
+
+        .route-type-label {
+          font-size: 0.68rem;
+          font-weight: 700;
+          color: #94A3B8;
+          letter-spacing: 0.05em;
+          display: block;
+        }
+
+        .route-city-name {
+          font-size: 1.2rem;
+          font-weight: 800;
+          color: #0F172A;
+          margin: 2px 0 0;
+        }
+
+        .route-transit-divider {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          position: relative;
+          padding: 0 1rem;
+        }
+
+        .transit-icon-circle {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
           background: #FFFFFF;
-          font-size: 0.82rem;
+          color: #059669;
+          border: 1.5px solid #BBF7D0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+          z-index: 2;
+        }
+
+        .transit-operator-badge {
+          margin-top: 6px;
+          font-size: 0.72rem;
           font-weight: 700;
           color: #475569;
-          cursor: pointer;
+          background: #FFFFFF;
+          padding: 2px 8px;
+          border-radius: 6px;
+          border: 1px solid #E2E8F0;
+          white-space: nowrap;
         }
 
-        .pay-tab-btn.active {
-          border-color: var(--color-green);
-          background: #F0FDF4;
-          color: #166534;
-          box-shadow: 0 0 0 2px rgba(21, 155, 117, 0.2);
+        .ticket-perks-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.8rem 1.2rem;
         }
 
-        .upi-apps-row {
+        .ticket-perk-item {
           display: flex;
-          gap: 0.5rem;
-          flex-wrap: wrap;
+          align-items: flex-start;
+          gap: 8px;
         }
 
-        .app-chip {
-          padding: 0.4rem 0.8rem;
-          border-radius: 8px;
-          border: 1.5px solid #CBD5E1;
-          background: white;
-          font-size: 0.8rem;
+        .ticket-perk-item .t-lbl {
+          display: block;
+          font-size: 0.7rem;
+          color: #64748B;
+          font-weight: 600;
+        }
+
+        .ticket-perk-item .t-val {
+          display: block;
+          font-size: 0.84rem;
+          color: #0F172A;
           font-weight: 700;
+        }
+
+        /* Traveler Account Card */
+        .traveler-account-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: #F0FDF4;
+          border: 1.5px solid #BBF7D0;
+          border-radius: 14px;
+          padding: 0.9rem 1.2rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .account-avatar-circle {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+          color: #FFFFFF;
+          font-size: 1.1rem;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 3px 8px rgba(16, 185, 129, 0.25);
+        }
+
+        .account-details-col {
+          flex: 1;
+        }
+
+        .account-user-name {
+          font-size: 0.95rem;
+          color: #0F172A;
+        }
+
+        .account-verified-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: #DCFCE7;
+          color: #166534;
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 12px;
+          border: 1px solid #86EFAC;
+        }
+
+        .account-user-email {
+          display: block;
+          font-size: 0.78rem;
+          color: #475569;
+          margin-top: 2px;
+        }
+
+        /* Checkout Steps */
+        .checkout-step-container {
+          background: #FFFFFF;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 16px;
+          padding: 1.3rem;
+          margin-bottom: 1.4rem;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .checkout-step-hdr {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          margin-bottom: 1.2rem;
+        }
+
+        .step-num-pill {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          background: #059669;
+          color: #FFFFFF;
+          font-weight: 800;
+          font-size: 0.85rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .step-title {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: #0F172A;
+          margin: 0;
+        }
+
+        .step-desc {
+          font-size: 0.78rem;
+          color: #64748B;
+          margin: 2px 0 0;
+        }
+
+        /* Form Controls */
+        .checkout-form-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.1rem;
+        }
+
+        .field-block {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .checkout-field-label {
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: #1E293B;
+          margin-bottom: 0.4rem;
+        }
+
+        .req-star {
+          color: #EF4444;
+          font-weight: 800;
+        }
+
+        .opt-tag {
+          font-size: 0.72rem;
+          font-weight: 500;
+          color: #94A3B8;
+        }
+
+        .checkout-input-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .input-field-icon {
+          position: absolute;
+          left: 12px;
+          color: #94A3B8;
+          pointer-events: none;
+        }
+
+        .checkout-text-input {
+          width: 100%;
+          padding: 0.72rem 0.95rem;
+          border: 1.5px solid #CBD5E1;
+          border-radius: 11px;
+          font-size: 0.9rem;
+          color: #0F172A;
+          background: #FFFFFF;
+          outline: none;
+          box-sizing: border-box;
+          transition: all 0.2s;
+        }
+
+        .checkout-text-input.has-icon {
+          padding-left: 38px;
+        }
+
+        .checkout-text-input:focus {
+          border-color: #059669;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        /* Phone Input Group with Country Code */
+        .checkout-phone-input-group {
+          display: flex;
+          align-items: stretch;
+          border: 1.5px solid #CBD5E1;
+          border-radius: 11px;
+          background: #FFFFFF;
+          overflow: hidden;
+          transition: all 0.2s;
+        }
+
+        .checkout-phone-input-group:focus-within {
+          border-color: #059669;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        .phone-country-code {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 0 12px;
+          background: #F8FAFC;
+          border-right: 1.5px solid #E2E8F0;
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: #334155;
+          user-select: none;
+          flex-shrink: 0;
+        }
+
+        .checkout-phone-input {
+          border: none;
+          outline: none;
+          flex: 1;
+          padding: 0.72rem 0.95rem;
+          font-size: 0.9rem;
+          color: #0F172A;
+          background: transparent;
+        }
+
+        .field-hint {
+          font-size: 0.72rem;
+          color: #94A3B8;
+          margin-top: 0.35rem;
+        }
+
+        /* Payment Gateway Methods */
+        .pay-methods-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.8rem;
+          margin-bottom: 1.2rem;
+        }
+
+        .pay-option-card {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 0.9rem 1rem;
+          border: 1.5px solid #CBD5E1;
+          border-radius: 12px;
+          background: #FFFFFF;
           cursor: pointer;
+          transition: all 0.2s;
+          text-align: left;
         }
 
-        .app-chip.selected {
-          border-color: var(--color-navy);
-          background: var(--color-navy);
-          color: white;
+        .pay-option-card:hover {
+          border-color: #94A3B8;
+          background: #F8FAFC;
         }
 
-        .checkout-fare-summary {
+        .pay-option-card.active {
+          border-color: #059669;
+          background: #F0FDF4;
+          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+
+        .option-radio-indicator {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          border: 1.5px solid #CBD5E1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .pay-option-card.active .option-radio-indicator {
+          border-color: #059669;
+          background: #059669;
+        }
+
+        .radio-inner-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #FFFFFF;
+          display: none;
+        }
+
+        .pay-option-card.active .radio-inner-dot {
+          display: block;
+        }
+
+        .option-icon-box {
+          color: #059669;
+          margin-bottom: 0.4rem;
+        }
+
+        .option-title {
+          font-size: 0.86rem;
+          font-weight: 800;
+          color: #0F172A;
+        }
+
+        .option-sub {
+          font-size: 0.72rem;
+          color: #64748B;
+          margin-top: 2px;
+        }
+
+        .popular-badge {
+          position: absolute;
+          bottom: 8px;
+          right: 8px;
+          font-size: 0.65rem;
+          font-weight: 800;
+          color: #D97706;
+          background: #FEF3C7;
+          padding: 1px 5px;
+          border-radius: 4px;
+        }
+
+        .pay-subpanel {
           background: #F8FAFC;
           border: 1px solid #E2E8F0;
           border-radius: 12px;
           padding: 1.1rem;
         }
 
-        .fare-line {
+        .upi-app-selectors {
           display: flex;
-          justify-content: space-between;
-          font-size: 0.84rem;
-          color: #475569;
-          margin-bottom: 0.4rem;
+          gap: 0.6rem;
+          flex-wrap: wrap;
         }
 
-        .fare-line-total {
+        .upi-app-btn {
+          padding: 0.45rem 0.85rem;
+          border-radius: 8px;
+          border: 1.5px solid #CBD5E1;
+          background: #FFFFFF;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #334155;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .upi-app-btn.active {
+          border-color: #0F172A;
+          background: #0F172A;
+          color: #FFFFFF;
+        }
+
+        .vpa-input-container,
+        .card-input-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .vpa-verified-badge {
+          position: absolute;
+          right: 12px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #059669;
+          display: flex;
+          align-items: center;
+          gap: 3px;
+        }
+
+        .card-brand-badge {
+          position: absolute;
+          right: 12px;
+          font-size: 0.74rem;
+          font-weight: 700;
+          color: #475569;
+          background: #F1F5F9;
+          padding: 3px 8px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .card-subgrid {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr;
+          gap: 0.8rem;
+        }
+
+        .bank-select-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+          gap: 0.6rem;
+        }
+
+        .bank-option-card {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0.7rem 0.9rem;
+          border-radius: 10px;
+          border: 1.5px solid #CBD5E1;
+          background: #FFFFFF;
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: #334155;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .bank-option-card:hover {
+          border-color: #94A3B8;
+        }
+
+        .bank-option-card.active {
+          border-color: #059669;
+          background: #F0FDF4;
+          color: #166534;
+        }
+
+        .bank-check-icon {
+          margin-left: auto;
+        }
+
+        /* Itemized Fare Receipt */
+        .checkout-fare-receipt {
+          background: #F8FAFC;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 16px;
+          overflow: hidden;
+        }
+
+        .fare-receipt-hdr {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 1.5px solid #CBD5E1;
-          padding-top: 0.8rem;
+          padding: 0.85rem 1.2rem;
+          background: #F1F5F9;
+          border-bottom: 1.5px solid #E2E8F0;
+        }
+
+        .receipt-title {
+          font-size: 0.88rem;
+          font-weight: 800;
+          color: #0F172A;
+        }
+
+        .guarantee-badge {
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: #059669;
+          background: #DCFCE7;
+          padding: 2px 7px;
+          border-radius: 10px;
+        }
+
+        .fare-receipt-body {
+          padding: 1.1rem 1.3rem;
+        }
+
+        .fare-line-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.84rem;
+          color: #475569;
+          margin-bottom: 0.6rem;
+        }
+
+        .line-item-desc {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .sub-tag {
+          font-size: 0.75rem;
+          color: #64748B;
+        }
+
+        .line-item-amt {
+          font-weight: 700;
+          color: #0F172A;
+        }
+
+        .fare-total-banner {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-top: 2px dashed #CBD5E1;
+          padding-top: 1rem;
           margin-top: 0.8rem;
         }
 
-        .total-num {
-          font-size: 1.5rem;
-          font-weight: 900;
-          color: var(--color-green);
+        .total-main-text {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: #0F172A;
         }
 
-        .checkout-footer-bar {
+        .total-sub-text {
+          font-size: 0.75rem;
+          color: #64748B;
+        }
+
+        .total-val-box {
+          display: flex;
+          align-items: baseline;
+          gap: 2px;
+          color: #059669;
+        }
+
+        .total-currency-sym {
+          font-size: 1.2rem;
+          font-weight: 800;
+        }
+
+        .total-numeric-amt {
+          font-size: 1.8rem;
+          font-weight: 900;
+          letter-spacing: -0.02em;
+        }
+
+        /* Sticky Footer */
+        .checkout-sticky-footer {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          padding-top: 1.2rem;
+          border-top: 1.5px solid #F1F5F9;
+        }
+
+        .trust-seals-row {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 1.4rem;
+          flex-wrap: wrap;
+        }
+
+        .trust-seal-item {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 0.74rem;
+          font-weight: 700;
+          color: #475569;
+        }
+
+        .checkout-action-buttons {
           display: flex;
           justify-content: space-between;
           align-items: center;
           gap: 1rem;
         }
 
-        .btn-pay-confirm {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.85rem 1.4rem;
-          font-weight: 800;
+        .btn-checkout-cancel {
+          background: transparent;
+          border: 1.5px solid #CBD5E1;
+          border-radius: 12px;
+          padding: 0.9rem 1.4rem;
+          font-weight: 700;
+          font-size: 0.88rem;
+          color: #475569;
+          cursor: pointer;
+          transition: all 0.2s;
         }
 
-        /* Success Pass Ticket */
-        .confirmed-ticket-pass {
-          background: #F8FAFC;
+        .btn-checkout-cancel:hover {
+          background: #F1F5F9;
+          color: #0F172A;
+        }
+
+        .btn-checkout-confirm {
+          flex: 1;
+          background: linear-gradient(135deg, #059669 0%, #047857 100%);
+          border: none;
+          border-radius: 12px;
+          padding: 0.95rem 1.6rem;
+          font-weight: 800;
+          font-size: 1rem;
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          box-shadow: 0 6px 18px rgba(5, 150, 105, 0.35);
+          transition: all 0.2s;
+        }
+
+        .btn-checkout-confirm:hover {
+          background: linear-gradient(135deg, #047857 0%, #065F46 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 8px 22px rgba(5, 150, 105, 0.45);
+        }
+
+        /* Processing Spinner Screen */
+        .payment-processing-splash {
+          padding: 3rem 2rem;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .pulse-spinner-glow {
+          position: relative;
+          width: 72px;
+          height: 72px;
+          margin-bottom: 1.5rem;
+        }
+
+        .inner-spin {
+          width: 72px;
+          height: 72px;
+          border: 4px solid #E2E8F0;
+          border-top-color: #059669;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        .process-title {
+          font-size: 1.35rem;
+          font-weight: 800;
+          color: #0F172A;
+          margin-bottom: 0.5rem;
+        }
+
+        .process-desc {
+          font-size: 0.88rem;
+          color: #64748B;
+          max-width: 480px;
+          line-height: 1.5;
+          margin-bottom: 1.5rem;
+        }
+
+        .processing-progress-bar {
+          width: 100%;
+          max-width: 360px;
+          height: 8px;
+          background: #E2E8F0;
+          border-radius: 4px;
+          overflow: hidden;
+          margin-bottom: 1.5rem;
+        }
+
+        .progress-bar-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #059669, #34D399, #059669);
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite linear;
+          width: 100%;
+        }
+
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .secure-badge-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #EFF6FF;
+          color: #1D4ED8;
+          font-size: 0.78rem;
+          font-weight: 700;
+          padding: 0.4rem 0.9rem;
+          border-radius: 20px;
+          border: 1px solid #BFDBFE;
+        }
+
+        /* Booking Confirmed E-Ticket Stub */
+        .booking-confirmed-wrapper {
+          padding: 2rem 2.2rem;
+          text-align: center;
+        }
+
+        .booking-success-header {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-bottom: 1.5rem;
+        }
+
+        .success-pulse-circle {
+          width: 68px;
+          height: 68px;
+          border-radius: 50%;
+          background: #059669;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 1rem;
+          box-shadow: 0 0 0 10px rgba(16, 185, 129, 0.15);
+        }
+
+        .success-title {
+          font-size: 1.45rem;
+          font-weight: 800;
+          color: #0F172A;
+          margin-bottom: 0.4rem;
+        }
+
+        .success-desc {
+          font-size: 0.88rem;
+          color: #64748B;
+          max-width: 520px;
+          line-height: 1.5;
+        }
+
+        .luxury-boarding-stub {
+          background: #FFFFFF;
           border: 1.5px solid #BBF7D0;
-          border-radius: 16px;
-          padding: 1.2rem;
-          margin: 1.2rem 0;
+          border-radius: 18px;
+          padding: 1.4rem;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
           text-align: left;
         }
 
-        .pass-header {
+        .stub-top-bar {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-bottom: 1.5px solid #E2E8F0;
+          border-bottom: 1.5px solid #F1F5F9;
           padding-bottom: 0.8rem;
-          margin-bottom: 0.8rem;
+          margin-bottom: 1rem;
         }
 
-        .pass-label {
-          font-size: 0.7rem;
+        .stub-brand-title {
+          font-size: 0.78rem;
           font-weight: 800;
-          color: #166534;
+          color: #059669;
+          letter-spacing: 0.05em;
         }
 
-        .pass-header h4 {
-          margin: 0;
-          font-size: 1rem;
-          color: var(--color-navy);
+        .pnr-badge-box {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
         }
 
-        .pass-pnr-box {
-          text-align: right;
+        .pnr-title {
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: #94A3B8;
         }
 
-        .pnr-k {
-          display: block;
+        .pnr-code {
+          font-family: monospace;
+          font-size: 1.05rem;
+          color: #0F172A;
+          letter-spacing: 0.05em;
+        }
+
+        .stub-route-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.2rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px dashed #E2E8F0;
+        }
+
+        .stub-sub-lbl {
           font-size: 0.68rem;
-          color: #64748B;
-        }
-
-        .pnr-v {
-          font-size: 0.95rem;
-          color: var(--color-navy);
-        }
-
-        .pass-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.8rem;
-          margin-bottom: 0.8rem;
-        }
-
-        .pg-k {
+          font-weight: 700;
+          color: #94A3B8;
           display: block;
-          font-size: 0.72rem;
-          color: #64748B;
         }
 
-        .pg-v {
-          font-size: 0.88rem;
-          color: var(--color-navy);
+        .stub-station-name {
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: #0F172A;
+          margin: 2px 0 0;
         }
 
-        .pass-dispatch-alert {
+        .stub-route-arrow {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        }
+
+        .transit-icon-badge {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #F0FDF4;
+          color: #059669;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          background: #F0FDF4;
-          border: 1px solid #BBF7D0;
-          border-radius: 8px;
-          padding: 0.6rem 0.8rem;
-          font-size: 0.8rem;
-          color: #166534;
+          justify-content: center;
         }
 
-        .confirmed-actions-row {
-          display: flex;
-          justify-content: center;
+        .route-arrow-txt {
+          font-size: 1rem;
+          color: #CBD5E1;
+        }
+
+        .stub-details-matrix {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
           gap: 1rem;
-          flex-wrap: wrap;
+          margin-bottom: 1.2rem;
+        }
+
+        .stub-k {
+          display: block;
+          font-size: 0.7rem;
+          color: #64748B;
+          font-weight: 600;
+        }
+
+        .stub-v {
+          display: block;
+          font-size: 0.88rem;
+          color: #0F172A;
+          font-weight: 700;
+          margin-top: 2px;
+        }
+
+        .stub-dispatch-footer {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          background: #F8FAFC;
+          border-radius: 12px;
+          padding: 0.9rem;
+          border: 1px solid #E2E8F0;
+        }
+
+        .qr-box-simulated {
+          width: 52px;
+          height: 52px;
+          background: #FFFFFF;
+          border: 1px solid #CBD5E1;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .dispatch-text-col {
+          flex: 1;
+        }
+
+        /* Mobile Adjustments for Checkout */
+        @media (max-width: 640px) {
+          .checkout-modal-hdr {
+            padding: 1.1rem 1.2rem;
+          }
+          .checkout-form-body {
+            padding: 1.2rem 1.2rem 1.5rem;
+          }
+          .checkout-form-grid {
+            grid-template-columns: 1fr;
+          }
+          .ticket-perks-grid {
+            grid-template-columns: 1fr;
+          }
+          .pay-methods-grid {
+            grid-template-columns: 1fr;
+          }
+          .card-subgrid {
+            grid-template-columns: 1fr;
+          }
+          .stub-details-matrix {
+            grid-template-columns: 1fr 1fr;
+          }
+          .checkout-action-buttons {
+            flex-direction: column-reverse;
+          }
+          .btn-checkout-cancel,
+          .btn-checkout-confirm {
+            width: 100%;
+          }
         }
 
         /* =========================================================================
