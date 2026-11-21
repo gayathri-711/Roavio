@@ -107,6 +107,13 @@ export default function Login() {
 
         const result = login(userToLogin, "otp_login");
         if (result.success) {
+          try {
+            if (typeof window !== "undefined" && window.BroadcastChannel) {
+              const channel = new BroadcastChannel("roavio_platform_sync");
+              channel.postMessage({ type: "USER_LOGGED_IN", user: userToLogin, timestamp: Date.now() });
+              channel.close();
+            }
+          } catch (e) {}
           navigate(from, { replace: true });
         } else {
           setError(result.error || "Login failed.");
@@ -155,6 +162,13 @@ export default function Login() {
       const result = login(userToLogin, password);
 
       if (result.success) {
+        try {
+          if (typeof window !== "undefined" && window.BroadcastChannel) {
+            const channel = new BroadcastChannel("roavio_platform_sync");
+            channel.postMessage({ type: "USER_LOGGED_IN", user: userToLogin, timestamp: Date.now() });
+            channel.close();
+          }
+        } catch (e) {}
         if (isAdminLogin) {
           navigate("/admin", { replace: true });
         } else {

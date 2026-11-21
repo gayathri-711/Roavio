@@ -72,13 +72,12 @@ export default function AdminDashboard() {
   const [usersList, setUsersList] = useState(() => getInitialCombinedUsers());
   const [chartYear, setChartYear] = useState("2026");
 
-  // Sync users with backend API
-  useEffect(() => {
+  const refreshDashboard = () => {
     fetch("/api/admin/users")
       .then((res) => res.json())
       .then((data) => {
         if (data?.users && Array.isArray(data.users)) {
-          setUsersList((prev) => {
+          setUsersList(() => {
             const emailMap = new Set();
             const merged = [];
 
@@ -99,7 +98,7 @@ export default function AdminDashboard() {
               }
             });
 
-            prev.forEach((u) => {
+            SAMPLE_USERS.forEach((u) => {
               const email = (u.email || "").toLowerCase();
               if (!emailMap.has(email)) {
                 emailMap.add(email);
@@ -112,6 +111,28 @@ export default function AdminDashboard() {
         }
       })
       .catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshDashboard();
+    const timer = setInterval(refreshDashboard, 2500);
+
+    let channel = null;
+    try {
+      if (typeof window !== "undefined" && window.BroadcastChannel) {
+        channel = new BroadcastChannel("roavio_platform_sync");
+        channel.onmessage = () => refreshDashboard();
+      }
+    } catch (e) {}
+
+    const onStorage = () => refreshDashboard();
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      clearInterval(timer);
+      if (channel) channel.close();
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   // Max value for CSS bar height calculation

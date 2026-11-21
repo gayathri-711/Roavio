@@ -142,7 +142,7 @@ export default function Register() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -168,42 +168,70 @@ export default function Register() {
     }
 
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const trimmedName = (fullName || "Traveler").trim();
+      const initials = trimmedName
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2) || "TR";
+
+      const cleanMobile = mobileNumber.replace(/\D/g, "").slice(-10);
+
+      const userProfile = {
+        id: `usr-${Date.now().toString().slice(-4)}`,
+        name: trimmedName,
+        fullName: trimmedName,
+        email: email.trim().toLowerCase(),
+        phone: `+91 ${cleanMobile}`,
+        mobileNumber: cleanMobile,
+        mobileVerified: true,
+        avatar: initials,
+        city: "New Delhi",
+        role: "Traveler",
+        status: "Active",
+        kycStatus: "Verified",
+        bookingsCount: 0,
+        tripsPlanned: 0,
+        registeredAt: new Date().toISOString()
+      };
+
+      // 1. Immediately persist to server disk store (/server/data_store.json)
       try {
-        const trimmedName = (fullName || "Traveler").trim();
-        const initials = trimmedName
-          .split(/\s+/)
-          .filter(Boolean)
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2) || "TR";
-
-        const cleanMobile = mobileNumber.replace(/\D/g, "").slice(-10);
-
-        const result = register({
-          id: `usr-${Date.now().toString().slice(-4)}`,
-          name: trimmedName,
-          email: email.trim(),
-          phone: `+91 ${cleanMobile}`,
-          mobileNumber: cleanMobile,
-          mobileVerified: true,
-          avatar: initials,
-          role: "Traveler"
+        await fetch("/api/admin/record-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userProfile)
         });
-
-        if (result.success) {
-          navigate("/my-trips", { replace: true });
-        } else {
-          setError(result.error || "Registration failed. Please check inputs.");
-        }
-      } catch (err) {
-        console.error("Registration error:", err);
-        setError("Registration error: " + (err.message || "Unknown error"));
-      } finally {
-        setLoading(false);
+      } catch (apiErr) {
+        console.warn("Backend user recording sync notice:", apiErr);
       }
-    }, 300);
+
+      // 2. Broadcast across all open browser windows/tabs for instant zero-latency update
+      try {
+        if (typeof window !== "undefined" && window.BroadcastChannel) {
+          const channel = new BroadcastChannel("roavio_platform_sync");
+          channel.postMessage({ type: "USER_REGISTERED", user: userProfile, timestamp: Date.now() });
+          channel.close();
+        }
+      } catch (bcErr) {}
+
+      // 3. Register user in client state
+      const result = register(userProfile);
+
+      if (result.success) {
+        navigate("/my-trips", { replace: true });
+      } else {
+        setError(result.error || "Registration failed. Please check inputs.");
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError("Registration error: " + (err.message || "Unknown error"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

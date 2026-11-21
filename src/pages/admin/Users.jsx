@@ -64,17 +64,16 @@ export default function AdminUsers() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Sync with backend API on mount
-  useEffect(() => {
+  const refreshUsers = () => {
     fetch("/api/admin/users")
       .then((res) => res.json())
       .then((data) => {
         if (data?.users && Array.isArray(data.users)) {
-          setUsersList((prev) => {
+          setUsersList(() => {
             const emailMap = new Set();
             const merged = [];
 
-            // Backend users first
+            // 1. Backend persistent database users
             data.users.forEach((u) => {
               const email = (u.email || "").toLowerCase();
               if (email && !emailMap.has(email)) {
@@ -85,21 +84,46 @@ export default function AdminUsers() {
                   email: u.email,
                   phone: u.mobileNumber || u.phone || "+91 98765 43210",
                   city: u.city || "New Delhi",
-                  role: u.role || "Traveler",
+                  role: u.role || (email.includes("admin") ? "Administrator" : "Traveler"),
                   status: u.status || "Active",
                   kycStatus: u.kycStatus || (u.mobileVerified ? "Verified" : "Pending"),
                   bookingsCount: u.bookingsCount || 0,
                   tripsPlanned: u.tripsPlanned || 0,
-                  joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Nov 2026",
+                  joined: u.createdAt || u.registeredAt ? new Date(u.createdAt || u.registeredAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Nov 2026",
                   isLiveUser: true
                 });
               }
             });
 
-            // Previous list (local storage + samples)
-            prev.forEach((u) => {
+            // 2. Client local storage registered users
+            try {
+              const registered = JSON.parse(localStorage.getItem("roavio_registered_users") || "[]");
+              registered.forEach((u) => {
+                const email = (u.email || "").toLowerCase();
+                if (email && !emailMap.has(email)) {
+                  emailMap.add(email);
+                  merged.push({
+                    id: u.id || ("usr-" + Date.now().toString().slice(-4)),
+                    name: u.name || u.fullName || "Traveler",
+                    email: u.email,
+                    phone: u.phone || u.mobileNumber || "+91 98765 43210",
+                    city: u.city || "New Delhi",
+                    role: u.role || (email.includes("admin") ? "Administrator" : "Traveler"),
+                    status: u.status || "Active",
+                    kycStatus: u.kycStatus || "Verified",
+                    bookingsCount: u.bookingsCount || 0,
+                    tripsPlanned: u.tripsPlanned || 0,
+                    joined: u.registeredAt ? new Date(u.registeredAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Nov 2026",
+                    isLiveUser: true
+                  });
+                }
+              });
+            } catch (e) {}
+
+            // 3. Fallback sample seed users
+            SAMPLE_USERS.forEach((u) => {
               const email = (u.email || "").toLowerCase();
-              if (email && !emailMap.has(email)) {
+              if (!emailMap.has(email)) {
                 emailMap.add(email);
                 merged.push(u);
               }
@@ -110,6 +134,41 @@ export default function AdminUsers() {
         }
       })
       .catch(() => {});
+  };
+
+  // Sync with backend API on mount & live periodic polling + real-time BroadcastChannel
+  useEffect(() => {
+    refreshUsers();
+
+    // 1. Live server polling every 2.5s for seamless multi-page/multi-device synchronization
+    const pollTimer = setInterval(refreshUsers, 2500);
+
+    // 2. Real-time instant BroadcastChannel for cross-tab synchronization in the same browser (0ms)
+    let channel = null;
+    try {
+      if (typeof window !== "undefined" && window.BroadcastChannel) {
+        channel = new BroadcastChannel("roavio_platform_sync");
+        channel.onmessage = (e) => {
+          if (e.data?.type === "USER_REGISTERED" || e.data?.type === "USER_LOGGED_IN" || e.data?.type === "BOOKING_CREATED") {
+            refreshUsers();
+          }
+        };
+      }
+    } catch (e) {}
+
+    // 3. Storage event for cross-window / tab changes
+    const onStorage = (e) => {
+      if (e.key === "roavio_registered_users" || e.key === "roavio_user") {
+        refreshUsers();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      clearInterval(pollTimer);
+      if (channel) channel.close();
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   const filtered = useMemo(() => {

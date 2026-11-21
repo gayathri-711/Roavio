@@ -233,16 +233,24 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
 
       const newUser = {
         id: `usr-${Date.now().toString().slice(-4)}`,
+        name: fullName.trim(),
         fullName: fullName.trim(),
         email: email.trim().toLowerCase(),
         mobileNumber: cleanMobile,
+        phone: `+91 ${cleanMobile}`,
         mobileVerified: true,
+        city: 'New Delhi',
         role: email.toLowerCase().includes('admin') ? 'Administrator' : 'Traveler',
         avatar: (fullName || 'TR').substring(0, 2).toUpperCase(),
+        status: 'Active',
+        kycStatus: 'Verified',
+        bookingsCount: 0,
+        tripsPlanned: 0,
+        registeredAt: new Date().toISOString(),
         createdAt: new Date().toISOString()
       };
 
-      dbStore.users.push(newUser);
+      dbStore.users.unshift(newUser);
       dbStore.save();
 
       res.writeHead(201);

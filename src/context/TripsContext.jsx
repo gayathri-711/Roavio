@@ -78,8 +78,8 @@ export const TripsProvider = ({ children }) => {
   const [bookings, setBookings] = useState(() => loadUserBookings(userKey));
   const [allPlatformBookings, setAllPlatformBookings] = useState(() => loadAllPlatformBookings());
 
-  // Periodically / on-mount sync platform bookings with backend API
-  useEffect(() => {
+  // Helper to sync bookings with backend API
+  const syncPlatformBookings = () => {
     fetch("/api/admin/bookings")
       .then(res => res.json())
       .then(data => {
@@ -113,6 +113,37 @@ export const TripsProvider = ({ children }) => {
         }
       })
       .catch(() => {});
+  };
+
+  // Live polling (2.5s) + BroadcastChannel for real-time cross-tab and cross-device sync
+  useEffect(() => {
+    syncPlatformBookings();
+    const timer = setInterval(syncPlatformBookings, 2500);
+
+    let channel = null;
+    try {
+      if (typeof window !== "undefined" && window.BroadcastChannel) {
+        channel = new BroadcastChannel("roavio_platform_sync");
+        channel.onmessage = (e) => {
+          if (e.data?.type === "BOOKING_CREATED" || e.data?.type === "USER_REGISTERED" || e.data?.type === "USER_LOGGED_IN") {
+            syncPlatformBookings();
+          }
+        };
+      }
+    } catch (e) {}
+
+    const onStorage = (e) => {
+      if (e.key === "roavio_all_platform_bookings") {
+        syncPlatformBookings();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      clearInterval(timer);
+      if (channel) channel.close();
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   // Switch data whenever the logged in user changes or user logs in/out
@@ -264,6 +295,14 @@ export const TripsProvider = ({ children }) => {
       } catch (e) {}
       return updated;
     });
+
+    try {
+      if (typeof window !== "undefined" && window.BroadcastChannel) {
+        const ch = new BroadcastChannel("roavio_platform_sync");
+        ch.postMessage({ type: "BOOKING_CREATED", booking: newBooking, timestamp: Date.now() });
+        ch.close();
+      }
+    } catch (e) {}
 
     // 3. Increment bookingsCount for this user in registered users registry
     if (bookingEmail) {
