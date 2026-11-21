@@ -34,7 +34,7 @@ import MapComponent from "../components/MapComponent";
 export default function DestinationDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const { isSaved, toggleSaveDestination, getDistanceFromUser, userLocation, addBooking } = useTrips();
 
   const destination = getDestinationById(id) || DESTINATIONS[0];
@@ -48,6 +48,15 @@ export default function DestinationDetails() {
       setConfirmedPass(null);
     }
   }, [id, destination]);
+
+  // Keep visitor fields synced when user logs in
+  useEffect(() => {
+    if (user) {
+      if (user.name) setVisitorName(user.name);
+      if (user.phone) setVisitorMobile(user.phone.replace(/\D/g, '').slice(-10));
+      if (user.email) setVisitorEmail(user.email);
+    }
+  }, [user]);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [passCount, setPassCount] = useState(2);
   const [isProcessingPass, setIsProcessingPass] = useState(false);
@@ -71,6 +80,10 @@ export default function DestinationDetails() {
 
   const handleBookPass = async (e) => {
     e.preventDefault();
+    if (!user) {
+      alert("Please log in to your account before proceeding with payment.");
+      return;
+    }
     if (!visitorName.trim() || !visitorMobile.trim() || !visitorEmail.trim()) {
       alert("Please fill in visitor name, 10-digit mobile number, and email address.");
       return;
@@ -423,11 +436,78 @@ export default function DestinationDetails() {
 
             <div className="modal-body">
               {!isProcessingPass && !passBooked && (
-                <form onSubmit={handleBookPass}>
-                  <div className="p-3 bg-light rounded-3 mb-3">
-                    <h4 className="mb-1 text-navy">{destination.name}</h4>
-                    <p className="text-muted small mb-0">{destination.city}, {destination.state} · Open {destination.openingHours}</p>
+                !user ? (
+                  <div className="checkout-login-gate p-4 text-center bg-light rounded-3 my-2">
+                    <div className="gate-icon-circle mx-auto mb-3" style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Lock size={28} />
+                    </div>
+                    <h4 className="text-navy mb-2" style={{ fontWeight: 800 }}>Login Required to Complete Payment</h4>
+                    <p className="text-muted small mb-4" style={{ maxWidth: '440px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                      To securely authorize your payment and link confirmed official monument passes to your account, please sign in.
+                    </p>
+
+                    <div className="d-flex flex-column gap-2" style={{ maxWidth: '360px', margin: '0 auto' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          login({
+                            email: "rahul.sharma@example.com",
+                            name: "Rahul Sharma",
+                            phone: "9876543210"
+                          });
+                        }}
+                        className="btn btn-primary d-flex align-items-center justify-content-center gap-2 py-2"
+                      >
+                        <Sparkles size={16} />
+                        <span>One-Click Sign In (Rahul Sharma)</span>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          navigate("/login", { state: { from: { pathname: window.location.pathname, search: window.location.search } } });
+                        }}
+                        className="btn btn-outline d-flex align-items-center justify-content-center gap-2 py-2"
+                      >
+                        <User size={16} />
+                        <span>Log In with Password or OTP ↗</span>
+                      </button>
+                    </div>
+
+                    <div className="modal-footer px-0 pb-0 mt-4 d-flex justify-content-between border-top pt-3">
+                      <button type="button" onClick={() => setTicketModalOpen(false)} className="btn btn-outline btn-sm">
+                        Cancel
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          login({
+                            email: "rahul.sharma@example.com",
+                            name: "Rahul Sharma",
+                            phone: "9876543210"
+                          });
+                        }}
+                        className="btn btn-primary btn-sm d-flex align-items-center gap-1"
+                      >
+                        <Sparkles size={14} />
+                        <span>Log In to Proceed</span>
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  <form onSubmit={handleBookPass}>
+                    <div className="logged-in-user-strip d-flex align-items-center justify-content-between p-2 px-3 rounded-3 mb-3 small" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534' }}>
+                      <div className="d-flex align-items-center gap-2">
+                        <CheckCircle2 size={16} />
+                        <span>Signed in as <strong>{user.name}</strong> ({user.email})</span>
+                      </div>
+                      <span className="badge bg-success text-white">Verified Account</span>
+                    </div>
+
+                    <div className="p-3 bg-light rounded-3 mb-3">
+                      <h4 className="mb-1 text-navy">{destination.name}</h4>
+                      <p className="text-muted small mb-0">{destination.city}, {destination.state} · Open {destination.openingHours}</p>
+                    </div>
 
                   <div className="form-group mb-3">
                     <label className="form-label fw-bold">Number of Visitors:</label>
@@ -612,6 +692,7 @@ export default function DestinationDetails() {
                     </button>
                   </div>
                 </form>
+                )
               )}
 
               {/* PROCESSING PASS */}

@@ -46,7 +46,7 @@ import { useAuth } from "../context/AuthContext";
 export default function PlanJourney() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const { userLocation, requestUserLocation, addPlannedTrip, addBooking } = useTrips();
 
   // Extract selected place from URL search parameters (dest, id, place, or to)
@@ -67,6 +67,15 @@ export default function PlanJourney() {
   const [leadPhone, setLeadPhone] = useState(user?.phone ? user.phone.replace(/\D/g, '').slice(-10) : "9876543210");
   const [leadEmail, setLeadEmail] = useState(user?.email || "rahul.sharma@example.com");
   const [emergencyPhone, setEmergencyPhone] = useState("9811223344");
+
+  // Keep traveler state synchronized when user logs in or switches account
+  useEffect(() => {
+    if (user) {
+      if (user.name) setLeadName(user.name);
+      if (user.phone) setLeadPhone(user.phone.replace(/\D/g, '').slice(-10));
+      if (user.email) setLeadEmail(user.email);
+    }
+  }, [user]);
 
   // Payment Options State
   const [paymentMethod, setPaymentMethod] = useState("upi"); // "upi" | "card" | "netbanking"
@@ -238,6 +247,10 @@ export default function PlanJourney() {
   // User Registration & Online Payment Submission
   const handlePayAndConfirmTrip = async (e) => {
     e.preventDefault();
+    if (!user) {
+      alert("Please log in to your account before proceeding with payment.");
+      return;
+    }
     if (!leadName.trim() || !leadPhone.trim() || !leadEmail.trim()) {
       alert("Please provide the Lead Traveler's name, 10-digit mobile number, and email address.");
       return;
@@ -1040,232 +1053,283 @@ export default function PlanJourney() {
                   </div>
                 </div>
 
-                {/* Section A: Traveler Registration Details */}
-                <div className="checkout-section">
-                  <div className="section-title-wrap">
-                    <User size={18} className="text-green" />
-                    <h4>1. Traveler Registration Details</h4>
-                  </div>
-
-                  <div className="form-row-2">
-                    <div className="form-group">
-                      <label>Lead Passenger Full Name *</label>
-                      <input 
-                        type="text" 
-                        required
-                        value={leadName} 
-                        onChange={(e) => setLeadName(e.target.value)}
-                        className="roavio-input" 
-                        placeholder="e.g. Rahul Sharma"
-                      />
+                {/* LOGIN REQUIRED GATE IF USER NOT LOGGED IN */}
+                {!user ? (
+                  <div className="checkout-login-gate p-4 text-center bg-light rounded-3 my-3">
+                    <div className="gate-icon-circle mx-auto mb-3" style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Lock size={28} />
                     </div>
+                    <h4 className="text-navy mb-2">Login Required to Complete Payment</h4>
+                    <p className="text-muted small mb-4" style={{ maxWidth: '460px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                      To securely authorize your payment and link confirmed Roavio E-Tickets to your traveler dashboard, please sign in to your account.
+                    </p>
 
-                    <div className="form-group">
-                      <label>Mobile Number (for SMS & WhatsApp E-Ticket) *</label>
-                      <div className="phone-prefix-wrap">
-                        <span className="phone-prefix">+91</span>
-                        <input 
-                          type="tel" 
-                          required
-                          maxLength={10}
-                          value={leadPhone} 
-                          onChange={(e) => setLeadPhone(e.target.value.replace(/\D/g, ''))}
-                          className="roavio-input ps-prefix" 
-                          placeholder="10-digit number"
-                        />
+                    <div className="d-flex flex-column gap-2" style={{ maxWidth: '360px', margin: '0 auto' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          login({
+                            email: "rahul.sharma@example.com",
+                            name: "Rahul Sharma",
+                            phone: "9876543210"
+                          });
+                        }}
+                        className="btn btn-primary d-flex align-items-center justify-content-center gap-2 py-2"
+                      >
+                        <Sparkles size={16} />
+                        <span>One-Click Sign In (Rahul Sharma)</span>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          navigate("/login", { state: { from: { pathname: "/plan", search: `?dest=${selectedDestIds[0]}` } } });
+                        }}
+                        className="btn btn-outline d-flex align-items-center justify-content-center gap-2 py-2"
+                      >
+                        <User size={16} />
+                        <span>Log In with Password or OTP ↗</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="logged-in-user-strip d-flex align-items-center justify-content-between p-2 px-3 rounded-3 mb-3 small" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534' }}>
+                      <div className="d-flex align-items-center gap-2">
+                        <CheckCircle2 size={16} />
+                        <span>Signed in as <strong>{user.name}</strong> ({user.email})</span>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="form-row-2 mt-2">
-                    <div className="form-group">
-                      <label>Email Address (for Official PDF Pass) *</label>
-                      <input 
-                        type="email" 
-                        required
-                        value={leadEmail} 
-                        onChange={(e) => setLeadEmail(e.target.value)}
-                        className="roavio-input" 
-                        placeholder="rahul.sharma@example.com"
-                      />
+                      <span className="badge bg-success text-white">Verified Account</span>
                     </div>
 
-                    <div className="form-group">
-                      <label>Emergency Contact Phone</label>
-                      <input 
-                        type="tel" 
-                        value={emergencyPhone} 
-                        onChange={(e) => setEmergencyPhone(e.target.value)}
-                        className="roavio-input" 
-                        placeholder="Family / Emergency contact"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section B: Choose Payment Method */}
-                <div className="checkout-section mt-4">
-                  <div className="section-title-wrap">
-                    <ShieldCheck size={18} className="text-green" />
-                    <h4>2. Select Payment Method & Verify Tickets</h4>
-                  </div>
-
-                  {/* Payment Method Tabs */}
-                  <div className="pay-methods-tabs">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("upi")}
-                      className={`pay-tab-btn ${paymentMethod === "upi" ? "active" : ""}`}
-                    >
-                      <Smartphone size={16} />
-                      <span>UPI Instant (GPay / PhonePe)</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("card")}
-                      className={`pay-tab-btn ${paymentMethod === "card" ? "active" : ""}`}
-                    >
-                      <CreditCard size={16} />
-                      <span>Credit / Debit Card</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("netbanking")}
-                      className={`pay-tab-btn ${paymentMethod === "netbanking" ? "active" : ""}`}
-                    >
-                      <Building2 size={16} />
-                      <span>Net Banking</span>
-                    </button>
-                  </div>
-
-                  {/* UPI Inputs */}
-                  {paymentMethod === "upi" && (
-                    <div className="pay-tab-content">
-                      <div className="upi-apps-row">
-                        <button type="button" onClick={() => setUpiApp("gpay")} className={`app-chip ${upiApp === "gpay" ? "selected" : ""}`}>
-                          Google Pay
-                        </button>
-                        <button type="button" onClick={() => setUpiApp("phonepe")} className={`app-chip ${upiApp === "phonepe" ? "selected" : ""}`}>
-                          PhonePe
-                        </button>
-                        <button type="button" onClick={() => setUpiApp("paytm")} className={`app-chip ${upiApp === "paytm" ? "selected" : ""}`}>
-                          Paytm
-                        </button>
-                        <button type="button" onClick={() => setUpiApp("bhim")} className={`app-chip ${upiApp === "bhim" ? "selected" : ""}`}>
-                          BHIM UPI
-                        </button>
+                    {/* Section A: Traveler Registration Details */}
+                    <div className="checkout-section">
+                      <div className="section-title-wrap">
+                        <User size={18} className="text-green" />
+                        <h4>1. Traveler Registration Details</h4>
                       </div>
 
-                      <div className="form-group mt-3">
-                        <label>Virtual Payment Address (UPI ID)</label>
-                        <div className="input-with-btn">
-                          <input 
-                            type="text" 
-                            value={upiId} 
-                            onChange={(e) => setUpiId(e.target.value)}
-                            className="roavio-input" 
-                            placeholder="username@okhdfcbank"
-                          />
-                          <span className="verified-pill">Verified ID ✓</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Card Inputs */}
-                  {paymentMethod === "card" && (
-                    <div className="pay-tab-content">
-                      <div className="form-group">
-                        <label>Card Number</label>
-                        <div className="input-with-card-brand">
-                          <input 
-                            type="text" 
-                            value={cardNumber} 
-                            onChange={(e) => setCardNumber(e.target.value)}
-                            className="roavio-input" 
-                            placeholder="4532 •••• •••• 8821"
-                          />
-                          <span className="card-brand-badge">VISA / RuPay</span>
-                        </div>
-                      </div>
-
-                      <div className="form-row-3 mt-2">
+                      <div className="form-row-2">
                         <div className="form-group">
-                          <label>Cardholder Name</label>
+                          <label>Lead Passenger Full Name *</label>
                           <input 
                             type="text" 
-                            value={cardName} 
-                            onChange={(e) => setCardName(e.target.value)}
+                            required
+                            value={leadName} 
+                            onChange={(e) => setLeadName(e.target.value)}
                             className="roavio-input" 
+                            placeholder="e.g. Rahul Sharma"
                           />
                         </div>
-                        <div className="form-group">
-                          <label>Expiry Date</label>
-                          <input 
-                            type="text" 
-                            value={cardExpiry} 
-                            onChange={(e) => setCardExpiry(e.target.value)}
-                            className="roavio-input" 
-                            placeholder="MM/YY"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>CVV / CVC</label>
-                          <input 
-                            type="password" 
-                            maxLength={4}
-                            value={cardCvv} 
-                            onChange={(e) => setCardCvv(e.target.value)}
-                            className="roavio-input" 
-                            placeholder="•••"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Net Banking Inputs */}
-                  {paymentMethod === "netbanking" && (
-                    <div className="pay-tab-content">
-                      <label className="mb-2 d-block small fw-bold">Select Bank:</label>
-                      <div className="banks-radio-grid">
-                        {["HDFC Bank", "State Bank of India", "ICICI Bank", "Axis Bank", "Kotak Mahindra"].map((bank) => (
-                          <div 
-                            key={bank} 
-                            onClick={() => setSelectedBank(bank)}
-                            className={`bank-tile ${selectedBank === bank ? "active" : ""}`}
-                          >
-                            <Building2 size={18} />
-                            <span>{bank}</span>
+                        <div className="form-group">
+                          <label>Mobile Number (for SMS & WhatsApp E-Ticket) *</label>
+                          <div className="phone-prefix-wrap">
+                            <span className="phone-prefix">+91</span>
+                            <input 
+                              type="tel" 
+                              required
+                              maxLength={10}
+                              value={leadPhone} 
+                              onChange={(e) => setLeadPhone(e.target.value.replace(/\D/g, ''))}
+                              className="roavio-input ps-prefix" 
+                              placeholder="10-digit number"
+                            />
                           </div>
-                        ))}
+                        </div>
+                      </div>
+
+                      <div className="form-row-2 mt-2">
+                        <div className="form-group">
+                          <label>Email Address (for Official PDF Pass) *</label>
+                          <input 
+                            type="email" 
+                            required
+                            value={leadEmail} 
+                            onChange={(e) => setLeadEmail(e.target.value)}
+                            className="roavio-input" 
+                            placeholder="rahul.sharma@example.com"
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label>Emergency Contact Phone</label>
+                          <input 
+                            type="tel" 
+                            value={emergencyPhone} 
+                            onChange={(e) => setEmergencyPhone(e.target.value)}
+                            className="roavio-input" 
+                            placeholder="Family / Emergency contact"
+                          />
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Section C: Live Transparent Fare Summary */}
-                <div className="checkout-fare-summary mt-4">
-                  <div className="fare-line">
-                    <span>Custom Itinerary Package ({travelersCount} travelers x ₹{budgetPerPerson.toLocaleString()}):</span>
-                    <strong>₹{(budgetPerPerson * travelersCount).toLocaleString()}</strong>
-                  </div>
-                  <div className="fare-line">
-                    <span>Monument Passes & Certified Guided Tours:</span>
-                    <strong className="text-green">Included ✓</strong>
-                  </div>
-                  <div className="fare-line">
-                    <span>Transit Booking & Convenience Fee:</span>
-                    <strong className="text-green">₹0 (Promo Waived)</strong>
-                  </div>
-                  <div className="fare-line-total">
-                    <div>
-                      <span className="total-title">Total Payable Amount</span>
-                      <span className="total-sub">All taxes and certified monument access included</span>
+                    {/* Section B: Choose Payment Method */}
+                    <div className="checkout-section mt-4">
+                      <div className="section-title-wrap">
+                        <ShieldCheck size={18} className="text-green" />
+                        <h4>2. Select Payment Method & Verify Tickets</h4>
+                      </div>
+
+                      {/* Payment Method Tabs */}
+                      <div className="pay-methods-tabs">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod("upi")}
+                          className={`pay-tab-btn ${paymentMethod === "upi" ? "active" : ""}`}
+                        >
+                          <Smartphone size={16} />
+                          <span>UPI Instant (GPay / PhonePe)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod("card")}
+                          className={`pay-tab-btn ${paymentMethod === "card" ? "active" : ""}`}
+                        >
+                          <CreditCard size={16} />
+                          <span>Credit / Debit Card</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod("netbanking")}
+                          className={`pay-tab-btn ${paymentMethod === "netbanking" ? "active" : ""}`}
+                        >
+                          <Building2 size={16} />
+                          <span>Net Banking</span>
+                        </button>
+                      </div>
+
+                      {/* UPI Inputs */}
+                      {paymentMethod === "upi" && (
+                        <div className="pay-tab-content">
+                          <div className="upi-apps-row">
+                            <button type="button" onClick={() => setUpiApp("gpay")} className={`app-chip ${upiApp === "gpay" ? "selected" : ""}`}>
+                              Google Pay
+                            </button>
+                            <button type="button" onClick={() => setUpiApp("phonepe")} className={`app-chip ${upiApp === "phonepe" ? "selected" : ""}`}>
+                              PhonePe
+                            </button>
+                            <button type="button" onClick={() => setUpiApp("paytm")} className={`app-chip ${upiApp === "paytm" ? "selected" : ""}`}>
+                              Paytm
+                            </button>
+                            <button type="button" onClick={() => setUpiApp("bhim")} className={`app-chip ${upiApp === "bhim" ? "selected" : ""}`}>
+                              BHIM UPI
+                            </button>
+                          </div>
+
+                          <div className="form-group mt-3">
+                            <label>Virtual Payment Address (UPI ID)</label>
+                            <div className="input-with-btn">
+                              <input 
+                                type="text" 
+                                value={upiId} 
+                                onChange={(e) => setUpiId(e.target.value)}
+                                className="roavio-input" 
+                                placeholder="username@okhdfcbank"
+                              />
+                              <span className="verified-pill">Verified ID ✓</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Card Inputs */}
+                      {paymentMethod === "card" && (
+                        <div className="pay-tab-content">
+                          <div className="form-group">
+                            <label>Card Number</label>
+                            <div className="input-with-card-brand">
+                              <input 
+                                type="text" 
+                                value={cardNumber} 
+                                onChange={(e) => setCardNumber(e.target.value)}
+                                className="roavio-input" 
+                                placeholder="4532 •••• •••• 8821"
+                              />
+                              <span className="card-brand-badge">VISA / RuPay</span>
+                            </div>
+                          </div>
+
+                          <div className="form-row-3 mt-2">
+                            <div className="form-group">
+                              <label>Cardholder Name</label>
+                              <input 
+                                type="text" 
+                                value={cardName} 
+                                onChange={(e) => setCardName(e.target.value)}
+                                className="roavio-input" 
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>Expiry Date</label>
+                              <input 
+                                type="text" 
+                                value={cardExpiry} 
+                                onChange={(e) => setCardExpiry(e.target.value)}
+                                className="roavio-input" 
+                                placeholder="MM/YY"
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>CVV / CVC</label>
+                              <input 
+                                type="password" 
+                                maxLength={4}
+                                value={cardCvv} 
+                                onChange={(e) => setCardCvv(e.target.value)}
+                                className="roavio-input" 
+                                placeholder="•••"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Net Banking Inputs */}
+                      {paymentMethod === "netbanking" && (
+                        <div className="pay-tab-content">
+                          <label className="mb-2 d-block small fw-bold">Select Bank:</label>
+                          <div className="banks-radio-grid">
+                            {["HDFC Bank", "State Bank of India", "ICICI Bank", "Axis Bank", "Kotak Mahindra"].map((bank) => (
+                              <div 
+                                key={bank} 
+                                onClick={() => setSelectedBank(bank)}
+                                className={`bank-tile ${selectedBank === bank ? "active" : ""}`}
+                              >
+                                <Building2 size={18} />
+                                <span>{bank}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <span className="total-num">₹{(budgetPerPerson * travelersCount).toLocaleString()}</span>
-                  </div>
-                </div>
+
+                    {/* Section C: Live Transparent Fare Summary */}
+                    <div className="checkout-fare-summary mt-4">
+                      <div className="fare-line">
+                        <span>Custom Itinerary Package ({travelersCount} travelers x ₹{budgetPerPerson.toLocaleString()}):</span>
+                        <strong>₹{(budgetPerPerson * travelersCount).toLocaleString()}</strong>
+                      </div>
+                      <div className="fare-line">
+                        <span>Monument Passes & Certified Guided Tours:</span>
+                        <strong className="text-green">Included ✓</strong>
+                      </div>
+                      <div className="fare-line">
+                        <span>Transit Booking & Convenience Fee:</span>
+                        <strong className="text-green">₹0 (Promo Waived)</strong>
+                      </div>
+                      <div className="fare-line-total">
+                        <div>
+                          <span className="total-title">Total Payable Amount</span>
+                          <span className="total-sub">All taxes and certified monument access included</span>
+                        </div>
+                        <span className="total-num">₹{(budgetPerPerson * travelersCount).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div className="checkout-footer-bar mt-4">
                   <button 
@@ -1275,13 +1339,30 @@ export default function PlanJourney() {
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary btn-pay-confirm"
-                  >
-                    <Lock size={16} />
-                    <span>Pay ₹{(budgetPerPerson * travelersCount).toLocaleString()} & Confirm Trip Tickets</span>
-                  </button>
+                  {!user ? (
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        login({
+                          email: "rahul.sharma@example.com",
+                          name: "Rahul Sharma",
+                          phone: "9876543210"
+                        });
+                      }}
+                      className="btn btn-primary btn-pay-confirm"
+                    >
+                      <Lock size={16} />
+                      <span>Log In to Proceed to Payment</span>
+                    </button>
+                  ) : (
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary btn-pay-confirm"
+                    >
+                      <Lock size={16} />
+                      <span>Pay ₹{(budgetPerPerson * travelersCount).toLocaleString()} & Confirm Trip Tickets</span>
+                    </button>
+                  )}
                 </div>
               </form>
             )}

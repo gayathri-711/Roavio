@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   Plane, 
   Train, 
@@ -17,13 +17,15 @@ import {
   Mail,
   Phone,
   Ticket,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles
 } from "lucide-react";
 import { useTrips } from "../context/TripsContext";
 import { useAuth } from "../context/AuthContext";
 
 export default function TravelCard({ item, type }) {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, login } = useAuth();
   const { addBooking } = useTrips();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -41,6 +43,15 @@ export default function TravelCard({ item, type }) {
   const [passengerEmail, setPassengerEmail] = useState(user?.email || "rahul.sharma@example.com");
   const [berthPreference, setBerthPreference] = useState(type === "train" ? "Lower Berth" : "Window Seat");
 
+  // Keep passenger fields synced when user logs in
+  useEffect(() => {
+    if (user) {
+      if (user.name) setPassengerName(user.name);
+      if (user.phone) setPassengerMobile(user.phone.replace(/\D/g, '').slice(-10));
+      if (user.email) setPassengerEmail(user.email);
+    }
+  }, [user]);
+
   // Payment Options State
   const [paymentMethod, setPaymentMethod] = useState("upi"); // "upi" | "card" | "netbanking"
   const [upiId, setUpiId] = useState("traveler@okaxis");
@@ -52,6 +63,10 @@ export default function TravelCard({ item, type }) {
 
   const handleConfirmBooking = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
+    if (!user) {
+      alert("Please log in to your account before proceeding with payment.");
+      return;
+    }
     if (!passengerName.trim() || !passengerMobile.trim() || !passengerEmail.trim()) {
       alert("Please fill in passenger full name, 10-digit mobile number, and email address.");
       return;
@@ -318,13 +333,60 @@ export default function TravelCard({ item, type }) {
                 </div>
               )}
 
-              {/* 1. TRAVELER REGISTRATION DETAILS */}
+              {/* 1. TRAVELER REGISTRATION DETAILS & PAYMENT LOGIN GATE */}
               {!isProcessing && !bookedSuccess && (
-                <div className="traveler-reg-box mt-3">
-                  <div className="reg-box-header">
-                    <User size={16} className="text-green" />
-                    <strong>Passenger Registration Details</strong>
+                !user ? (
+                  <div className="checkout-login-gate p-4 text-center bg-light rounded-3 my-3">
+                    <div className="gate-icon-circle mx-auto mb-3" style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Lock size={28} />
+                    </div>
+                    <h4 className="text-navy mb-2" style={{ fontWeight: 800 }}>Login Required to Complete Payment</h4>
+                    <p className="text-muted small mb-4" style={{ maxWidth: '440px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                      To securely authorize your payment and issue confirmed {type.toUpperCase()} tickets directly to your traveler dashboard, please sign in.
+                    </p>
+
+                    <div className="d-flex flex-column gap-2" style={{ maxWidth: '360px', margin: '0 auto' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          login({
+                            email: "rahul.sharma@example.com",
+                            name: "Rahul Sharma",
+                            phone: "9876543210"
+                          });
+                        }}
+                        className="btn btn-primary d-flex align-items-center justify-content-center gap-2 py-2"
+                      >
+                        <Sparkles size={16} />
+                        <span>One-Click Sign In (Rahul Sharma)</span>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          navigate("/login", { state: { from: { pathname: window.location.pathname, search: window.location.search } } });
+                        }}
+                        className="btn btn-outline d-flex align-items-center justify-content-center gap-2 py-2"
+                      >
+                        <User size={16} />
+                        <span>Log In with Password or OTP ↗</span>
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  <div className="traveler-reg-box mt-3">
+                    <div className="d-flex align-items-center justify-content-between p-2 px-3 rounded-3 mb-3 small" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534' }}>
+                      <div className="d-flex align-items-center gap-2">
+                        <CheckCircle2 size={16} />
+                        <span>Signed in as <strong>{user.name}</strong> ({user.email})</span>
+                      </div>
+                      <span className="badge bg-success text-white">Verified Traveler</span>
+                    </div>
+
+                    <div className="reg-box-header">
+                      <User size={16} className="text-green" />
+                      <strong>Passenger Registration Details</strong>
+                    </div>
 
                   <div className="travel-form-grid">
                     <div className="form-group">
@@ -546,6 +608,7 @@ export default function TravelCard({ item, type }) {
                     </div>
                   </div>
                 </div>
+                )
               )}
 
               {/* PROCESSING STATE */}
@@ -627,14 +690,31 @@ export default function TravelCard({ item, type }) {
                 >
                   Cancel
                 </button>
-                <button 
-                  onClick={handleConfirmBooking} 
-                  disabled={isProcessing}
-                  className="btn btn-primary btn-sm btn-pay-confirm-sm"
-                >
-                  <Lock size={14} />
-                  <span>Pay ₹{(selectedClass?.fare || item.price || item.fare || 1400).toLocaleString()} & Confirm Ticket</span>
-                </button>
+                {!user ? (
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      login({
+                        email: "rahul.sharma@example.com",
+                        name: "Rahul Sharma",
+                        phone: "9876543210"
+                      });
+                    }}
+                    className="btn btn-primary btn-sm btn-pay-confirm-sm"
+                  >
+                    <Sparkles size={14} />
+                    <span>Log In to Proceed with Payment</span>
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleConfirmBooking} 
+                    disabled={isProcessing}
+                    className="btn btn-primary btn-sm btn-pay-confirm-sm"
+                  >
+                    <Lock size={14} />
+                    <span>Pay ₹{(selectedClass?.fare || item.price || item.fare || 1400).toLocaleString()} & Confirm Ticket</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
