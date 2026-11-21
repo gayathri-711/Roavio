@@ -70,6 +70,13 @@ export default function PopularDestinations() {
 
                 <div className="dest-card-actions">
                   <Link 
+                    to={`/plan?dest=${dest.id}`} 
+                    className="plan-dest-btn"
+                    title={`Plan a personalized itinerary for ${dest.name}`}
+                  >
+                    <span>Plan Trip</span>
+                  </Link>
+                  <Link 
                     to={`/destination/${dest.id}`} 
                     className="explore-dest-btn"
                   >
@@ -201,6 +208,30 @@ export default function PopularDestinations() {
           margin-top: auto;
           padding-top: 0.85rem;
           border-top: 1px solid #F1F5F9;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .plan-dest-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: #1E293B;
+          background: #F1F5F9;
+          border: 1px solid #CBD5E1;
+          padding: 0.35rem 0.75rem;
+          border-radius: 8px;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+
+        .plan-dest-btn:hover {
+          background: #E2E8F0;
+          color: var(--color-green);
+          border-color: var(--color-green);
         }
 
         .explore-dest-btn {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
   MapPin, 
@@ -38,6 +38,15 @@ export default function DestinationDetails() {
 
   const destination = getDestinationById(id) || DESTINATIONS[0];
   const [activeImage, setActiveImage] = useState(destination.image);
+
+  // Sync active photo and reset modal states when destination ID changes
+  useEffect(() => {
+    if (destination?.image) {
+      setActiveImage(destination.image);
+      setPassBooked(false);
+      setConfirmedPass(null);
+    }
+  }, [id, destination]);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [passCount, setPassCount] = useState(2);
   const [isProcessingPass, setIsProcessingPass] = useState(false);

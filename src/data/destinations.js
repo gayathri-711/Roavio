@@ -8144,7 +8144,59 @@ export const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
 };
 
 export const getDestinationById = (id) => {
-  return DESTINATIONS.find((d) => d.id === id) || null;
+  if (!id) return null;
+  const s = String(id).toLowerCase().trim().replace(/%20|\+/g, " ");
+  const sNorm = s.replace(/[^a-z0-9]/g, "");
+
+  // 1. Exact ID
+  let found = DESTINATIONS.find((d) => d.id === id || d.id === s);
+  if (found) return found;
+
+  // 2. Exact Name
+  found = DESTINATIONS.find((d) => d.name.toLowerCase() === s);
+  if (found) return found;
+
+  // 3. Normalized ID or Name (ignoring hyphens, spaces, punctuation)
+  found = DESTINATIONS.find(
+    (d) =>
+      d.id.replace(/[^a-z0-9]/g, "") === sNorm ||
+      d.name.toLowerCase().replace(/[^a-z0-9]/g, "") === sNorm
+  );
+  if (found) return found;
+
+  // 4. Word token matching (e.g. "solang-valley" matches "solang-manali", "hampi-temples" matches "hampi")
+  const words = s.split(/[\s,-]+/).filter((w) => w.length > 2);
+  if (words.length > 0) {
+    found = DESTINATIONS.find((d) =>
+      words.some(
+        (w) =>
+          d.id.toLowerCase().includes(w) ||
+          d.name.toLowerCase().includes(w) ||
+          d.city.toLowerCase().includes(w)
+      )
+    );
+    if (found) return found;
+  }
+
+  // 5. City or State match
+  found = DESTINATIONS.find(
+    (d) =>
+      d.city.toLowerCase().includes(s) ||
+      s.includes(d.city.toLowerCase()) ||
+      d.state.toLowerCase().includes(s) ||
+      s.includes(d.state.toLowerCase())
+  );
+  if (found) return found;
+
+  // 6. Substring match
+  found = DESTINATIONS.find(
+    (d) =>
+      d.id.toLowerCase().includes(s) ||
+      s.includes(d.id.toLowerCase()) ||
+      d.name.toLowerCase().includes(s) ||
+      s.includes(d.name.toLowerCase())
+  );
+  return found || null;
 };
 
 export const getDestinationsByState = (stateName) => {

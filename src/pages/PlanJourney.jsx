@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useMemo, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { 
   Compass, 
   MapPin, 
@@ -39,14 +39,19 @@ import {
   User,
   Star
 } from "lucide-react";
-import { DESTINATIONS, calculateDistanceKm } from "../data/destinations";
+import { DESTINATIONS, calculateDistanceKm, getDestinationById } from "../data/destinations";
 import { useTrips } from "../context/TripsContext";
 import { useAuth } from "../context/AuthContext";
 
 export default function PlanJourney() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { userLocation, requestUserLocation, addPlannedTrip, addBooking } = useTrips();
+
+  // Extract selected place from URL search parameters (dest, id, place, or to)
+  const destQuery = searchParams.get("dest") || searchParams.get("id") || searchParams.get("place") || searchParams.get("to");
+  const matchedInitial = destQuery ? getDestinationById(destQuery) : null;
 
   // Quick Explore Modal State
   const [quickExploreDest, setQuickExploreDest] = useState(null);
@@ -73,22 +78,66 @@ export default function PlanJourney() {
   const [cardName, setCardName] = useState("Rahul Sharma");
   const [selectedBank, setSelectedBank] = useState("HDFC Bank");
 
-  // Planning Form State
-  const [tripTitle, setTripTitle] = useState("Incredible North & South India Discovery");
-  const [sourceCity, setSourceCity] = useState("New Delhi");
-  const [startDate, setStartDate] = useState("2026-12-15");
+  // Planning Form State - dynamically centered around the user's chosen destination
+  const [tripTitle, setTripTitle] = useState(
+    matchedInitial ? `Explore ${matchedInitial.name} & ${matchedInitial.state}` : "Incredible North & South India Discovery"
+  );
+  const [sourceCity, setSourceCity] = useState(searchParams.get("from") || "New Delhi");
+  const [startDate, setStartDate] = useState(searchParams.get("date") || "2026-12-15");
   const [endDate, setEndDate] = useState("2026-12-22");
-  const [travelersCount, setTravelersCount] = useState(2);
-  const [budgetPerPerson, setBudgetPerPerson] = useState(25000);
+  const [travelersCount, setTravelersCount] = useState(
+    parseInt(searchParams.get("travelers")) || 2
+  );
+  const [budgetPerPerson, setBudgetPerPerson] = useState(
+    matchedInitial?.tourPackagePrice ? Math.max(12000, matchedInitial.tourPackagePrice * 2) : 25000
+  );
   const [preferredTransport, setPreferredTransport] = useState("Flight & High-Speed Train");
-  const [tripNotes, setTripNotes] = useState("Focus on heritage architecture, authentic regional cuisine, and sunrise viewpoints.");
+  const [tripNotes, setTripNotes] = useState(
+    matchedInitial 
+      ? `Focused exploration of ${matchedInitial.name} in ${matchedInitial.city}, ${matchedInitial.state}. Best season: ${matchedInitial.bestTime}.`
+      : "Focus on heritage architecture, authentic regional cuisine, and sunrise viewpoints."
+  );
 
-  // Selected Destinations List (Default with 3 top destinations)
-  const [selectedDestIds, setSelectedDestIds] = useState([
-    "taj-mahal",
-    "jaipur-city-palace",
-    "munnar-tea-gardens"
-  ]);
+  // Selected Destinations List - centers on the clicked place instead of a static generic list
+  const [selectedDestIds, setSelectedDestIds] = useState(() => {
+    if (matchedInitial) {
+      const sameState = DESTINATIONS.filter(d => d.state === matchedInitial.state && d.id !== matchedInitial.id).slice(0, 2);
+      return [matchedInitial.id, ...sameState.map(d => d.id)];
+    }
+    return ["taj-mahal", "solang-manali", "munnar"];
+  });
+
+  // Automatically update the itinerary when user navigates or clicks "Plan" on another place
+  useEffect(() => {
+    const q = searchParams.get("dest") || searchParams.get("id") || searchParams.get("place") || searchParams.get("to");
+    if (q) {
+      const target = getDestinationById(q);
+      if (target) {
+        const sameState = DESTINATIONS.filter(d => d.state === target.state && d.id !== target.id).slice(0, 2);
+        const newStops = [target.id, ...sameState.map(d => d.id)];
+        setSelectedDestIds(newStops);
+        setTripTitle(`Explore ${target.name} & ${target.state}`);
+        setTripNotes(`Focused exploration of ${target.name} in ${target.city}, ${target.state}. Best season: ${target.bestTime}.`);
+        if (target.tourPackagePrice) {
+          setBudgetPerPerson(Math.max(12000, target.tourPackagePrice * (newStops.length > 1 ? 1.5 : 1)));
+        }
+      }
+    }
+    const fromParam = searchParams.get("from");
+    if (fromParam) setSourceCity(fromParam);
+    const dateParam = searchParams.get("date");
+    if (dateParam) {
+      setStartDate(dateParam);
+      const d = new Date(dateParam);
+      d.setDate(d.getDate() + 7);
+      setEndDate(d.toISOString().split("T")[0]);
+    }
+    const travParam = searchParams.get("travelers");
+    if (travParam) {
+      const num = parseInt(travParam);
+      if (!isNaN(num) && num > 0) setTravelersCount(num);
+    }
+  }, [searchParams]);
 
   const [searchToAdd, setSearchToAdd] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
