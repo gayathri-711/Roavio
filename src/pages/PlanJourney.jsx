@@ -88,32 +88,32 @@ export default function PlanJourney() {
   const [selectedBank, setSelectedBank] = useState("HDFC Bank");
 
   // Planning Form State - dynamically centered around the user's chosen destination
+  const [tripType, setTripType] = useState("direct"); // "direct" (Go only to selected place) | "circuit" (Multi-Stop Tour)
   const [tripTitle, setTripTitle] = useState(
-    matchedInitial ? `Explore ${matchedInitial.name} & ${matchedInitial.state}` : "Incredible North & South India Discovery"
+    matchedInitial ? `Trip to ${matchedInitial.name}` : "Trip to Ooty, Tamil Nadu"
   );
-  const [sourceCity, setSourceCity] = useState(searchParams.get("from") || "New Delhi");
+  const [sourceCity, setSourceCity] = useState(searchParams.get("from") || "Coimbatore");
   const [startDate, setStartDate] = useState(searchParams.get("date") || "2026-12-15");
-  const [endDate, setEndDate] = useState("2026-12-22");
+  const [endDate, setEndDate] = useState("2026-12-20");
   const [travelersCount, setTravelersCount] = useState(
     parseInt(searchParams.get("travelers")) || 2
   );
   const [budgetPerPerson, setBudgetPerPerson] = useState(
-    matchedInitial?.tourPackagePrice ? Math.max(12000, matchedInitial.tourPackagePrice * 2) : 25000
+    matchedInitial?.tourPackagePrice ? matchedInitial.tourPackagePrice : 14500
   );
   const [preferredTransport, setPreferredTransport] = useState("Flight & High-Speed Train");
   const [tripNotes, setTripNotes] = useState(
     matchedInitial 
-      ? `Focused exploration of ${matchedInitial.name} in ${matchedInitial.city}, ${matchedInitial.state}. Best season: ${matchedInitial.bestTime}.`
-      : "Focus on heritage architecture, authentic regional cuisine, and sunrise viewpoints."
+      ? `Direct journey to ${matchedInitial.name} in ${matchedInitial.city}, ${matchedInitial.state}. Best season: ${matchedInitial.bestTime}.`
+      : "Direct trip focusing on local sights, nature, and peaceful relaxation."
   );
 
-  // Selected Destinations List - centers on the clicked place instead of a static generic list
+  // Selected Destinations List - ONLY the clicked place by default (no unwanted round-trips or extra cities)
   const [selectedDestIds, setSelectedDestIds] = useState(() => {
     if (matchedInitial) {
-      const sameState = DESTINATIONS.filter(d => d.state === matchedInitial.state && d.id !== matchedInitial.id).slice(0, 2);
-      return [matchedInitial.id, ...sameState.map(d => d.id)];
+      return [matchedInitial.id];
     }
-    return ["taj-mahal", "solang-manali", "munnar"];
+    return ["ooty"];
   });
 
   // Automatically update the itinerary when user navigates or clicks "Plan" on another place
@@ -122,13 +122,12 @@ export default function PlanJourney() {
     if (q) {
       const target = getDestinationById(q);
       if (target) {
-        const sameState = DESTINATIONS.filter(d => d.state === target.state && d.id !== target.id).slice(0, 2);
-        const newStops = [target.id, ...sameState.map(d => d.id)];
-        setSelectedDestIds(newStops);
-        setTripTitle(`Explore ${target.name} & ${target.state}`);
-        setTripNotes(`Focused exploration of ${target.name} in ${target.city}, ${target.state}. Best season: ${target.bestTime}.`);
+        // Direct trip: ONLY the selected destination
+        setSelectedDestIds([target.id]);
+        setTripTitle(`Trip to ${target.name}`);
+        setTripNotes(`Direct journey to ${target.name} in ${target.city}, ${target.state}. Best season: ${target.bestTime}.`);
         if (target.tourPackagePrice) {
-          setBudgetPerPerson(Math.max(12000, target.tourPackagePrice * (newStops.length > 1 ? 1.5 : 1)));
+          setBudgetPerPerson(target.tourPackagePrice);
         }
       }
     }
@@ -138,7 +137,7 @@ export default function PlanJourney() {
     if (dateParam) {
       setStartDate(dateParam);
       const d = new Date(dateParam);
-      d.setDate(d.getDate() + 7);
+      d.setDate(d.getDate() + 5);
       setEndDate(d.toISOString().split("T")[0]);
     }
     const travParam = searchParams.get("travelers");
@@ -170,9 +169,14 @@ export default function PlanJourney() {
       .filter(Boolean);
   }, [selectedDestIds]);
 
-  // Total estimated distance between successive stops
+  // Total estimated distance between successive stops or direct point-to-point
   const totalDistanceKm = useMemo(() => {
-    if (selectedDestinations.length < 2) return 320;
+    if (selectedDestinations.length === 0) return 0;
+    if (selectedDestinations.length === 1) {
+      const origLat = userLocation?.lat || 28.6139;
+      const origLng = userLocation?.lng || 77.2090;
+      return calculateDistanceKm(origLat, origLng, selectedDestinations[0].lat, selectedDestinations[0].lng);
+    }
     let dist = 0;
     for (let i = 0; i < selectedDestinations.length - 1; i++) {
       dist += calculateDistanceKm(
@@ -183,7 +187,7 @@ export default function PlanJourney() {
       );
     }
     return dist;
-  }, [selectedDestinations]);
+  }, [selectedDestinations, userLocation]);
 
   // Calculate days
   const tripDurationDays = useMemo(() => {
@@ -405,6 +409,38 @@ export default function PlanJourney() {
                   />
                 </div>
 
+                <div className="form-group">
+                  <label className="fw-bold d-block mb-1">Trip Style / Journey Mode</label>
+                  <div className="d-flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTripType("direct");
+                        if (selectedDestIds.length > 1) {
+                          setSelectedDestIds([selectedDestIds[0]]);
+                        }
+                      }}
+                      className={`btn btn-sm ${tripType === "direct" ? "btn-primary" : "btn-outline"}`}
+                      style={{ flex: 1, padding: "0.6rem 0.8rem", borderRadius: "8px", fontWeight: "600" }}
+                    >
+                      🎯 Direct Trip (Go Only to {selectedDestinations[0]?.name?.split(" ")[0] || "Destination"})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTripType("circuit")}
+                      className={`btn btn-sm ${tripType === "circuit" ? "btn-primary" : "btn-outline"}`}
+                      style={{ flex: 1, padding: "0.6rem 0.8rem", borderRadius: "8px", fontWeight: "600" }}
+                    >
+                      🔄 Multi-City Circuit (Multiple Stops)
+                    </button>
+                  </div>
+                  <span className="text-muted small d-block mt-1">
+                    {tripType === "direct" 
+                      ? `✓ Direct destination trip exclusively to ${selectedDestinations[0]?.name || "selected place"} without round-trip circuits or extra cities.`
+                      : "✓ Add multiple cities and intermediate stops along your tour route."}
+                  </span>
+                </div>
+
                 <div className="form-row-2">
                   <div className="form-group">
                     <label>Starting City / Source</label>
@@ -492,6 +528,17 @@ export default function PlanJourney() {
               </div>
 
               {/* Destination Search Box */}
+              {selectedDestinations.length === 1 && (
+                <div className="single-dest-focus-banner p-3 rounded-3 mb-3 d-flex align-items-center justify-content-between" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534' }}>
+                  <div className="d-flex align-items-center gap-2">
+                    <CheckCircle2 size={18} />
+                    <span className="small fw-bold">
+                      Direct Trip: Traveling exclusively to {selectedDestinations[0].name} ({selectedDestinations[0].city}, {selectedDestinations[0].state}). No round-trip circuits or extra cities.
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="search-stops-box">
                 <div className="search-input-wrap">
                   <MapPin size={18} className="search-icon" />
@@ -553,7 +600,9 @@ export default function PlanJourney() {
                 ) : (
                   selectedDestinations.map((dest, idx) => (
                     <div key={dest.id} className="selected-stop-card">
-                      <div className="stop-index-pill">Stop #{idx + 1}</div>
+                      <div className="stop-index-pill">
+                        {selectedDestinations.length === 1 ? "Direct Destination" : `Stop #${idx + 1}`}
+                      </div>
                       <img src={dest.image} alt={dest.name} className="stop-img" />
                       <div className="stop-details">
                         <div className="stop-title-flex">
@@ -710,7 +759,9 @@ export default function PlanJourney() {
                     <div className="point-line"></div>
                     <div className="point-dot"></div>
                     <div className="point-info">
-                      <span className="point-role">Stop #{i + 1}</span>
+                      <span className="point-role">
+                        {selectedDestinations.length === 1 ? "Direct Destination" : `Stop #${i + 1}`}
+                      </span>
                       <strong>{dest.name}</strong>
                       <span className="point-sub">{dest.state}</span>
                     </div>
@@ -1042,7 +1093,9 @@ export default function PlanJourney() {
                 {/* Trip Overview Strip */}
                 <div className="checkout-trip-strip">
                   <div className="strip-info">
-                    <span className="strip-badge">ROAVIO ITINERARY</span>
+                    <span className="strip-badge">
+                      {selectedDestinations.length === 1 ? "DIRECT DESTINATION TRIP" : "ROAVIO ITINERARY"}
+                    </span>
                     <h4>{tripTitle}</h4>
                     <p>{sourceCity} ➔ {selectedDestinations.map(d => d.name).join(" ➔ ")}</p>
                   </div>
