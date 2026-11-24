@@ -5445,11 +5445,18 @@ export default function PlanJourney() {
 
         /* Sticky Footer */
         .checkout-sticky-footer {
+          position: sticky;
+          bottom: 0;
+          background: #FFFFFF;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
-          padding-top: 1.2rem;
-          border-top: 1.5px solid #F1F5F9;
+          gap: 0.9rem;
+          padding: 1.1rem 1.4rem;
+          margin: 1.5rem -1.8rem -1.8rem;
+          border-top: 1.5px solid #E2E8F0;
+          box-shadow: 0 -8px 24px rgba(11, 19, 43, 0.08);
+          z-index: 20;
+          border-radius: 0 0 24px 24px;
         }
 
         .trust-seals-row {
@@ -5781,6 +5788,11 @@ export default function PlanJourney() {
           }
           .checkout-form-body {
             padding: 1.2rem 1.2rem 1.5rem;
+          }
+          .checkout-sticky-footer {
+            margin: 1.2rem -1.2rem -1.5rem;
+            padding: 1rem 1.2rem;
+            border-radius: 0 0 16px 16px;
           }
           .checkout-form-grid {
             grid-template-columns: 1fr;

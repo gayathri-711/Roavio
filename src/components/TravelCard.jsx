@@ -1136,61 +1136,121 @@ export default function TravelCard({ item, type }) {
         }
 
         /* Traveler Registration & Payment Mini Box Styles */
+        .travel-modal-box {
+          background: #FFFFFF;
+          border-radius: 20px;
+          width: 100%;
+          max-width: 740px;
+          max-height: calc(100vh - 36px);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-shadow: 0 25px 60px -15px rgba(11, 19, 43, 0.35);
+          border: 1px solid #E2E8F0;
+        }
+
+        .travel-modal-box .modal-header {
+          flex-shrink: 0;
+          padding: 16px 22px;
+          border-bottom: 1px solid #E2E8F0;
+          background: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .travel-modal-box .modal-body {
+          flex: 1 1 auto;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding: 18px 22px;
+        }
+
         .traveler-reg-box {
           background: #F8FAFC;
           border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          padding: 14px;
+          border-radius: 14px;
+          padding: 16px;
         }
 
         .reg-box-header {
           display: flex;
           align-items: center;
           gap: 6px;
-          font-size: 0.88rem;
+          font-size: 0.92rem;
           color: var(--primary-navy);
-          margin-bottom: 10px;
+          margin-bottom: 12px;
         }
 
         .travel-form-grid {
           display: grid;
           grid-template-columns: 1.2fr 1fr;
-          gap: 10px;
+          gap: 12px;
         }
 
         .form-row-mini {
           display: grid;
           grid-template-columns: 1fr 1.2fr;
-          gap: 8px;
+          gap: 10px;
+        }
+
+        @media (max-width: 680px) {
+          .travel-form-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+          .form-row-mini {
+            grid-template-columns: 1fr 1fr;
+          }
+          .travel-modal-box {
+            max-height: calc(100vh - 16px);
+            border-radius: 18px 18px 0 0;
+          }
+          .travel-modal-box .modal-header {
+            padding: 14px 16px;
+          }
+          .travel-modal-box .modal-body {
+            padding: 14px 16px;
+          }
+          .modal-footer {
+            padding: 12px 16px !important;
+            flex-direction: column-reverse;
+          }
+          .modal-footer .btn {
+            width: 100% !important;
+          }
         }
 
         .field-lbl {
           display: block;
-          font-size: 0.75rem;
+          font-size: 0.78rem;
           font-weight: 700;
-          color: #475569;
-          margin-bottom: 4px;
+          color: #334155;
+          margin-bottom: 5px;
         }
 
         .small-lbl {
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           font-weight: 700;
           color: #64748B;
         }
 
         .modal-txt-input {
           width: 100%;
-          border: 1px solid #CBD5E1;
-          border-radius: 8px;
-          padding: 7px 10px;
-          font-size: 0.85rem;
-          color: #1E293B;
+          border: 1.5px solid #CBD5E1;
+          border-radius: 10px;
+          padding: 10px 12px;
+          font-size: 0.9rem;
+          color: #0F172A;
           background: white;
           outline: none;
+          box-sizing: border-box;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .modal-txt-input:focus {
           border-color: var(--travel-green);
+          box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
         }
 
         .mobile-prefix-wrap {
@@ -1199,51 +1259,67 @@ export default function TravelCard({ item, type }) {
 
         .mob-pre {
           position: absolute;
-          left: 8px;
+          left: 10px;
           top: 50%;
           transform: translateY(-50%);
-          font-size: 0.82rem;
+          font-size: 0.84rem;
           font-weight: 700;
           color: #64748B;
         }
 
         .modal-txt-input.ps-prefix {
-          padding-left: 38px;
+          padding-left: 42px;
         }
 
         .pay-mini-tabs {
           display: grid;
           grid-template-columns: 1fr 1fr 1fr;
-          gap: 6px;
-          margin-bottom: 8px;
+          gap: 8px;
+          margin-bottom: 10px;
         }
 
         .pay-tab-chip {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 5px;
-          padding: 6px;
-          border-radius: 8px;
-          border: 1px solid #CBD5E1;
+          gap: 6px;
+          padding: 8px;
+          border-radius: 10px;
+          border: 1.5px solid #CBD5E1;
           background: white;
-          font-size: 0.76rem;
+          font-size: 0.8rem;
           font-weight: 700;
           color: #475569;
           cursor: pointer;
+          transition: all 0.2s ease;
         }
 
         .pay-tab-chip.active {
           border-color: var(--travel-green);
-          background: #F0FDF4;
+          background: #ECFDF5;
           color: var(--travel-green);
+          box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
         }
 
         .mini-pay-box {
           background: white;
           border: 1px solid #E2E8F0;
-          border-radius: 8px;
-          padding: 8px 10px;
+          border-radius: 10px;
+          padding: 10px 12px;
+        }
+
+        .modal-footer {
+          flex-shrink: 0;
+          position: sticky;
+          bottom: 0;
+          background: #FFFFFF;
+          border-top: 1px solid var(--border-color);
+          padding: 14px 22px;
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          z-index: 20;
+          box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
         }
 
         .btn-pay-confirm-sm {

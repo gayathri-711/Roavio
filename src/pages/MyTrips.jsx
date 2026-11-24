@@ -2453,6 +2453,22 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         }
 
         @media (max-width: 650px) {
+          .traveler-avatar-box {
+            width: 62px;
+            height: 62px;
+            font-size: 1.5rem;
+          }
+          .traveler-name {
+            font-size: 1.4rem;
+          }
+          .traveler-hero-actions {
+            flex-direction: column;
+            width: 100%;
+          }
+          .btn-hero-primary, .btn-hero-glass {
+            width: 100%;
+            justify-content: center;
+          }
           .ticket-meta-matrix {
             grid-template-columns: 1fr 1fr;
           }

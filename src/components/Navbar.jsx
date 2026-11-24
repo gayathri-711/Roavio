@@ -411,12 +411,14 @@ export default function Navbar() {
       <style>{`
         /* Header Base */
         .roavio-navbar {
-          background-color: #FFFFFF !important;
+          background-color: rgba(255, 255, 255, 0.96) !important;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
           position: sticky;
           top: 0;
           z-index: 1000;
-          box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
-          border-bottom: 1px solid #EAECEF;
+          box-shadow: 0 4px 20px -2px rgba(11, 19, 43, 0.06);
+          border-bottom: 1px solid rgba(226, 232, 240, 0.8);
           transition: all 0.25s ease;
         }
 
@@ -1044,6 +1046,12 @@ export default function Navbar() {
         }
 
         @media (max-width: 640px) {
+          .navbar-inner {
+            height: 64px;
+          }
+          .roavio-brand-img {
+            height: 32px;
+          }
           .nav-util-item {
             display: none;
           }
