@@ -12,7 +12,10 @@ import {
   Calendar,
   Sparkles,
   Copy,
-  Check
+  Check,
+  Phone,
+  Mail,
+  Clock
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTrips } from "../context/TripsContext";
@@ -68,6 +71,41 @@ export default function Navbar() {
 
   return (
     <>
+      {/* 24x7 Top Contact Bar */}
+      <div className="roavio-top-contact-bar">
+        <div className="container">
+          <div className="top-bar-inner">
+            <div className="top-bar-left">
+              <a href="tel:18001029900" className="top-contact-link">
+                <Phone size={13} className="text-emerald" />
+                <span>24x7 Helpline: <strong>1800 102 9900</strong></span>
+              </a>
+              <span className="top-bar-sep">•</span>
+              <a href="mailto:support@roavio.com" className="top-contact-link d-none d-sm-inline-flex">
+                <Mail size={13} className="text-blue" />
+                <span>support@roavio.com</span>
+              </a>
+            </div>
+            <div className="top-bar-right">
+              <a 
+                href="https://wa.me/919876543210" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="top-contact-link wa-link"
+              >
+                <span className="wa-pulse-dot"></span>
+                <span>WhatsApp Instant: <strong>+91 98765 43210</strong></span>
+              </a>
+              <span className="top-bar-sep d-none d-md-inline">•</span>
+              <Link to="/contact" className="top-contact-link d-none d-md-inline-flex">
+                <Clock size={13} className="text-orange" />
+                <span>Open 24/7 (365 Days)</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <header className="roavio-navbar">
         <div className="container">
           <div className="navbar-inner">
@@ -175,9 +213,9 @@ export default function Navbar() {
 
                 {/* Contact Us */}
                 <li className="nav-item-wrap">
-                  <a href="#contact" className="nav-link">
+                  <Link to="/contact" className={`nav-link ${isActive("/contact") ? "active" : ""}`}>
                     <span>Contact Us</span>
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </nav>
@@ -375,9 +413,9 @@ export default function Navbar() {
                 </button>
               </li>
               <li>
-                <a href="#contact" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/contact" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>
                   Contact Us
-                </a>
+                </Link>
               </li>
             </ul>
 
@@ -409,6 +447,77 @@ export default function Navbar() {
 
       {/* Embedded Component CSS */}
       <style>{`
+        /* 24x7 Top Contact Bar */
+        .roavio-top-contact-bar {
+          background: #0B132B;
+          color: #E2E8F0;
+          font-size: 0.76rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          padding: 0.35rem 0;
+          position: relative;
+          z-index: 1001;
+        }
+
+        .top-bar-inner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        .top-bar-left,
+        .top-bar-right {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .top-contact-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          color: #CBD5E1;
+          text-decoration: none;
+          transition: color 0.18s;
+        }
+
+        .top-contact-link:hover {
+          color: #FFFFFF;
+        }
+
+        .top-contact-link strong {
+          color: #FFFFFF;
+        }
+
+        .top-bar-sep {
+          color: #475569;
+          font-size: 0.7rem;
+        }
+
+        .wa-link {
+          color: #86EFAC !important;
+        }
+
+        .wa-link strong {
+          color: #4ADE80 !important;
+        }
+
+        .wa-pulse-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #22C55E;
+          box-shadow: 0 0 6px #22C55E;
+          display: inline-block;
+          animation: pulseGreen 1.8s infinite;
+        }
+
+        @keyframes pulseGreen {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(1.3); }
+        }
+
         /* Header Base */
         .roavio-navbar {
           background-color: rgba(255, 255, 255, 0.96) !important;

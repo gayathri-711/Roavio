@@ -95,7 +95,7 @@ html {
 body {
   font-family: var(--font-body);
   color: var(--text-main);
-  background-color: var(--bg-main);
+  background-color: transparent !important;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -657,22 +657,35 @@ button, input, select, textarea {
 /* ==========================================================================
    AMBIENT LUXURY TRAVEL MESH & GLASSMORPHISM ENHANCEMENTS
    ========================================================================== */
+#root,
 .roavio-site-wrapper,
-.admin-app-layout {
+.roavio-main-content,
+.admin-app-layout,
+.plan-journey-page,
+.explore-india-page,
+.destination-details-page,
+.my-trips-page,
+.roavio-homepage-root,
+.contact-page-wrapper {
   position: relative;
   background-color: transparent !important;
 }
 
-/* Soft translucent card backdrop so ambient aurora orbs shimmer gently */
+/* Translucent glassmorphism so cruising planes, balloons & aurora waves shine through */
 .card,
 .feature-card,
 .destination-card,
 .travel-card,
 .stat-card,
 .planner-card,
-.summary-card {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+.summary-card,
+.contact-card,
+.contact-form-container,
+.sidebar-contact-card,
+.roavio-compact-contact-box {
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s ease, border-color 0.24s ease !important;
 }
 

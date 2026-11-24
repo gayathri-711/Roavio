@@ -18,6 +18,7 @@ import MyTrips from "./pages/MyTrips";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import TicketVerification from "./pages/TicketVerification";
+import Contact from "./pages/Contact";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -66,6 +67,8 @@ export default function App() {
           <Route path="my-tickets" element={<MyTrips defaultTab="tickets" />} />
           <Route path="verify-ticket" element={<TicketVerification />} />
           <Route path="verify-ticket/:token" element={<TicketVerification />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="contact-us" element={<Contact />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="*" element={<NotFound />} />

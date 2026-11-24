@@ -48,23 +48,32 @@ export default function Footer() {
               <li><Link to="/trains">Trains</Link></li>
               <li><Link to="/buses">Buses</Link></li>
               <li><Link to="/my-trips">My Trips</Link></li>
+              <li><Link to="/contact">Contact 24x7 Concierge</Link></li>
             </ul>
           </div>
 
           {/* Column 3 – Contact Us */}
           <div className="footer-col">
-            <h4 className="footer-col-title">Contact Us</h4>
+            <h4 className="footer-col-title">
+              <Link to="/contact" style={{ color: "inherit", textDecoration: "none" }}>Contact 24x7</Link>
+            </h4>
             <div className="contact-details-stack">
               <div className="contact-row">
-                <Mail size={16} className="contact-icon text-green" />
-                <a href="mailto:support@roavio.com" className="contact-link">
-                  support@roavio.com
+                <Phone size={16} className="contact-icon text-green" />
+                <a href="tel:18001029900" className="contact-link" style={{ fontWeight: 800 }}>
+                  1800 102 9900 (Toll-Free)
                 </a>
               </div>
               <div className="contact-row">
                 <Phone size={16} className="contact-icon text-green" />
-                <a href="tel:+919876543210" className="contact-link">
-                  +91 98765 43210
+                <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="contact-link">
+                  +91 98765 43210 (WhatsApp)
+                </a>
+              </div>
+              <div className="contact-row">
+                <Mail size={16} className="contact-icon text-green" />
+                <a href="mailto:support@roavio.com" className="contact-link">
+                  support@roavio.com
                 </a>
               </div>
               <div className="contact-row">
@@ -76,7 +85,7 @@ export default function Footer() {
               <div className="contact-row">
                 <Clock size={16} className="contact-icon text-green" />
                 <span className="contact-text">
-                  Monday–Saturday, 9 AM–6 PM
+                  Open 24/7 · 365 Days a Year
                 </span>
               </div>
             </div>
