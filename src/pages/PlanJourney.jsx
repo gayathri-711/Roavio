@@ -57,6 +57,7 @@ import { getHotelsForDestination } from "../data/hotels";
 import { getTransportOptions } from "../data/transportOptions";
 import { useTrips } from "../context/TripsContext";
 import { useAuth } from "../context/AuthContext";
+import MapComponent from "../components/MapComponent";
 
 export default function PlanJourney() {
   const navigate = useNavigate();
@@ -109,6 +110,16 @@ export default function PlanJourney() {
     matchedInitial ? `Trip to ${matchedInitial.name}` : "Trip to Ooty, Tamil Nadu"
   );
   const [sourceCity, setSourceCity] = useState(searchParams.get("from") || "Coimbatore");
+
+  // Auto-sync starting sourceCity if live GPS location is detected
+  useEffect(() => {
+    if (userLocation && userLocation.isLive && userLocation.city) {
+      if (!sourceCity || sourceCity === "Coimbatore" || sourceCity === "New Delhi") {
+        setSourceCity(userLocation.city);
+      }
+    }
+  }, [userLocation?.isLive, userLocation?.city]);
+
   const [startDate, setStartDate] = useState(searchParams.get("date") || "2026-12-15");
   const [endDate, setEndDate] = useState("2026-12-17");
   const [travelersCount, setTravelersCount] = useState(
@@ -872,7 +883,12 @@ export default function PlanJourney() {
                       />
                       <button 
                         type="button" 
-                        onClick={requestUserLocation}
+                        onClick={async () => {
+                          const res = await requestUserLocation();
+                          if (res && res.success && res.location) {
+                            setSourceCity(res.location.city || res.location.name);
+                          }
+                        }}
                         className="gps-btn" 
                         title="Use my current GPS Location"
                       >
@@ -1191,6 +1207,48 @@ export default function PlanJourney() {
                 )}
               </div>
             )}
+
+            {/* Interactive Live Route Map from User's Current GPS Location */}
+            {selectedDestinations.length > 0 && (
+              <div className="planner-card map-planner-card mb-4" style={{ border: "2px solid #A7F3D0", background: "#F0FDF4" }}>
+                <div className="card-section-title" style={{ borderBottom: "1px solid #BBF7D0", paddingBottom: "12px", marginBottom: "16px" }}>
+                  <div style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "50%",
+                    background: "#059669",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "800",
+                    fontSize: "16px"
+                  }}>
+                    🗺️
+                  </div>
+                  <div>
+                    <h3 style={{ color: "#065F46", margin: "0 0 2px" }}>Interactive Live Route & Road Navigation Radar</h3>
+                    <p style={{ color: "#047857", margin: 0, fontSize: "13px" }}>
+                      {userLocation.isLive 
+                        ? `Live turn-by-turn road route calculated from your GPS location (${userLocation.name})` 
+                        : "Turn-by-turn road route from your starting location. Click 'Locate Me' on the map to track live from your device."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="planner-map-box" style={{ borderRadius: "14px", overflow: "hidden" }}>
+                  <MapComponent 
+                    userLocation={userLocation}
+                    destinations={selectedDestinations}
+                    height="420px"
+                    showStats={true}
+                    interactive={true}
+                    allowLocateMe={true}
+                  />
+                </div>
+              </div>
+            )}
+
 
             {/* =========================================================================
                 CHOICE 1: CUSTOM BUILD YOUR TRIP SECTION

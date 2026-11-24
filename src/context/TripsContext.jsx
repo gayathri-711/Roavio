@@ -191,46 +191,102 @@ export const TripsProvider = ({ children }) => {
     lat: 28.6139,
     lng: 77.2090,
     name: "New Delhi (Default GPS)",
+    city: "New Delhi",
+    state: "Delhi",
+    accuracy: null,
     isLive: false,
     loading: false,
     error: null
   });
 
-  // Request browser location
-  const requestUserLocation = () => {
-    if (!navigator.geolocation) {
-      setUserLocation(prev => ({
-        ...prev,
-        error: "Geolocation is not supported by your browser.",
-        loading: false
-      }));
-      return;
+  // Reverse geocode lat/lng to actual Indian city and state
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=12`, {
+        headers: { "Accept-Language": "en" }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const addr = data.address || {};
+        const city = addr.city || addr.town || addr.suburb || addr.municipality || addr.district || addr.county || "My Location";
+        const state = addr.state || "India";
+        return { city, state, displayName: `${city}, ${state}` };
+      }
+    } catch (e) {
+      console.warn("Reverse geocode notice:", e);
     }
+    return { city: "Live Location", state: "India", displayName: `Live GPS (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)` };
+  };
 
-    setUserLocation(prev => ({ ...prev, loading: true, error: null }));
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          name: "My Live GPS Location",
-          isLive: true,
-          loading: false,
-          error: null
-        });
-      },
-      (err) => {
-        console.warn("GPS Permission not granted:", err.message);
+  // Request browser location with reverse geocoding
+  const requestUserLocation = () => {
+    return new Promise((resolve) => {
+      if (typeof window === "undefined" || !navigator.geolocation) {
         setUserLocation(prev => ({
           ...prev,
-          loading: false,
-          error: "Location permission denied. Using New Delhi as reference."
+          error: "Geolocation is not supported by your browser.",
+          loading: false
         }));
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    );
+        resolve({ success: false, error: "Geolocation not supported" });
+        return;
+      }
+
+      setUserLocation(prev => ({ ...prev, loading: true, error: null }));
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const accuracy = Math.round(position.coords.accuracy || 20);
+
+          const { city, state, displayName } = await reverseGeocode(lat, lng);
+
+          const updated = {
+            lat,
+            lng,
+            name: displayName,
+            city,
+            state,
+            accuracy,
+            isLive: true,
+            loading: false,
+            error: null
+          };
+
+          setUserLocation(updated);
+          resolve({ success: true, location: updated });
+        },
+        (err) => {
+          console.warn("GPS Permission or signal error:", err.message);
+          setUserLocation(prev => ({
+            ...prev,
+            loading: false,
+            error: "Location access denied or unavailable. Using New Delhi as reference."
+          }));
+          resolve({ success: false, error: err.message });
+        },
+        { timeout: 12000, enableHighAccuracy: true, maximumAge: 30000 }
+      );
+    });
   };
+
+  // Attempt automatic live location discovery on initial mount
+  useEffect(() => {
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      // Check permissions without triggering an aggressive prompt if already granted
+      if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: "geolocation" }).then((status) => {
+          if (status.state === "granted" || status.state === "prompt") {
+            requestUserLocation();
+          }
+        }).catch(() => {
+          requestUserLocation();
+        });
+      } else {
+        requestUserLocation();
+      }
+    }
+  }, []);
 
   const toggleSaveDestination = (destId) => {
     setSavedIds(prev => {
