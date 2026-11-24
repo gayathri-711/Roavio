@@ -2255,8 +2255,8 @@ export default function PlanJourney() {
                   <Ticket size={24} />
                 </div>
                 <div>
-                  <h3 className="modal-title">Complete Your Trip Registration</h3>
-                  <span className="modal-subtitle">Instant E-Ticket Dispatch • Official IRCTC & Partner Verified</span>
+                  <h3 className="modal-title">Register & Book Your Journey</h3>
+                  <span className="modal-subtitle">Secure Online Reservation & Instant Ticket Generation</span>
                 </div>
               </div>
               {!isProcessingPayment && (
@@ -2518,12 +2518,12 @@ export default function PlanJourney() {
                       </div>
                       <div className="account-details-col">
                         <div className="d-flex align-items-center gap-2 flex-wrap">
-                          <strong className="account-user-name">{user.name}</strong>
+                          <strong className="account-user-name">Signed in as {user.name} ({user.email})</strong>
                           <span className="account-verified-tag">
-                            <CheckCircle2 size={13} /> Verified Traveler
+                            <CheckCircle2 size={13} /> Verified Account
                           </span>
                         </div>
-                        <span className="account-user-email">{user.email} • E-Tickets will automatically sync to your dashboard</span>
+                        <span className="account-user-email">Official verified tickets will automatically sync to your dashboard</span>
                       </div>
                     </div>
 
@@ -2532,7 +2532,7 @@ export default function PlanJourney() {
                       <div className="checkout-step-hdr">
                         <div className="step-num-pill">1</div>
                         <div>
-                          <h4 className="step-title">Primary Traveler & E-Ticket Delivery Details</h4>
+                          <h4 className="step-title">1. Traveler Registration Details</h4>
                           <p className="step-desc">Boarding pass, booking voucher and live driver/conductor tracking will be sent here.</p>
                         </div>
                       </div>
@@ -2558,7 +2558,7 @@ export default function PlanJourney() {
 
                         <div className="field-block">
                           <label className="checkout-field-label">
-                            Mobile Number (WhatsApp & SMS E-Ticket) <span className="req-star">*</span>
+                            Mobile Number (for SMS & WhatsApp E-Ticket) <span className="req-star">*</span>
                           </label>
                           <div className="checkout-phone-input-group">
                             <div className="phone-country-code">
@@ -2580,7 +2580,7 @@ export default function PlanJourney() {
 
                         <div className="field-block">
                           <label className="checkout-field-label">
-                            Email Address (Official PDF Ticket & Invoice) <span className="req-star">*</span>
+                            Email Address (for Official PDF Pass) <span className="req-star">*</span>
                           </label>
                           <div className="checkout-input-wrap">
                             <Mail size={17} className="input-field-icon" />
@@ -2598,7 +2598,7 @@ export default function PlanJourney() {
 
                         <div className="field-block">
                           <label className="checkout-field-label">
-                            Emergency Contact Mobile <span className="opt-tag">(Optional)</span>
+                            Emergency Contact Phone <span className="opt-tag">(Optional)</span>
                           </label>
                           <div className="checkout-input-wrap">
                             <Phone size={17} className="input-field-icon" />
@@ -2620,7 +2620,7 @@ export default function PlanJourney() {
                       <div className="checkout-step-hdr">
                         <div className="step-num-pill">2</div>
                         <div>
-                          <h4 className="step-title">Select Secure Payment Gateway</h4>
+                          <h4 className="step-title">Select Payment Method & Verify Tickets</h4>
                           <p className="step-desc">Zero platform convenience fee • 256-Bit SSL Bank Encrypted</p>
                         </div>
                       </div>

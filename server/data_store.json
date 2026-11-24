@@ -109,7 +109,7 @@
       "lastBookingAt": "2026-11-21T08:42:46.128Z"
     },
     {
-      "id": "usr-6969",
+      "id": "usr-1697",
       "fullName": "Roavio Administrator",
       "email": "admin@roavio.com",
       "mobileNumber": "+91 98765 43210",
@@ -124,8 +124,8 @@
       "kycStatus": "Verified",
       "bookingsCount": 0,
       "tripsPlanned": 0,
-      "registeredAt": "2026-11-21T07:05:15.358Z",
-      "lastLoginAt": "2026-11-21T09:09:50.007Z"
+      "registeredAt": "2026-11-21T08:52:10.778Z",
+      "lastLoginAt": "2026-11-24T06:52:24.470Z"
     }
   ],
   "bookings": [

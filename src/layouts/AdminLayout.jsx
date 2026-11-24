@@ -2,10 +2,12 @@ import React from "react";
 import { Outlet, Link } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { Bell, Search, ExternalLink, Globe } from "lucide-react";
+import GlobalAnimatedBackground from "../components/GlobalAnimatedBackground";
 
 export default function AdminLayout() {
   return (
     <div className="admin-app-layout">
+      <GlobalAnimatedBackground />
       <Sidebar />
       <div className="admin-main-container">
         {/* Admin Topbar */}

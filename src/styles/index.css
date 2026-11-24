@@ -483,7 +483,7 @@ button, input, select, textarea {
   position: relative;
 }
 
-.modal-sticky-header {
+.modal-sticky-header, .checkout-modal-hdr {
   flex-shrink: 0;
   padding: 1.25rem 1.6rem;
   border-bottom: 1px solid #E2E8F0;
@@ -493,7 +493,7 @@ button, input, select, textarea {
   justify-content: space-between;
 }
 
-.modal-scrollable-body {
+.modal-scrollable-body, .checkout-form-body {
   flex: 1 1 auto;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -501,7 +501,7 @@ button, input, select, textarea {
   box-sizing: border-box;
 }
 
-.modal-sticky-footer {
+.modal-sticky-footer, .checkout-sticky-footer {
   flex-shrink: 0;
   position: sticky;
   bottom: 0;
@@ -653,3 +653,202 @@ button, input, select, textarea {
     padding-right: 12px;
   }
 }
+
+/* ==========================================================================
+   AMBIENT LUXURY TRAVEL MESH & GLASSMORPHISM ENHANCEMENTS
+   ========================================================================== */
+.roavio-site-wrapper,
+.admin-app-layout {
+  position: relative;
+  background-color: transparent !important;
+}
+
+/* Soft translucent card backdrop so ambient aurora orbs shimmer gently */
+.card,
+.feature-card,
+.destination-card,
+.travel-card,
+.stat-card,
+.planner-card,
+.summary-card {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s ease, border-color 0.24s ease !important;
+}
+
+/* Luxury Card Hover Lift & Ambient Glow */
+.card:hover,
+.feature-card:hover,
+.destination-card:hover,
+.travel-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px -4px rgba(11, 19, 43, 0.08), 0 0 20px rgba(16, 185, 129, 0.08) !important;
+}
+
+/* ==========================================================================
+   JOURNEY PLANNER & CHECKOUT MODAL LUXURY STYLING
+   ========================================================================== */
+.selected-plan-pill-banner {
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
+  border: 1.5px solid #BBF7D0 !important;
+  border-radius: 16px !important;
+  padding: 1.15rem 1.3rem !important;
+  margin-bottom: 1.3rem !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.08) !important;
+  word-break: break-word !important;
+}
+
+.plan-badge-kicker {
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  color: #166534 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 0.35rem !important;
+  display: block !important;
+}
+
+.plan-pill-title {
+  font-size: 1.08rem !important;
+  font-weight: 900 !important;
+  color: #065F46 !important;
+  margin: 0 0 0.35rem !important;
+  line-height: 1.35 !important;
+  word-break: break-word !important;
+}
+
+.plan-pill-transit-meta {
+  font-size: 0.8rem !important;
+  color: #047857 !important;
+  margin: 0 !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+.expense-breakdown-box {
+  border-top: 1.5px solid #F1F5F9 !important;
+  padding-top: 1.1rem !important;
+  margin-bottom: 1.3rem !important;
+}
+
+.expense-title {
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+  color: #0F172A !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  margin-bottom: 0.8rem !important;
+}
+
+.expense-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 0.85rem !important;
+  color: #475569 !important;
+  margin-bottom: 0.55rem !important;
+  gap: 0.5rem !important;
+}
+
+.expense-total-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  border-top: 2px solid #E2E8F0 !important;
+  padding-top: 0.95rem !important;
+  margin-top: 0.95rem !important;
+  gap: 0.5rem !important;
+}
+
+.total-amount {
+  font-size: 1.68rem !important;
+  font-weight: 900 !important;
+  color: #059669 !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Modal Identity Banner & Mobile Input Flex Fix */
+.traveler-account-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  background: #F0FDF4 !important;
+  border: 1.5px solid #BBF7D0 !important;
+  border-radius: 14px !important;
+  padding: 0.9rem 1.2rem !important;
+  margin-bottom: 1.3rem !important;
+}
+
+.account-avatar-circle {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
+  color: #FFFFFF !important;
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.account-user-name {
+  font-size: 0.95rem !important;
+  color: #0F172A !important;
+}
+
+.account-verified-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: #DCFCE7 !important;
+  color: #166534 !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  padding: 2px 7px !important;
+  border-radius: 12px !important;
+  border: 1px solid #86EFAC !important;
+}
+
+.account-user-email {
+  display: block !important;
+  font-size: 0.78rem !important;
+  color: #475569 !important;
+  margin-top: 2px !important;
+}
+
+.checkout-phone-input-group {
+  display: flex !important;
+  align-items: stretch !important;
+  border: 1.5px solid #CBD5E1 !important;
+  border-radius: 11px !important;
+  background: #FFFFFF !important;
+  overflow: hidden !important;
+}
+
+.phone-country-code {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 0 12px !important;
+  background: #F8FAFC !important;
+  border-right: 1.5px solid #E2E8F0 !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  color: #334155 !important;
+  user-select: none !important;
+  flex-shrink: 0 !important;
+}
+
+.checkout-phone-input {
+  border: none !important;
+  outline: none !important;
+  flex: 1 !important;
+  padding: 0.72rem 0.95rem !important;
+  font-size: 0.9rem !important;
+  color: #0F172A !important;
+  background: transparent !important;
+}
+
+

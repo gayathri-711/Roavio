@@ -431,15 +431,18 @@ export default function TravelCard({ item, type }) {
                   <div className="travel-form-grid mt-2">
                     <div className="form-group">
                       <label className="field-lbl">Mobile Number (for SMS & E-Ticket) *</label>
-                      <div className="mobile-prefix-wrap">
-                        <span className="mob-pre">+91</span>
+                      <div className="checkout-phone-input-group">
+                        <div className="phone-country-code">
+                          <span className="flag-icon">🇮🇳</span>
+                          <span className="code-text">+91</span>
+                        </div>
                         <input 
                           type="tel" 
                           maxLength={10}
                           required
                           value={passengerMobile}
                           onChange={(e) => setPassengerMobile(e.target.value.replace(/\D/g, ''))}
-                          className="modal-txt-input ps-prefix" 
+                          className="checkout-phone-input" 
                           placeholder="10-digit number"
                         />
                       </div>
