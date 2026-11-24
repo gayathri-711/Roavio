@@ -2913,7 +2913,7 @@ export default function PlanJourney() {
           width: 100%;
           max-width: 100vw;
           overflow-x: clip;
-          background: #F8FAFC;
+          background: transparent !important;
           min-height: 100vh;
           box-sizing: border-box;
         }
@@ -3053,18 +3053,25 @@ export default function PlanJourney() {
           width: 100%;
         }
 
-        /* Modern Decongested Card Styling */
+        /* Modern Decongested Glassmorphic Card Styling */
         .planner-card {
-          background: #FFFFFF;
-          border-radius: 18px;
-          padding: 1.4rem 1.6rem;
-          border: 1.5px solid #E2E8F0;
-          box-shadow: 0 4px 18px rgba(11, 19, 43, 0.04);
+          background: rgba(255, 255, 255, 0.86);
+          backdrop-filter: blur(16px) saturate(180%);
+          -webkit-backdrop-filter: blur(16px) saturate(180%);
+          border-radius: 20px;
+          padding: 1.5rem 1.7rem;
+          border: 1.5px solid rgba(255, 255, 255, 0.85);
+          box-shadow: 0 16px 36px -8px rgba(11, 19, 43, 0.07), 0 0 0 1px rgba(255, 255, 255, 0.6);
           margin-bottom: 1.4rem;
           width: 100%;
           min-width: 0;
           box-sizing: border-box;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition: transform 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        .planner-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 20px 42px -6px rgba(11, 19, 43, 0.1), 0 0 20px rgba(16, 185, 129, 0.08);
         }
 
         .card-section-title {
@@ -3109,11 +3116,13 @@ export default function PlanJourney() {
 
         /* Luxury Mode Selector */
         .planner-mode-bar-wrapper {
-          background: #FFFFFF;
-          border: 1.5px solid #E2E8F0;
-          border-radius: 20px;
-          padding: 1.6rem;
-          box-shadow: 0 4px 20px -2px rgba(11, 19, 43, 0.05);
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(16px) saturate(180%);
+          -webkit-backdrop-filter: blur(16px) saturate(180%);
+          border: 1.5px solid rgba(255, 255, 255, 0.85);
+          border-radius: 22px;
+          padding: 1.6rem 1.8rem;
+          box-shadow: 0 16px 36px -8px rgba(11, 19, 43, 0.07);
           width: 100%;
           min-width: 0;
           box-sizing: border-box;
@@ -4609,11 +4618,13 @@ export default function PlanJourney() {
 
         /* Summary Sidebar */
         .summary-card {
-          background: #FFFFFF;
-          border-radius: 22px;
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(16px) saturate(180%);
+          -webkit-backdrop-filter: blur(16px) saturate(180%);
+          border-radius: 24px;
           padding: 1.8rem;
-          border: 1.5px solid #E2E8F0;
-          box-shadow: 0 10px 35px -5px rgba(0, 0, 0, 0.06);
+          border: 1.5px solid rgba(255, 255, 255, 0.85);
+          box-shadow: 0 18px 40px -8px rgba(11, 19, 43, 0.09), 0 0 0 1px rgba(255, 255, 255, 0.6);
           position: sticky;
           top: 90px;
           width: 100%;

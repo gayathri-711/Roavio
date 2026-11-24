@@ -1088,7 +1088,7 @@ export default function MyTrips({ defaultTab = "tickets" }) {
          ========================================================================= */}
       <style>{`
         .traveler-portal-page {
-          background-color: #F8FAFC;
+          background-color: transparent !important;
           min-height: 100vh;
         }
 
@@ -1414,17 +1414,19 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         }
 
         .luxury-ticket-pass {
-          background: #FFFFFF;
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(16px) saturate(180%);
+          -webkit-backdrop-filter: blur(16px) saturate(180%);
           border-radius: 20px;
-          border: 1.5px solid #E2E8F0;
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+          border: 1.5px solid rgba(255, 255, 255, 0.85);
+          box-shadow: 0 16px 36px -8px rgba(11, 19, 43, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.6);
           overflow: hidden;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition: transform 0.22s ease, box-shadow 0.22s ease;
         }
 
         .luxury-ticket-pass:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+          transform: translateY(-3px);
+          box-shadow: 0 20px 42px -6px rgba(11, 19, 43, 0.12), 0 0 20px rgba(16, 185, 129, 0.1);
         }
 
         .ticket-pass-ribbon {

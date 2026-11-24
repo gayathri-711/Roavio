@@ -671,7 +671,7 @@ button, input, select, textarea {
   background-color: transparent !important;
 }
 
-/* Translucent glassmorphism so cruising planes, balloons & aurora waves shine through */
+/* Translucent luxury glassmorphism so live flight network, cruising planes, shooting stars & aurora waves shine through */
 .card,
 .feature-card,
 .destination-card,
@@ -682,10 +682,20 @@ button, input, select, textarea {
 .contact-card,
 .contact-form-container,
 .sidebar-contact-card,
-.roavio-compact-contact-box {
-  background: rgba(255, 255, 255, 0.94) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+.roavio-compact-contact-box,
+.planner-mode-bar-wrapper,
+.mode-toggle-card,
+.duration-preset-card,
+.transport-ticket-card,
+.hotel-plan-card,
+.fixed-pkg-card,
+.unified-dest-hero-card,
+.selected-stop-card {
+  background: rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 16px 36px -8px rgba(11, 19, 43, 0.07), 0 0 0 1px rgba(255, 255, 255, 0.6) !important;
   transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s ease, border-color 0.24s ease !important;
 }
 
@@ -693,55 +703,152 @@ button, input, select, textarea {
 .card:hover,
 .feature-card:hover,
 .destination-card:hover,
-.travel-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 36px -4px rgba(11, 19, 43, 0.08), 0 0 20px rgba(16, 185, 129, 0.08) !important;
+.travel-card:hover,
+.planner-card:hover,
+.transport-ticket-card:hover,
+.duration-preset-card:hover,
+.hotel-plan-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 20px 42px -6px rgba(11, 19, 43, 0.12), 0 0 24px rgba(16, 185, 129, 0.12) !important;
 }
 
 /* ==========================================================================
    JOURNEY PLANNER & CHECKOUT MODAL LUXURY STYLING
    ========================================================================== */
 .selected-plan-pill-banner {
-  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
-  border: 1.5px solid #BBF7D0 !important;
-  border-radius: 16px !important;
-  padding: 1.15rem 1.3rem !important;
-  margin-bottom: 1.3rem !important;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.08) !important;
+  background: linear-gradient(135deg, rgba(240, 253, 244, 0.95) 0%, rgba(220, 252, 231, 0.95) 100%) !important;
+  border: 1.5px solid #86EFAC !important;
+  border-radius: 18px !important;
+  padding: 1.25rem 1.4rem !important;
+  margin-bottom: 1.35rem !important;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.1) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
   word-break: break-word !important;
 }
 
 .plan-badge-kicker {
+  display: inline-block !important;
+  align-self: flex-start !important;
+  background: #DCFCE7 !important;
+  border: 1px solid #86EFAC !important;
+  color: #166534 !important;
   font-size: 0.72rem !important;
   font-weight: 800 !important;
-  color: #166534 !important;
-  letter-spacing: 0.06em !important;
+  letter-spacing: 0.07em !important;
+  padding: 0.25rem 0.65rem !important;
+  border-radius: 6px !important;
   text-transform: uppercase !important;
-  margin-bottom: 0.35rem !important;
-  display: block !important;
 }
 
 .plan-pill-title {
-  font-size: 1.08rem !important;
+  font-size: 1.12rem !important;
   font-weight: 900 !important;
   color: #065F46 !important;
-  margin: 0 0 0.35rem !important;
+  margin: 0 !important;
   line-height: 1.35 !important;
   word-break: break-word !important;
 }
 
 .plan-pill-transit-meta {
-  font-size: 0.8rem !important;
+  font-size: 0.82rem !important;
   color: #047857 !important;
   margin: 0 !important;
   font-weight: 600 !important;
   line-height: 1.4 !important;
 }
 
+/* Trip Style Toggle Buttons (Direct Trip vs Multi-City) */
+.trip-style-toggle-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 0.85rem !important;
+  width: 100% !important;
+}
+
+.trip-style-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 0.85rem 1.1rem !important;
+  border-radius: 14px !important;
+  border: 1.5px solid #E2E8F0 !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  transition: all 0.2s ease !important;
+}
+
+.trip-style-btn.active {
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(209, 250, 229, 0.95) 100%) !important;
+  border-color: #10B981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18), 0 8px 20px rgba(16, 185, 129, 0.12) !important;
+}
+
+.trip-style-status-pill {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.6rem !important;
+  background: rgba(240, 253, 244, 0.9) !important;
+  border: 1px solid #BBF7D0 !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.82rem !important;
+  color: #166534 !important;
+}
+
+/* Duration Presets Cards */
+.duration-presets-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)) !important;
+  gap: 0.85rem !important;
+  width: 100% !important;
+}
+
+.duration-preset-card {
+  position: relative !important;
+  border: 1.5px solid #E2E8F0 !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 16px !important;
+  padding: 1rem 0.75rem !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.duration-preset-card.active {
+  border-color: #10B981 !important;
+  background: linear-gradient(135deg, rgba(240, 253, 244, 0.95) 0%, rgba(220, 252, 231, 0.95) 100%) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2), 0 10px 24px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Transport Ticket Cards */
+.transport-ticket-card {
+  border: 1.5px solid #E2E8F0 !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(12px) !important;
+  border-radius: 18px !important;
+  padding: 1.3rem !important;
+  cursor: pointer !important;
+  transition: all 0.22s ease !important;
+}
+
+.transport-ticket-card.selected {
+  border-color: #10B981 !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(236, 253, 245, 0.88) 100%) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18), 0 12px 28px rgba(16, 185, 129, 0.1) !important;
+}
+
 .expense-breakdown-box {
   border-top: 1.5px solid #F1F5F9 !important;
-  padding-top: 1.1rem !important;
-  margin-bottom: 1.3rem !important;
+  padding-top: 1.15rem !important;
+  margin-bottom: 1.35rem !important;
 }
 
 .expense-title {
@@ -768,16 +875,39 @@ button, input, select, textarea {
   justify-content: space-between !important;
   align-items: center !important;
   border-top: 2px solid #E2E8F0 !important;
-  padding-top: 0.95rem !important;
-  margin-top: 0.95rem !important;
-  gap: 0.5rem !important;
+  padding-top: 1rem !important;
+  margin-top: 1rem !important;
+  gap: 0.75rem !important;
 }
 
 .total-amount {
-  font-size: 1.68rem !important;
+  font-size: 1.85rem !important;
   font-weight: 900 !important;
   color: #059669 !important;
   letter-spacing: -0.02em !important;
+}
+
+.register-trip-btn {
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  padding: 0.95rem 1.25rem !important;
+  font-size: 0.98rem !important;
+  font-weight: 800 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.6rem !important;
+  transition: all 0.2s ease !important;
+  width: 100% !important;
+}
+
+.register-trip-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 28px rgba(16, 185, 129, 0.45) !important;
 }
 
 /* Modal Identity Banner & Mobile Input Flex Fix */
