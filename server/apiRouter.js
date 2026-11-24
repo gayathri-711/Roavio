@@ -10,7 +10,20 @@ import { triggerBookingNotifications, resendNotification, retryNotificationLog }
 import { generateTicketPdf, generateItineraryPdf, generateTicketHtml, generateItineraryHtml } from './services/ticketPdfService.js';
 import { sendOtpSms } from './services/smsService.js';
 import { testWhatsAppDelivery, handleWebhookStatusUpdate } from './services/whatsappService.js';
+import { 
+  sendWelcomeEmail, 
+  sendOtpVerificationEmail, 
+  sendBookingConfirmationEmail, 
+  sendPaymentConfirmationEmail, 
+  sendPasswordResetEmail, 
+  sendAdminNotification,
+  isValidEmail 
+} from './services/googleEmailService.js';
 import crypto from 'crypto';
+
+// In-memory token store for Password Reset requests
+const passwordResetTokens = new Map();
+
 
 export async function handleApiRequest(req, res, pathname, searchParams) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -102,7 +115,12 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
       // Dispatch OTP via SMS provider
       const smsDispatch = await sendOtpSms(cleanMobile, otpCode);
 
-      // Dispatch OTP via Resend Email if email was supplied
+      // Dispatch OTP via Google Apps Script Email if email was supplied
+      if (email && isValidEmail(email)) {
+        sendOtpVerificationEmail(email.trim(), otpCode).catch(e => console.warn('Google Apps Script OTP Notice:', e.message));
+      }
+
+      // Dispatch OTP via Resend Email if email was supplied and key available
       if (email && email.includes('@') && process.env.RESEND_API_KEY) {
         const { sendOtpEmail } = await import('./services/emailService.js');
         sendOtpEmail(email.trim(), otpCode).catch(e => console.warn('Email OTP Notice:', e.message));
@@ -202,6 +220,49 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
       return;
     }
 
+    // POST /api/auth/forgot-password (Automated Password Reset via Google Apps Script)
+    if (pathname === '/api/auth/forgot-password' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
+      const { email } = await readBody();
+      const cleanEmail = String(email || '').trim().toLowerCase();
+
+      if (!cleanEmail || !isValidEmail(cleanEmail)) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ 
+          success: false, 
+          error: 'Please enter a valid registered email address.' 
+        }));
+        return;
+      }
+
+      // Find user profile or create recovery object
+      const user = dbStore.users.find(u => u.email && u.email.toLowerCase() === cleanEmail) || {
+        id: `usr-${Date.now().toString().slice(-4)}`,
+        name: cleanEmail.split('@')[0].replace(/[._-]/g, ' '),
+        email: cleanEmail
+      };
+
+      // Generate cryptographically secure reset token
+      const resetToken = crypto.randomBytes(24).toString('hex');
+      passwordResetTokens.set(resetToken, {
+        email: cleanEmail,
+        expiresAt: Date.now() + 15 * 60 * 1000 // 15 mins expiry
+      });
+
+      // Dispatch automated password reset instructions via Google Apps Script
+      const dispatchResult = await sendPasswordResetEmail(user, resetToken);
+
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        success: true,
+        message: `Password reset instructions have been sent to ${cleanEmail}. Check your inbox.`,
+        resetToken: resetToken,
+        dispatchResult
+      }));
+      return;
+    }
+
+
     // =========================================================================
     // 2. USER REGISTRATION (Enforces Mobile Verification)
     // =========================================================================
@@ -252,6 +313,12 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
 
       dbStore.users.unshift(newUser);
       dbStore.save();
+
+      // Trigger automated Google Apps Script Welcome Email & Real-time Admin Notification
+      if (newUser.email && isValidEmail(newUser.email)) {
+        sendWelcomeEmail(newUser).catch(e => console.warn('Welcome Email Dispatch Notice:', e.message));
+        sendAdminNotification('New User Registration', newUser).catch(e => console.warn('Admin Alert Dispatch Notice:', e.message));
+      }
 
       res.writeHead(201);
       res.end(JSON.stringify({
@@ -345,6 +412,13 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
       // Trigger automatic mobile ticket notification workflow
       const notifResults = await triggerBookingNotifications(newBooking);
 
+      // Trigger automated Google Apps Script Booking & Payment Confirmation Emails + Admin Notification
+      if (newBooking.email && isValidEmail(newBooking.email)) {
+        sendBookingConfirmationEmail(newBooking).catch(e => console.warn('Google Booking Email Notice:', e.message));
+        sendPaymentConfirmationEmail(newBooking).catch(e => console.warn('Google Payment Email Notice:', e.message));
+      }
+      sendAdminNotification('New Booking Confirmed', newBooking).catch(e => console.warn('Google Admin Booking Alert Notice:', e.message));
+
       res.writeHead(201);
       res.end(JSON.stringify({
         success: true,
@@ -427,6 +501,68 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
       res.end(JSON.stringify(testResult));
       return;
     }
+
+    // POST /api/notifications/test-google-email (Test Google Apps Script Email Delivery on demand)
+    if (pathname === '/api/notifications/test-google-email' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
+      const { type = 'welcome', email } = await readBody();
+      const cleanEmail = String(email || '').trim().toLowerCase();
+
+      if (!cleanEmail || !isValidEmail(cleanEmail)) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ success: false, error: 'Please provide a valid recipient email address syntax.' }));
+        return;
+      }
+
+      let testResult;
+      const dummyBooking = {
+        bookingId: `BK-${Math.floor(10000 + Math.random() * 90000)}`,
+        category: 'flight',
+        title: 'Air India AI-512 (New Delhi ➔ Kochi)',
+        providerName: 'Air India',
+        providerReference: 'ROA-DEL-COK-512',
+        sourceLocation: 'New Delhi (DEL)',
+        destination: 'Kochi (COK)',
+        travelDate: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
+        travelTime: '06:45 AM',
+        passengers: 2,
+        leadPassenger: 'Roavio Traveler',
+        email: cleanEmail,
+        mobileNumber: '9876543210',
+        seatClass: 'Economy (12A, 12B)',
+        amount: 10900,
+        paymentStatus: 'Verified',
+        bookingStatus: 'Confirmed',
+        ticketSecureToken: 'tk_test_google_pass_pass2026'
+      };
+
+      if (type === 'welcome') {
+        testResult = await sendWelcomeEmail({ id: 'usr-test', name: 'Roavio Explorer', email: cleanEmail, mobileNumber: '9876543210' });
+      } else if (type === 'otp') {
+        testResult = await sendOtpVerificationEmail(cleanEmail, '839210', 'Roavio Explorer');
+      } else if (type === 'booking') {
+        testResult = await sendBookingConfirmationEmail(dummyBooking);
+      } else if (type === 'payment') {
+        testResult = await sendPaymentConfirmationEmail(dummyBooking);
+      } else if (type === 'password_reset') {
+        testResult = await sendPasswordResetEmail({ name: 'Roavio Explorer', email: cleanEmail }, 'tok_test_reset_token_8892');
+      } else if (type === 'admin') {
+        testResult = await sendAdminNotification('Manual Admin Test Trigger', {
+          bookingId: dummyBooking.bookingId,
+          leadPassenger: 'Roavio Explorer',
+          email: cleanEmail,
+          amount: 10900,
+          title: dummyBooking.title
+        });
+      } else {
+        testResult = await sendWelcomeEmail({ id: 'usr-test', name: 'Roavio Explorer', email: cleanEmail });
+      }
+
+      res.writeHead(testResult.success ? 200 : 200); // Return 200 so UI can inspect the diagnostic details
+      res.end(JSON.stringify(testResult));
+      return;
+    }
+
 
     // =========================================================================
     // 4. AUTHENTIC ISO BINARY PDF TICKET & ITINERARY ENDPOINTS
@@ -648,6 +784,11 @@ export async function handleApiRequest(req, res, pathname, searchParams) {
         dbStore.users[existingIndex] = { ...dbStore.users[existingIndex], ...userRecord };
       } else {
         dbStore.users.unshift(userRecord);
+        // Trigger automated Google Apps Script Welcome Email & Admin Notification for new users
+        if (userRecord.email && isValidEmail(userRecord.email)) {
+          sendWelcomeEmail(userRecord).catch(e => console.warn('Welcome Email Dispatch Notice:', e.message));
+          sendAdminNotification('New User Registration', userRecord).catch(e => console.warn('Admin Alert Dispatch Notice:', e.message));
+        }
       }
       dbStore.save();
 

@@ -12,7 +12,9 @@ import {
   Phone,
   Sparkles,
   CheckCircle2,
-  Clock
+  Clock,
+  Key,
+  X
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -34,6 +36,42 @@ export default function Login() {
   const [otpSent, setOtpSent] = useState(false);
   const [demoOtp, setDemoOtp] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
+
+  // Forgot Password Modal States
+  const [forgotModalOpen, setForgotModalOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState("");
+  const [forgotError, setForgotError] = useState("");
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setForgotError("");
+    setForgotSuccess("");
+    const clean = (forgotEmail || "").trim();
+    if (!clean || !clean.includes("@")) {
+      setForgotError("Please enter a valid registered email address.");
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: clean })
+      });
+      const data = await res.json();
+      setForgotLoading(false);
+      if (data.success) {
+        setForgotSuccess(data.message || `Password reset instructions sent to ${clean}.`);
+      } else {
+        setForgotError(data.error || "Failed to dispatch password recovery email.");
+      }
+    } catch (err) {
+      setForgotLoading(false);
+      setForgotError("Network error while connecting to server. Please try again.");
+    }
+  };
 
   const from = location.state?.from?.pathname || "/my-trips";
 
@@ -275,9 +313,19 @@ export default function Login() {
                 <div className="form-group">
                   <div className="flex-between">
                     <label>Password</label>
-                    <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Demo Mode: You can use any password to log in."); }} className="forgot-link">
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setForgotEmail(email);
+                        setForgotError("");
+                        setForgotSuccess("");
+                        setForgotModalOpen(true);
+                      }} 
+                      className="forgot-link"
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
+                    >
                       Forgot password?
-                    </a>
+                    </button>
                   </div>
                   <div className="input-icon-box">
                     <Lock size={18} className="input-icon" />
@@ -422,6 +470,178 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {forgotModalOpen && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(15, 23, 42, 0.65)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: "16px"
+        }}>
+          <div style={{
+            background: "#FFFFFF",
+            borderRadius: "20px",
+            width: "100%",
+            maxWidth: "460px",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            overflow: "hidden",
+            border: "1px solid #E2E8F0"
+          }}>
+            {/* Header */}
+            <div style={{
+              background: "linear-gradient(135deg, #091E3A 0%, #102A45 100%)",
+              color: "#FFFFFF",
+              padding: "24px 24px 20px",
+              position: "relative"
+            }}>
+              <button 
+                type="button" 
+                onClick={() => setForgotModalOpen(false)}
+                style={{
+                  position: "absolute",
+                  top: "16px",
+                  right: "16px",
+                  background: "rgba(255,255,255,0.15)",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: "32px",
+                  height: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#FFFFFF",
+                  cursor: "pointer"
+                }}
+              >
+                <X size={18} />
+              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                <div style={{
+                  background: "rgba(16, 185, 129, 0.2)",
+                  border: "1px solid #10B981",
+                  borderRadius: "10px",
+                  padding: "8px",
+                  display: "flex"
+                }}>
+                  <Key size={20} style={{ color: "#34D399" }} />
+                </div>
+                <h3 style={{ margin: 0, fontSize: "19px", fontWeight: "800" }}>Reset Account Password</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: "13px", color: "#94A3B8", lineHeight: "1.5" }}>
+                Enter your registered email. We will send secure reset instructions via our Google Apps Script email service.
+              </p>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "24px" }}>
+              {forgotSuccess ? (
+                <div style={{
+                  background: "#ECFDF5",
+                  border: "1px solid #A7F3D0",
+                  borderRadius: "12px",
+                  padding: "18px",
+                  textAlign: "center"
+                }}>
+                  <CheckCircle2 size={36} style={{ color: "#059669", margin: "0 auto 10px" }} />
+                  <h4 style={{ margin: "0 0 6px", color: "#065F46", fontSize: "16px", fontWeight: "800" }}>Instructions Dispatched</h4>
+                  <p style={{ margin: "0 0 16px", color: "#047857", fontSize: "13px", lineHeight: "1.5" }}>
+                    {forgotSuccess}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotModalOpen(false);
+                      setForgotSuccess("");
+                    }}
+                    className="btn btn-primary btn-block"
+                    style={{ padding: "10px 16px", fontSize: "13px" }}
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword}>
+                  {forgotError && (
+                    <div style={{
+                      background: "#FEF2F2",
+                      border: "1px solid #FECACA",
+                      borderRadius: "10px",
+                      padding: "10px 14px",
+                      marginBottom: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      color: "#991B1B",
+                      fontSize: "13px"
+                    }}>
+                      <AlertCircle size={16} />
+                      <span>{forgotError}</span>
+                    </div>
+                  )}
+
+                  <div className="form-group" style={{ marginBottom: "20px" }}>
+                    <label style={{ display: "block", marginBottom: "6px", fontWeight: "600", fontSize: "13px", color: "#334155" }}>
+                      Registered Email Address
+                    </label>
+                    <div className="input-icon-box">
+                      <Mail size={18} className="input-icon" />
+                      <input
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="auth-input"
+                        autoFocus
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                      type="button"
+                      onClick={() => setForgotModalOpen(false)}
+                      style={{
+                        flex: 1,
+                        padding: "12px",
+                        background: "#F1F5F9",
+                        border: "1px solid #CBD5E1",
+                        borderRadius: "12px",
+                        fontWeight: "600",
+                        fontSize: "14px",
+                        color: "#475569",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={forgotLoading}
+                      className="btn btn-primary"
+                      style={{
+                        flex: 2,
+                        padding: "12px",
+                        fontSize: "14px",
+                        fontWeight: "700"
+                      }}
+                    >
+                      {forgotLoading ? "Sending..." : "Send Reset Email ➔"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
 
       <style>{`
         .auth-page {
