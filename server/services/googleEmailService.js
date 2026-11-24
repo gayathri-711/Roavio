@@ -123,6 +123,68 @@ export async function executeAppsScriptPost(url, payload) {
 }
 
 /**
+ * Dispatch email via Resend API as failover when Google Apps Script is unauthorized or unavailable
+ */
+async function dispatchViaResendFallback({ to, subject, htmlBody }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey || apiKey.trim() === '') return null;
+
+  return new Promise((resolve) => {
+    try {
+      const postData = JSON.stringify({
+        from: process.env.RESEND_FROM_EMAIL || 'Roavio Travel <onboarding@resend.dev>',
+        to: [to],
+        subject: subject,
+        html: htmlBody
+      });
+
+      const options = {
+        hostname: 'api.resend.com',
+        path: '/emails',
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey.trim()}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        },
+        timeout: 10000
+      };
+
+      const req = https.request(options, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(body);
+            resolve({
+              success: res.statusCode >= 200 && res.statusCode < 300,
+              statusCode: res.statusCode,
+              data: parsed
+            });
+          } catch (e) {
+            resolve({ success: res.statusCode >= 200 && res.statusCode < 300, raw: body });
+          }
+        });
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({ success: false, error: 'Resend fallback timed out' });
+      });
+
+      req.on('error', (err) => {
+        resolve({ success: false, error: err.message });
+      });
+
+      req.write(postData);
+      req.end();
+    } catch (e) {
+      resolve({ success: false, error: e.message });
+    }
+  });
+}
+
+/**
  * Core Reusable Email Dispatch Function
  */
 export async function sendEmailViaAppsScript({
@@ -187,22 +249,36 @@ export async function sendEmailViaAppsScript({
   const result = await executeAppsScriptPost(scriptUrl, payload);
   emailDeduplicationCache.set(dedupKey, now);
 
-  const isSuccess = result.success;
-  const messageSummary = `${type.toUpperCase()} email sent to ${cleanEmail} (${subject})`;
-  const providerStatus = isSuccess 
+  let isSuccess = result.success;
+  let providerStatus = isSuccess 
     ? 'Delivered (Google Apps Script Web App)' 
     : (result.data?.message || result.error || 'Google Apps Script Dispatched');
+  let fallbackResult = null;
+
+  // Failover Guarantee: If Google Apps Script returned Unauthorized or failed,
+  // automatically dispatch via Resend so traveler immediately receives the email in their inbox!
+  if (!isSuccess && process.env.RESEND_API_KEY) {
+    fallbackResult = await dispatchViaResendFallback({ to: cleanEmail, subject, htmlBody });
+    if (fallbackResult && fallbackResult.success) {
+      isSuccess = true;
+      providerStatus = `Delivered (Resend Failover - Apps Script: ${result.data?.message || 'Pending Configuration'})`;
+    }
+  }
+
+  const messageSummary = `${type.toUpperCase()} email sent to ${cleanEmail} (${subject})`;
 
   // 5. Audit Logging to dbStore
   const logEntry = {
     logId: `NOTIF-${Date.now().toString().slice(-6)}`,
     bookingId: referenceId || type,
     recipientMobile: cleanEmail,
-    channel: 'Google Email',
+    channel: fallbackResult?.success ? 'Email (Resend Failover)' : 'Google Email',
     templateUsed: `roavio_${type}_template_v1`,
     messageSummary,
     providerStatus,
-    providerResponse: result.raw || JSON.stringify(result.data || {}),
+    providerResponse: fallbackResult?.success 
+      ? JSON.stringify(fallbackResult.data || {}) 
+      : (result.raw || JSON.stringify(result.data || {})),
     retryCount: 0,
     timestamp: new Date().toISOString()
   };
@@ -214,11 +290,11 @@ export async function sendEmailViaAppsScript({
 
   return {
     success: isSuccess,
-    channel: 'Google Email',
+    channel: fallbackResult?.success ? 'Email (Resend Failover)' : 'Google Email',
     recipientEmail: cleanEmail,
     type,
     providerStatus,
-    response: result.data || result.raw,
+    response: fallbackResult?.data || result.data || result.raw,
     timestamp: new Date().toISOString()
   };
 }
