@@ -105,7 +105,7 @@ export default function PlanJourney() {
 
   // Planning Form State - dynamically centered around the user's chosen destination
   const [tripType, setTripType] = useState("direct"); // "direct" (Go only to selected place) | "circuit" (Multi-Stop Tour)
-  const [showDestDetails, setShowDestDetails] = useState(true);
+  const [showDestDetails, setShowDestDetails] = useState(false);
   const [tripTitle, setTripTitle] = useState(
     matchedInitial ? `Trip to ${matchedInitial.name}` : "Trip to Ooty, Tamil Nadu"
   );
@@ -751,63 +751,67 @@ export default function PlanJourney() {
 
       <div className="container py-8 main-planner-container">
         {/* =========================================================================
-            TOP ARCHITECTURE: TWO-CHOICE PLANNING MODE SWITCHER
+            TOP ARCHITECTURE: SLEEK SEGMENTED PLANNING MODE SWITCHER
         ========================================================================= */}
-        <div className="choice-mode-card mb-4">
-          <div className="choice-mode-header">
-            <span className="choice-kicker">SELECT YOUR PREFERRED PLANNING STYLE</span>
-            <h3>How Would You Like to Plan Your Holiday?</h3>
-            <p className="choice-subtitle">
-              Choose between complete custom freedom with itemized cost calculation, or our fixed all-inclusive budget packages where Roavio takes care of everything.
+        <div className="planner-mode-bar-wrapper mb-4">
+          <div className="planner-mode-bar-header">
+            <span className="mode-kicker">STEP 1 OF 3 • SELECT PLANNING ARCHITECTURE</span>
+            <h2 className="mode-main-title">How Would You Like to Plan Your Holiday?</h2>
+            <p className="mode-subtitle">
+              Choose between complete custom freedom with itemized live billing, or our fixed all-inclusive budget packages where Roavio arranges return tickets, hotel stay, all meals & sightseeing.
             </p>
           </div>
 
-          <div className="mobile-slide-hint d-md-none">
-            <span>👉 Swipe horizontally to compare choices</span>
-          </div>
-
-          <div className="choice-tabs-grid mobile-slide-track">
-            {/* Choice 1 Tab */}
-            <div 
+          <div className="planner-mode-toggle-grid">
+            <div
               onClick={() => setPlanMode("custom")}
-              className={`choice-tab-card mobile-slide-item ${planMode === "custom" ? "active" : ""}`}
+              className={`mode-toggle-card ${planMode === "custom" ? "active" : ""}`}
+              role="button"
+              tabIndex={0}
             >
-              <div className="choice-tab-top">
-                <span className="choice-badge badge-custom">CHOICE 1: CUSTOM BUILD</span>
-                <div className={`choice-radio ${planMode === "custom" ? "active" : ""}`}>
-                  {planMode === "custom" && <Check size={14} color="#FFF" />}
+              <div className="mode-toggle-top">
+                <div className="mode-icon-box custom">
+                  <Sliders size={20} />
+                </div>
+                <div className="mode-badge-wrap">
+                  <span className="mode-badge custom">CHOICE 1: CUSTOM BUILD</span>
+                  {planMode === "custom" && <span className="active-check-badge">✓ Active Choice</span>}
                 </div>
               </div>
-              <h4>Custom Build Your Trip</h4>
-              <p>
-                1. Pick hotel by budget · 2. Select flight/train/bus tickets · 3. Decide duration (days) · 4. Live dynamic cost calculation.
+              <h3 className="mode-card-title">Custom Build Your Trip</h3>
+              <p className="mode-card-desc">
+                Select your hotel tier (Budget, Comfort, Luxury), pick travel tickets (Flight, Train, Bus, Cab), set duration, and view real-time dynamic cost calculation.
               </p>
-              <div className="choice-features">
+              <div className="mode-perks-row">
                 <span>✓ Selectable Hotels by Budget</span>
-                <span>✓ Flight, Train or Bus Tickets</span>
+                <span>✓ Return Travel Tickets</span>
                 <span>✓ Itemized Dynamic Bill</span>
               </div>
             </div>
 
-            {/* Choice 2 Tab */}
-            <div 
+            <div
               onClick={() => setPlanMode("fixed")}
-              className={`choice-tab-card mobile-slide-item ${planMode === "fixed" ? "active" : ""}`}
+              className={`mode-toggle-card ${planMode === "fixed" ? "active" : ""}`}
+              role="button"
+              tabIndex={0}
             >
-              <div className="choice-tab-top">
-                <span className="choice-badge badge-fixed">CHOICE 2: FIXED BUDGET PACKAGES</span>
-                <div className={`choice-radio ${planMode === "fixed" ? "active" : ""}`}>
-                  {planMode === "fixed" && <Check size={14} color="#FFF" />}
+              <div className="mode-toggle-top">
+                <div className="mode-icon-box fixed">
+                  <Sparkles size={20} />
+                </div>
+                <div className="mode-badge-wrap">
+                  <span className="mode-badge fixed">CHOICE 2: FIXED PACKAGES</span>
+                  {planMode === "fixed" && <span className="active-check-badge">✓ Active Choice</span>}
                 </div>
               </div>
-              <h4>Roavio All-Inclusive Fixed Packages</h4>
-              <p>
-                Pay a single fixed price (e.g. ₹9,999 2-Day Ooty Tour) and Roavio arranges your return tickets, hotel stay, all meals & sightseeing!
+              <h3 className="mode-card-title">Roavio All-Inclusive Fixed Packages</h3>
+              <p className="mode-card-desc">
+                Single fixed all-inclusive rate starting from ₹9,999/person. Roavio takes care of your return travel tickets, hotel resort stay, regional dining & sightseeing!
               </p>
-              <div className="choice-features">
+              <div className="mode-perks-row">
                 <span>✓ All Facilities Arranged by Roavio</span>
                 <span>✓ Return Tickets & Stay Included</span>
-                <span>✓ Zero Hidden Charges</span>
+                <span>✓ Zero Hidden Surcharges</span>
               </div>
             </div>
           </div>
@@ -2954,18 +2958,17 @@ export default function PlanJourney() {
           width: 100%;
         }
 
-        /* Modern Card Styling */
+        /* Modern Decongested Card Styling */
         .planner-card {
           background: #FFFFFF;
-          border-radius: 20px;
-          padding: 1.8rem;
+          border-radius: 18px;
+          padding: 1.4rem 1.6rem;
           border: 1.5px solid #E2E8F0;
-          box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-          margin-bottom: 1.8rem;
+          box-shadow: 0 4px 18px rgba(11, 19, 43, 0.04);
+          margin-bottom: 1.4rem;
           width: 100%;
           min-width: 0;
           box-sizing: border-box;
-          overflow: hidden;
           transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
@@ -3009,153 +3012,163 @@ export default function PlanJourney() {
           box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
         }
 
-        /* Choice Mode Card */
-        .choice-mode-card {
+        /* Luxury Mode Selector */
+        .planner-mode-bar-wrapper {
           background: #FFFFFF;
           border: 1.5px solid #E2E8F0;
-          border-radius: 22px;
-          padding: 1.8rem;
-          box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+          border-radius: 20px;
+          padding: 1.6rem;
+          box-shadow: 0 4px 20px -2px rgba(11, 19, 43, 0.05);
           width: 100%;
           min-width: 0;
           box-sizing: border-box;
         }
 
-        .choice-kicker {
+        .mode-kicker {
           font-size: 0.72rem;
           font-weight: 800;
-          letter-spacing: 0.9px;
-          color: var(--color-green);
+          letter-spacing: 0.08em;
+          color: var(--travel-green);
           text-transform: uppercase;
         }
 
-        .choice-mode-header h3 {
-          font-size: 1.35rem;
+        .mode-main-title {
+          font-size: clamp(1.2rem, 2.5vw, 1.45rem);
           font-weight: 900;
-          color: var(--color-navy);
-          margin: 0.2rem 0;
-          word-break: break-word;
+          color: var(--primary-navy);
+          margin: 0.25rem 0 0.4rem;
         }
 
-        .choice-subtitle {
+        .mode-subtitle {
           color: #64748B;
           font-size: 0.88rem;
-          margin-bottom: 1.2rem;
           line-height: 1.5;
-          word-break: break-word;
+          margin-bottom: 1.25rem;
         }
 
-        .mobile-slide-hint {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          background: #EFF6FF;
-          color: #1D4ED8;
-          font-size: 0.76rem;
-          font-weight: 700;
-          padding: 0.35rem 0.8rem;
-          border-radius: 999px;
-          border: 1px solid #BFDBFE;
-          margin-bottom: 0.75rem;
-        }
-
-        .choice-tabs-grid {
+        .planner-mode-toggle-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1.4rem;
+          gap: 1.25rem;
           width: 100%;
           min-width: 0;
           box-sizing: border-box;
         }
 
-        .choice-tab-card {
+        .mode-toggle-card {
           border: 2px solid #E2E8F0;
-          border-radius: 18px;
-          padding: 1.4rem;
+          border-radius: 16px;
+          padding: 1.3rem;
           cursor: pointer;
-          transition: all 0.25s ease;
-          background: #FAFDFB;
+          transition: all 0.22s ease;
+          background: #FAFAFA;
+          display: flex;
+          flex-direction: column;
           box-sizing: border-box;
-          position: relative;
+          text-align: left;
         }
 
-        .choice-tab-card:hover {
+        .mode-toggle-card:hover {
           border-color: #94A3B8;
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
         }
 
-        .choice-tab-card.active {
-          border-color: var(--color-green);
+        .mode-toggle-card.active {
+          border-color: var(--travel-green);
           background: #FFFFFF;
-          box-shadow: 0 0 0 3px rgba(21, 155, 117, 0.18), 0 12px 28px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15), 0 10px 24px rgba(5, 150, 105, 0.08);
         }
 
-        .choice-tab-top {
+        .mode-toggle-top {
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          gap: 0.85rem;
           margin-bottom: 0.75rem;
         }
 
-        .choice-badge {
-          font-size: 0.7rem;
-          font-weight: 800;
-          letter-spacing: 0.5px;
-          padding: 0.25rem 0.7rem;
-          border-radius: 999px;
-        }
-
-        .choice-badge.badge-custom { background: #DCFCE7; color: #166534; }
-        .choice-badge.badge-fixed { background: #DBEAFE; color: #1E40AF; }
-
-        .choice-radio {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          border: 2px solid #CBD5E1;
+        .mode-icon-box {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          transition: all 0.2s;
         }
 
-        .choice-radio.active {
-          background: var(--color-green);
-          border-color: var(--color-green);
-          box-shadow: 0 2px 8px rgba(21, 155, 117, 0.4);
+        .mode-icon-box.custom {
+          background: #ECFDF5;
+          color: #059669;
         }
 
-        .choice-tab-card h4 {
-          font-size: 1.15rem;
+        .mode-icon-box.fixed {
+          background: #EFF6FF;
+          color: #2563EB;
+        }
+
+        .mode-badge-wrap {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+
+        .mode-badge {
+          font-size: 0.7rem;
           font-weight: 800;
-          color: var(--color-navy);
-          margin-bottom: 0.4rem;
+          padding: 0.2rem 0.65rem;
+          border-radius: 999px;
+          letter-spacing: 0.04em;
         }
 
-        .choice-tab-card p {
-          font-size: 0.84rem;
-          color: #475569;
+        .mode-badge.custom { background: #DCFCE7; color: #166534; }
+        .mode-badge.fixed { background: #DBEAFE; color: #1E40AF; }
+
+        .active-check-badge {
+          font-size: 0.7rem;
+          font-weight: 800;
+          background: #059669;
+          color: #FFFFFF;
+          padding: 0.2rem 0.55rem;
+          border-radius: 999px;
+        }
+
+        .mode-card-title {
+          font-size: 1.08rem;
+          font-weight: 800;
+          color: var(--primary-navy);
+          margin-bottom: 0.35rem;
+        }
+
+        .mode-card-desc {
+          font-size: 0.82rem;
+          color: #64748B;
           line-height: 1.5;
-          margin-bottom: 0.9rem;
-          word-break: break-word;
+          margin-bottom: 0.85rem;
+          flex-grow: 1;
         }
 
-        .choice-features {
+        .mode-perks-row {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.5rem;
+          gap: 0.45rem;
           font-size: 0.74rem;
           font-weight: 700;
-          color: #0F766E;
+          color: #047857;
         }
 
-        .choice-features span {
+        .mode-perks-row span {
           background: #F0FDF4;
-          padding: 0.25rem 0.6rem;
-          border-radius: 8px;
+          padding: 0.2rem 0.55rem;
+          border-radius: 6px;
           border: 1px solid #BBF7D0;
+        }
+
+        @media (max-width: 768px) {
+          .planner-mode-toggle-grid {
+            grid-template-columns: 1fr;
+          }
         }
 
         /* Direct Destination Banner */

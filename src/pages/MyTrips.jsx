@@ -1092,12 +1092,13 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           min-height: 100vh;
         }
 
-        /* Hero Banner */
+        /* Hero Banner - Luminous Luxury Header */
         .portal-hero-banner {
           position: relative;
-          background: linear-gradient(135deg, #091E3A 0%, #102A45 50%, #0B192C 100%);
-          color: #FFFFFF;
-          padding: 3.5rem 0 0;
+          background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+          border-bottom: 1.5px solid #E2E8F0;
+          color: #0F172A;
+          padding: 2.5rem 0 0;
           overflow: hidden;
         }
 
@@ -1107,8 +1108,8 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           left: 0;
           right: 0;
           bottom: 0;
-          background-image: radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
-                            radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 40%);
+          background-image: radial-gradient(circle at 90% 10%, rgba(5, 150, 105, 0.06) 0%, transparent 50%),
+                            radial-gradient(circle at 10% 90%, rgba(37, 99, 235, 0.05) 0%, transparent 50%);
           pointer-events: none;
         }
 
@@ -1116,7 +1117,7 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           display: flex;
           align-items: center;
           gap: 1.8rem;
-          margin-bottom: 2.2rem;
+          margin-bottom: 2rem;
           flex-wrap: wrap;
         }
 
@@ -1125,18 +1126,18 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         }
 
         .traveler-avatar-box {
-          width: 84px;
-          height: 84px;
+          width: 80px;
+          height: 80px;
           border-radius: 50%;
           background: linear-gradient(135deg, #059669 0%, #10B981 100%);
           color: #FFFFFF;
           font-weight: 800;
-          font-size: 2rem;
+          font-size: 1.85rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
-          border: 3.5px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 8px 24px rgba(5, 150, 105, 0.25);
+          border: 3.5px solid #FFFFFF;
           letter-spacing: 0.05em;
         }
 
@@ -1144,15 +1145,15 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           position: absolute;
           bottom: 0;
           right: 0;
-          width: 26px;
-          height: 26px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
           background: #10B981;
           color: white;
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 2.5px solid #091E3A;
+          border: 2px solid #FFFFFF;
         }
 
         .traveler-info-col {
@@ -1163,14 +1164,14 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         .traveler-name-row {
           display: flex;
           align-items: center;
-          gap: 0.9rem;
+          gap: 0.85rem;
           margin-bottom: 0.35rem;
           flex-wrap: wrap;
         }
 
         .traveler-name {
-          color: #FFFFFF;
-          font-size: 2rem;
+          color: #0B132B;
+          font-size: 1.85rem;
           font-weight: 800;
           margin: 0;
           letter-spacing: -0.02em;
@@ -1180,24 +1181,24 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           display: inline-flex;
           align-items: center;
           gap: 5px;
-          background: rgba(16, 185, 129, 0.18);
-          border: 1px solid #10B981;
-          color: #6EE7B7;
+          background: #ECFDF5;
+          border: 1px solid #A7F3D0;
+          color: #047857;
           font-size: 0.76rem;
           font-weight: 700;
-          padding: 0.28rem 0.75rem;
+          padding: 0.25rem 0.75rem;
           border-radius: 20px;
         }
 
         .roavio-vip-badge.unauthed {
-          background: rgba(245, 158, 11, 0.18);
-          border-color: #F59E0B;
-          color: #FCD34D;
+          background: #FFFBEB;
+          border-color: #FCD34D;
+          color: #92400E;
           text-decoration: none;
         }
 
         .traveler-meta-sub {
-          color: #94A3B8;
+          color: #64748B;
           font-size: 0.88rem;
           margin: 0 0 0.85rem;
           display: flex;
@@ -1207,12 +1208,12 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         }
 
         .meta-dot {
-          color: #475569;
+          color: #CBD5E1;
         }
 
         .traveler-metric-ribbon {
           display: flex;
-          gap: 0.8rem;
+          gap: 0.75rem;
           flex-wrap: wrap;
         }
 
@@ -1220,17 +1221,17 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           display: flex;
           align-items: center;
           gap: 6px;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          backdrop-filter: blur(8px);
+          background: #FFFFFF;
+          border: 1.5px solid #E2E8F0;
           padding: 0.35rem 0.85rem;
           border-radius: 20px;
-          font-size: 0.78rem;
-          color: #E2E8F0;
+          font-size: 0.8rem;
+          color: #475569;
+          box-shadow: 0 2px 6px rgba(11, 19, 43, 0.03);
         }
 
         .metric-chip strong {
-          color: #FFFFFF;
+          color: #0B132B;
           font-weight: 800;
         }
 
@@ -1246,20 +1247,20 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           justify-content: center;
           gap: 6px;
           background: linear-gradient(135deg, #059669 0%, #10B981 100%);
-          color: #FFFFFF;
+          color: #FFFFFF !important;
           font-weight: 800;
           font-size: 0.9rem;
           padding: 0.75rem 1.4rem;
           border-radius: 12px;
           text-decoration: none;
-          box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
+          box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
           transition: all 0.2s ease;
         }
 
         .btn-hero-primary:hover {
           background: linear-gradient(135deg, #047857 0%, #059669 100%);
           transform: translateY(-1px);
-          color: #FFFFFF;
+          box-shadow: 0 6px 18px rgba(5, 150, 105, 0.4);
         }
 
         .btn-hero-glass {
@@ -1267,9 +1268,9 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           align-items: center;
           justify-content: center;
           gap: 6px;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          color: #FFFFFF;
+          background: #FFFFFF;
+          border: 1.5px solid #CBD5E1;
+          color: #334155 !important;
           font-weight: 700;
           font-size: 0.86rem;
           padding: 0.65rem 1.2rem;
@@ -1279,33 +1280,38 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         }
 
         .btn-hero-glass:hover {
-          background: rgba(255, 255, 255, 0.2);
-          color: #FFFFFF;
+          background: #F8FAFC;
+          border-color: #94A3B8;
+          color: #0F172A !important;
         }
 
-        /* Floating Pill Navigation Tabs */
+        /* Luxury Segmented Tabs */
         .portal-floating-tabs {
           display: flex;
-          gap: 0.5rem;
+          gap: 0.4rem;
           overflow-x: auto;
-          padding: 0.4rem;
-          background: rgba(255, 255, 255, 0.06);
-          backdrop-filter: blur(12px);
+          padding: 0.35rem;
+          background: #FFFFFF;
           border-radius: 16px 16px 0 0;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1.5px solid #E2E8F0;
           border-bottom: none;
+          box-shadow: 0 -4px 16px rgba(11, 19, 43, 0.03);
+          scrollbar-width: none;
+        }
+        .portal-floating-tabs::-webkit-scrollbar {
+          display: none;
         }
 
         .portal-tab-pill {
           display: inline-flex;
           align-items: center;
           gap: 0.55rem;
-          padding: 0.85rem 1.35rem;
+          padding: 0.75rem 1.25rem;
           background: transparent;
           border: none;
-          color: #94A3B8;
-          font-size: 0.9rem;
-          font-weight: 600;
+          color: #64748B;
+          font-size: 0.88rem;
+          font-weight: 700;
           cursor: pointer;
           border-radius: 12px;
           transition: all 0.2s ease;
@@ -1313,15 +1319,15 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         }
 
         .portal-tab-pill:hover {
-          color: #FFFFFF;
-          background: rgba(255, 255, 255, 0.08);
+          color: #0B132B;
+          background: #F8FAFC;
         }
 
         .portal-tab-pill.active {
-          background: #FFFFFF;
-          color: #0F172A;
+          background: #0B132B;
+          color: #FFFFFF;
           font-weight: 800;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 4px 12px rgba(11, 19, 43, 0.15);
         }
 
         .pill-badge {
@@ -1334,7 +1340,8 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         }
 
         .portal-tab-pill.active .pill-badge {
-          background: #0F172A;
+          background: rgba(255, 255, 255, 0.25);
+          color: #FFFFFF;
         }
 
         /* Section Headings */
@@ -1614,69 +1621,51 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         .trust-pill.ssl { background: #EFF6FF; color: #1D4ED8; }
         .trust-pill.pdf { background: #F1F5F9; color: #475569; }
 
-        /* Perforation Line with Realistic Cutouts */
+        /* Modern Boarding Pass Divider */
         .ticket-perforation-divider {
-          width: 20px;
+          width: 1px;
+          background: #E2E8F0;
           position: relative;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: space-between;
         }
 
         .notch {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: #F8FAFC;
-          border: 1.5px solid #E2E8F0;
-          position: absolute;
-          left: -2px;
-          z-index: 2;
-        }
-
-        .notch-top {
-          top: -12px;
-        }
-
-        .notch-bottom {
-          bottom: -12px;
+          display: none;
         }
 
         .perforated-dashed-line {
-          width: 0;
-          height: 100%;
-          border-left: 2px dashed #CBD5E1;
+          display: none;
         }
 
-        /* Stub Section on Right */
+        /* Digital Pass Stub Section on Right */
         .ticket-core-stub {
-          width: 200px;
-          background: #FFFFFF;
-          padding: 1.6rem 1.2rem;
+          width: 210px;
+          background: #FAFAFA;
+          border-left: 1px solid #E2E8F0;
+          padding: 1.6rem 1.3rem;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           text-align: center;
+          flex-shrink: 0;
         }
 
         .stub-qr-frame {
-          padding: 0.7rem;
+          padding: 0.85rem;
           background: #FFFFFF;
-          border: 1.5px solid #CBD5E1;
-          border-radius: 12px;
-          margin-bottom: 0.75rem;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+          border: 1.5px solid #E2E8F0;
+          border-radius: 14px;
+          margin-bottom: 0.8rem;
+          box-shadow: 0 4px 14px rgba(11, 19, 43, 0.05);
         }
 
         .qr-scan-label {
           display: block;
-          font-size: 0.62rem;
+          font-size: 0.65rem;
           font-weight: 800;
           color: #64748B;
-          margin-top: 4px;
-          letter-spacing: 0.05em;
+          margin-top: 5px;
+          letter-spacing: 0.06em;
         }
 
         .stub-pnr-info {
@@ -1685,16 +1674,16 @@ export default function MyTrips({ defaultTab = "tickets" }) {
 
         .pnr-k {
           display: block;
-          font-size: 0.65rem;
+          font-size: 0.68rem;
           font-weight: 700;
           color: #94A3B8;
         }
 
         .pnr-v {
-          font-size: 0.95rem;
-          font-weight: 800;
-          color: #0F172A;
-          letter-spacing: 0.05em;
+          font-size: 1rem;
+          font-weight: 900;
+          color: #0B132B;
+          letter-spacing: 0.04em;
         }
 
         .btn-view-pass {
@@ -1702,12 +1691,12 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 5px;
-          padding: 0.5rem 0.8rem;
-          background: #F8FAFC;
+          gap: 6px;
+          padding: 0.55rem 0.85rem;
+          background: #FFFFFF;
           border: 1.5px solid #CBD5E1;
-          border-radius: 9px;
-          font-size: 0.78rem;
+          border-radius: 10px;
+          font-size: 0.8rem;
           font-weight: 700;
           color: #334155;
           cursor: pointer;
@@ -1715,8 +1704,9 @@ export default function MyTrips({ defaultTab = "tickets" }) {
         }
 
         .btn-view-pass:hover {
-          background: #E2E8F0;
-          color: #0F172A;
+          background: #0B132B;
+          border-color: #0B132B;
+          color: #FFFFFF;
         }
 
         /* Ticket Bottom Action Footer */
@@ -2429,23 +2419,14 @@ export default function MyTrips({ defaultTab = "tickets" }) {
           }
           .ticket-perforation-divider {
             width: 100%;
-            height: 20px;
-            flex-direction: row;
-          }
-          .notch {
-            left: auto;
-          }
-          .notch-top { left: -12px; top: auto; }
-          .notch-bottom { right: -12px; bottom: auto; }
-          .perforated-dashed-line {
-            width: 100%;
-            height: 0;
-            border-left: none;
-            border-top: 2px dashed #CBD5E1;
+            height: 1px;
+            background: #E2E8F0;
           }
           .ticket-core-stub {
             width: 100%;
-            border-top: 1px dashed #E2E8F0;
+            border-left: none;
+            border-top: 1px solid #E2E8F0;
+            padding: 1.4rem;
           }
           .insights-metrics-grid {
             grid-template-columns: 1fr 1fr;
